@@ -117,8 +117,13 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
     AS_result_data = AS_result_data[AS_result_data['Load Case']\
                                     .str.contains('|'.join(seismic_load_name_list))]
 
+    # 층분할된 곳의 Axial strain gage는 max(abs(분할된 두 값))로 assign하기
+    
+        
     ### Gage data에서 Element Name, I-Node ID 불러와서 v좌표 match하기
-    AS_gage_data = AS_gage_data[['Element Name', 'I-Node ID']]; gage_num = len(AS_gage_data) # gage 개수 얻기
+    AS_gage_data = AS_gage_data[['Element Name', 'I-Node ID']]; 
+    
+    gage_num = len(AS_gage_data) # gage 개수 얻기
     
     # I-Node의 v좌표 match해서 추가
     AS_gage_data = AS_gage_data.join(node_data.set_index('Node ID')[['H1', 'H2', 'V']], on='I-Node ID')
