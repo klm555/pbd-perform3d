@@ -486,6 +486,9 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         # 벽체의 4개 node list 만들기
         wall_gage['Node List'] = wall_gage.loc[:,['Node1', 'Node2', 'Node3', 'Node4']]\
                                  .values.tolist()
+                                 
+        wall_gage = wall_gage[wall_gage['Z(mm)']==3200]
+        wall_gage = wall_gage[wall_gage['Wall ID']==79]
         
         # 같은 Wall ID, Z(mm)에 따라 Sorting              
         wall_gage_sorted = wall_gage.loc[:,['Wall ID', 'Z(mm)', 'Node List']]\
@@ -505,7 +508,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
             duplicates_list.append(duplicates)
             gage_node_data_list.append(gage_node_data)
         
-        # 겹치는 Node가 있는 벽체, 없는 벽체를 구분
+        # 같은 wall mark를 갖고, 겹치는 Node가 있는 벽체, 없는 벽체를 구분
         gage_node_list = []
         for gage_node_data, duplicates in zip(gage_node_data_list, duplicates_list):
             
@@ -517,23 +520,23 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
                         gage_node_sublist.append(gage_node_subdata)
                     
                     else:
-                        gage_node_list.append(gage_node_subdata)
+                        gage_node_list.append([gage_node_subdata])
                             
                     gage_node_list.append(gage_node_sublist)
                 
             else:
                 gage_node_list.append(gage_node_data.tolist())
         
-        # 중복되는 노드 제거한 후 Node List 생성 (Node 번호순으로 재배열)        
+        # Node List 생성 (Node 번호순으로 재배열)        
         gage_node_list_zip = []
         for gage_node_sublist in gage_node_list:
             if len(gage_node_sublist) > 1:
-         
+                
                 # 같은 Index(Wall ID, Z(mm))인 부재들의 Nodes를 Index에 맞춰 재배열한 list 만들기
                 gage_node_sublist_zip = [list(i) for i in zip(*gage_node_sublist)]
                 gage_node_list_zip.append(gage_node_sublist_zip)
-                
-            if len(gage_node_sublist) == 1:
+    
+            elif len(gage_node_sublist) == 1:
                 gage_node_list_zip.append(gage_node_sublist)
                 
         # 위에서 재배열한 list를 flatten
@@ -581,12 +584,12 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
             
 #%% Frame, Element, Section , Drift, Constraint Naming
 
-def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
+def naming(input_path, input_xlsx, drift_position_list=[2,5,7,11]):
     
 
 
     # Output 경로 설정
-    name_output_xlsx_dir = section_info_xlsx_dir
+    name_output_xlsx_dir = input_path
     name_output_xlsx = 'Naming Output Sheets.xlsx'
 
     # Drift의 위치, 방향 지정
@@ -594,20 +597,27 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
     direction_list = ['X', 'Y']
 
     #%% section, frame 이름 만들기 위한 정보 load
+    
     section_info_xlsx_sheet = 'Wall Naming' # section naming 관련된 정보만 들어있는 시트
     beam_info_xlsx_sheet = 'Beam Naming'
+    column_info_xlsx_sheet = 'Column Naming'
     story_info_xlsx_sheet = 'Story Data' # 층 정보 sheet
     drift_info_xlsx_sheet = 'ETC' # Drift 정보 sheet
 
-    section_info = pd.read_excel(section_info_xlsx_dir + '\\' + section_info_xlsx, sheet_name = section_info_xlsx_sheet, skiprows = 3)
+    section_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = section_info_xlsx_sheet, skiprows = 3)
     section_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
 
     # Beam에 대해서도 똑같이...
-    beam_info = pd.read_excel(section_info_xlsx_dir + '\\' + section_info_xlsx, sheet_name = beam_info_xlsx_sheet, skiprows = 3)
+    beam_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = beam_info_xlsx_sheet, skiprows = 3)
     beam_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
+    
+    # Column에 대해서도 똑같이...
+    column_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = column_info_xlsx_sheet, skiprows = 3)
+    column_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
 
-    #%% story 정보 load (section info에서 불러온 story_from, story_to를 연동시키기 위함)
-    story_info = pd.read_excel(section_info_xlsx_dir + '\\' + section_info_xlsx, sheet_name = story_info_xlsx_sheet, skiprows = [0,2,3])
+    #%% story 정보 load
+    
+    story_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = story_info_xlsx_sheet, skiprows = [0,2,3])
 
     story_info_reversed = story_info[::-1] # 배열이 내가 원하는 방향과 반대로 되어있어서, 리스트 거꾸로만들었음
     story_info_reversed.reset_index(inplace=True, drop=True)
@@ -656,6 +666,13 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
         for i in range(1, int(row[3]) + 1):
             frame_beam_name_output.append(row[0] + '_' + str(i))
             
+    # Column Frame 이름 뽑기
+    frame_column_name_output = []
+
+    for row in column_info.values:    
+        for i in range(1, int(row[3]) + 1):
+            frame_column_name_output.append(row[0] + '_' + str(i))
+            
     #%% Constraints 이름 뽑기
 
     constraints_name = []
@@ -672,7 +689,7 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
 
     drift_name_output = []
 
-    for position in position_list:
+    for position in drift_position_list:
         for direction in direction_list:
             for current_story_name in story_info['Story Name']:
                 if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
@@ -682,13 +699,32 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
     #%% 출력
 
     name_output = pd.DataFrame(({'Frame(Beam) Name': pd.Series(frame_beam_name_output),\
+                                 'Frame(Column) Name': pd.Series(frame_column_name_output),\
                                  'Frame(Wall) Name': pd.Series(frame_wall_name_output),\
                                  'Constraints Name': pd.Series(constraints_name),\
                                  'Section(Wall) Name': pd.Series(section_name_output),\
                                  'Section(Shear) Name': pd.Series(story_section_name_output),\
                                  'Drift Name': pd.Series(drift_name_output)}))
+    # 개별 엑셀파일로 출력
+    # name_output.to_excel(name_output_xlsx_dir+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
 
-    name_output.to_excel(name_output_xlsx_dir+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
-
-
+    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    name_output = name_output.replace(np.nan, '', regex=True)
     
+    # Using win32com...
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
+    excel.Visible = False # 엑셀창 안보이게
+
+    wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
+    ws = wb.Sheets('Output_Naming')
+    
+    startrow, startcol = 5, 1
+
+    # 이름 열 입력
+    ws.Range(ws.Cells(startrow, startcol),\
+             ws.Cells(startrow + name_output.shape[0]-1,\
+                      name_output.shape[1])).Value\
+    = list(name_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능   
+    
+    wb.Close(SaveChanges=1) # Closing the workbook
+    excel.Quit() # Closing the application    
