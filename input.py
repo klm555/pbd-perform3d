@@ -584,17 +584,32 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
             
 #%% Frame, Element, Section , Drift, Constraint Naming
 
-def naming(input_path, input_xlsx, drift_position_list=[2,5,7,11]):
+def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
+    '''
     
+    모델링에 사용되는 모든 이름들을 동일한 규칙에 의해 출력함.
+    (Frame, Constraints, Section, Drift Names)
+    
+    Parameters
+    ----------
+    input_path : str
+                 Data Conversion 엑셀 파일의 경로.
+                 
+    input_xlsx : str
+                 Data Conversion 엑셀 파일의 이름. 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+    
+    drift_position : list of int, optional, default=[2,5,7,11]
+                     drift 게이지를 설치할 위치. 대괄호 안에는 반드시 정수를 입력해야하며, 각각의 정수는 방향(시계)을 의미한다. 
 
-
-    # Output 경로 설정
-    name_output_xlsx_dir = input_path
-    name_output_xlsx = 'Naming Output Sheets.xlsx'
-
-    # Drift의 위치, 방향 지정
-    # position_list = [2, 5, 7, 11]
-    direction_list = ['X', 'Y']
+    Returns
+    -------        
+    name_output : pandas.core.frame.DataFrame or None
+    따로 출력되지 않으며, Data Conversion 엑셀파일의 Output_Naming 시트에 자동 입력됨.
+                   
+    Raises
+    -------
+    
+    '''
 
     #%% section, frame 이름 만들기 위한 정보 load
     
@@ -687,9 +702,12 @@ def naming(input_path, input_xlsx, drift_position_list=[2,5,7,11]):
 
     #%% Drift 이름 뽑기
 
+    # Drift의 방향 지정
+    direction_list = ['X', 'Y']
+
     drift_name_output = []
 
-    for position in drift_position_list:
+    for position in drift_position:
         for direction in direction_list:
             for current_story_name in story_info['Story Name']:
                 if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
@@ -705,8 +723,11 @@ def naming(input_path, input_xlsx, drift_position_list=[2,5,7,11]):
                                  'Section(Wall) Name': pd.Series(section_name_output),\
                                  'Section(Shear) Name': pd.Series(story_section_name_output),\
                                  'Drift Name': pd.Series(drift_name_output)}))
+
+    # Output 경로 설정
+    # name_output_xlsx = 'Naming Output Sheets.xlsx'
     # 개별 엑셀파일로 출력
-    # name_output.to_excel(name_output_xlsx_dir+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
+    # name_output.to_excel(input_path+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
 
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     name_output = name_output.replace(np.nan, '', regex=True)
