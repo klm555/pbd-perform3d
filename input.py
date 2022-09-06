@@ -91,6 +91,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     nodal_load_raw_xlsx_sheet = 'Nodal Loads'
     mass_raw_xlsx_sheet = 'Story Mass'
     element_raw_xlsx_sheet = 'Elements'
+    story_info_xlsx_sheet = 'Story Data'
     
     # Output 경로 설정
     output_csv_dir = input_path # 또는 '경로'
@@ -232,28 +233,35 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
             column_node_coord_neg = column_node_coord[column_node_coord['Z_2(mm)'] < column_node_coord['Z_1(mm)']]
             
             column_node_coord_neg = column_node_coord_neg.iloc[:,[3,4,5,0,1,2]]
+            column_node_coord_neg.columns = ['X_1(mm)', 'Y_1(mm)', 'Z_1(mm)', 'X_2(mm)', 'Y_2(mm)', 'Z_2(mm)']
             
             # pos, neg 합치기
-            column_node_coord = pd.concat([column_node_coord_pos, column_node_coord_neg])
+            column_node_coord = pd.concat([column_node_coord_pos, column_node_coord_neg]\
+                                          , ignore_index=True)
             
             # 출력
             column_node_coord.to_csv(output_csv_dir+'\\'+column_csv, mode='w', index=False)
         
         if import_beam == True:
             # X 좌표가 더 작은 노드를 i-node로!
-            beam_node_coord_pos = beam_node_coord[beam_node_coord['X_2(mm)'] >= beam_node_coord['X_1(mm)']]
+            beam_node_coord_pos = beam_node_coord[beam_node_coord['X_2(mm)'] > beam_node_coord['X_1(mm)']]
             beam_node_coord_neg = beam_node_coord[beam_node_coord['X_2(mm)'] < beam_node_coord['X_1(mm)']]
+            beam_node_coord_zero = beam_node_coord[beam_node_coord['X_2(mm)'] == beam_node_coord['X_1(mm)']]
             
             beam_node_coord_neg = beam_node_coord_neg.iloc[:,[3,4,5,0,1,2]]
+            beam_node_coord_neg.columns = beam_node_coord_pos.columns.values
             
             # Y 좌표가 더 작은 노드를 i-node로!
-            beam_node_coord_pos = beam_node_coord[beam_node_coord['Y_2(mm)'] >= beam_node_coord['Y_1(mm)']]
-            beam_node_coord_neg = beam_node_coord[beam_node_coord['Y_2(mm)'] < beam_node_coord['Y_1(mm)']]
+            beam_node_coord_zero_pos = beam_node_coord_zero[beam_node_coord_zero['Y_2(mm)'] >= beam_node_coord_zero['Y_1(mm)']]
+            beam_node_coord_zero_neg = beam_node_coord_zero[beam_node_coord_zero['Y_2(mm)'] < beam_node_coord_zero['Y_1(mm)']]
             
-            beam_node_coord_neg = beam_node_coord_neg.iloc[:,[3,4,5,0,1,2]]
+            beam_node_coord_zero_neg = beam_node_coord_zero_neg.iloc[:,[3,4,5,0,1,2]]
+            beam_node_coord_zero_neg.columns = beam_node_coord_zero_pos.columns.values
             
             # pos, neg 합치기
-            beam_node_coord = pd.concat([beam_node_coord_pos, beam_node_coord_neg])
+            beam_node_coord = pd.concat([beam_node_coord_pos, beam_node_coord_neg\
+                                         , beam_node_coord_zero_pos, beam_node_coord_zero_neg]\
+                                        , ignore_index=True)
             
             # 출력
             beam_node_coord.to_csv(output_csv_dir+'\\'+beam_csv, mode='w', index=False)
@@ -292,172 +300,31 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         wall_node_3_coord.columns = ['X_3(mm)', 'Y_3(mm)', 'Z_3(mm)']
         wall_node_4_coord.columns = ['X_4(mm)', 'Y_4(mm)', 'Z_4(mm)']
         
-        # wall_node_coord_list = [wall_node_1_coord, wall_node_2_coord, wall_node_3_coord, wall_node_4_coord]
         wall_node_coord = pd.concat([wall_node_1_coord, wall_node_2_coord, wall_node_3_coord, wall_node_4_coord], axis=1)
+                
+        ### 부재의 orientation 맞춘 후 csv로 출력
+        # X 좌표가 더 작은 노드를 i-node로!
+        wall_node_coord_pos = wall_node_coord[wall_node_coord['X_2(mm)'] > wall_node_coord['X_1(mm)']]
+        wall_node_coord_neg = wall_node_coord[wall_node_coord['X_2(mm)'] < wall_node_coord['X_1(mm)']]
+        wall_node_coord_zero = wall_node_coord[wall_node_coord['X_2(mm)'] == wall_node_coord['X_1(mm)']]
+        
+        wall_node_coord_neg = wall_node_coord_neg.iloc[:,[3,4,5,0,1,2,9,10,11,6,7,8]]
+        wall_node_coord_neg.columns = wall_node_coord_pos.columns.values
+        
+        # Y 좌표가 더 작은 노드를 i-node로!
+        wall_node_coord_zero_pos = wall_node_coord_zero[wall_node_coord_zero['Y_2(mm)'] >= wall_node_coord_zero['Y_1(mm)']]
+        wall_node_coord_zero_neg = wall_node_coord_zero[wall_node_coord_zero['Y_2(mm)'] < wall_node_coord_zero['Y_1(mm)']]
+        
+        wall_node_coord_zero_neg = wall_node_coord_zero_neg.iloc[:,[3,4,5,0,1,2,9,10,11,6,7,8]]
+        wall_node_coord_zero_neg.columns = wall_node_coord_zero_pos.columns.values
+        
+        # pos, neg 합치기
+        wall_node_coord = pd.concat([wall_node_coord_pos, wall_node_coord_neg\
+                                     , wall_node_coord_zero_pos, wall_node_coord_zero_neg]\
+                                    , ignore_index=True)
         
         # Wall Element 결과값을 csv로 변환
         wall_node_coord.to_csv(output_csv_dir+'\\'+wall_csv, mode='w', index=False) 
-    
-    #%% Plate Element 뽑기
-    if (import_plate == True) or ('PLATE' in element['Type']):
-        
-    # Plate Element만 추출(slicing)
-        plate = element.loc[lambda x: element['Type'] == 'PLATE', :]
-        
-        # 필요한 열만 추출
-        plate_node_1 = plate.loc[:, 'Node1']
-        plate_node_2 = plate.loc[:, 'Node2']
-        plate_node_3 = plate.loc[:, 'Node3']
-        plate_node_4 = plate.loc[:, 'Node4']
-        
-        plate_node_1.name = 'Node'
-        plate_node_2.name = 'Node'
-        plate_node_3.name = 'Node'
-        plate_node_4.name = 'Node'
-        
-        # Merge로 Node 번호에 맞는 좌표를 결합
-        plate_node_1_coord = pd.merge(plate_node_1, node, how='left')
-        plate_node_2_coord = pd.merge(plate_node_2, node, how='left')
-        plate_node_3_coord = pd.merge(plate_node_3, node, how='left')
-        plate_node_4_coord = pd.merge(plate_node_4, node, how='left')
-        
-        # Node1, Node2, Node3, Node4의 좌표를 모두 결합시켜 출력
-        plate_node_1_coord = plate_node_1_coord.drop('Node', axis=1)
-        plate_node_2_coord = plate_node_2_coord.drop('Node', axis=1)
-        plate_node_3_coord = plate_node_3_coord.drop('Node', axis=1)
-        plate_node_4_coord = plate_node_4_coord.drop('Node', axis=1)
-        
-        plate_node_1_coord.columns = ['X_1(mm)', 'Y_1(mm)', 'Z_1(mm)']
-        plate_node_2_coord.columns = ['X_2(mm)', 'Y_2(mm)', 'Z_2(mm)']
-        plate_node_3_coord.columns = ['X_3(mm)', 'Y_3(mm)', 'Z_3(mm)']
-        plate_node_4_coord.columns = ['X_4(mm)', 'Y_4(mm)', 'Z_4(mm)']
-        
-        # plate_node_coord_list = [plate_node_1_coord, plate_node_2_coord, plate_node_3_coord, plate_node_4_coord]
-        plate_node_coord = pd.concat([plate_node_1_coord, plate_node_2_coord, plate_node_3_coord, plate_node_4_coord], axis=1)
-        
-        # plate Element 결과값을 csv로 변환
-        plate_node_coord.to_csv(output_csv_dir+'\\'+plate_csv, mode='w', index=False)
-    
-    #%% Shear Wall Gage 뽑기
-    
-        # Story Info data 불러오기
-        story_info_xlsx_sheet = 'Story Data'
-        story_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name=story_info_xlsx_sheet\
-                                   , skiprows=[0,2,3], usecols=[1,2,3,4], keep_default_na=False)
-    
-    if import_SWR_gage == True:
-        
-        # Wall Element만 추출(slicing)
-        wall = element.loc[lambda x: element['Type'] == 'WALL', :]
-        
-        wall_gage = wall.loc[:,['Wall ID', 'Node1', 'Node2', 'Node3', 'Node4']]
-        
-        # Merge로 Node 번호에 맞는 좌표를 결합
-        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
-        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
-        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node3', right_on='Node', suffixes=(None, '3'))
-        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
-        
-        # 필요한 열 뽑고 재정렬
-        wall_gage = wall_gage.iloc[:,[0,1,2,3,4,6,7,8,10,11,12,14,15,16,18,19,20]]
-        wall_gage.columns = ['Wall ID', 'Node1', 'Node2', 'Node3', 'Node4', 'X(mm)1'\
-                             , 'Y(mm)1', 'Z(mm)1', 'X(mm)2', 'Y(mm)2', 'Z(mm)2', 'X(mm)3'\
-                             , 'Y(mm)3', 'Z(mm)3', 'X(mm)4', 'Y(mm)4', 'Z(mm)4']
-        
-        # 각 Wall element의 z좌표 추출
-        wall_gage['Z(mm)'] =  wall_gage[['Z(mm)1', 'Z(mm)2', 'Z(mm)3']].min(axis=1)
-        
-        # # 분할된 층의 노드들을 제외시키기(SWR Gage는 층분할하여 모델링하지않음)
-        # wall_gage = wall_gage[wall_gage['Z(mm)'].isin(story_info['Level'])]
-        # test = wall_gage[~wall_gage['Z(mm)'].isin(story_info['Level'])]
-              
-        # 벽체의 4개 node list 만들기
-        wall_gage['Node List'] = wall_gage.loc[:,['Node1', 'Node2', 'Node3', 'Node4']]\
-                                 .values.tolist()
-        
-        # 같은 Wall ID, Z(mm)에 따라 Sorting              
-        wall_gage_sorted = wall_gage.loc[:,['Wall ID', 'Z(mm)', 'Node List']]\
-                           .set_index(['Wall ID', 'Z(mm)'])
-        
-        wall_gage_sorted = wall_gage_sorted.sort_values(['Wall ID', 'Z(mm)'])
-        
-        # For loop 돌리면서 Wall ID, Z(mm)에 따른 Node Data 리스트/ 겹치는 Node 리스트 만들기
-        duplicates_list = []
-        gage_node_data_list = []
-        for idx, gage_node_data in wall_gage_sorted.groupby(['Wall ID', 'Z(mm)'])['Node List']:
-            
-            # 같은 Wall ID를 가지지만 붙어있지 않은 벽체 구별해내기
-            gage_node_list_flat = [i for gage_node_list in gage_node_data for i in gage_node_list]
-            duplicates = list(set([i for i in gage_node_list_flat if gage_node_list_flat.count(i) > 1])) # 위의 리스트에서 겹치는 부재들 remove
-            
-            duplicates_list.append(duplicates)
-            gage_node_data_list.append(gage_node_data)
-        
-        # 겹치는 Node가 있는 벽체, 없는 벽체를 구분
-        gage_node_list = []
-        for gage_node_data, duplicates in zip(gage_node_data_list, duplicates_list):
-            
-            if len(gage_node_data) > 1: # 같은 Index(Wall ID, Z(mm))에 2개 이상의 벽체가 Assign 되어있을때    
-                gage_node_sublist = []
-                for gage_node_subdata in gage_node_data:
-                                
-                    if any(i in gage_node_subdata for i in duplicates): # duplicates_list의 중복되는 node가 하나라도 포함되어있는 경우
-                        gage_node_sublist.append(gage_node_subdata)
-                    
-                    else:
-                        gage_node_list.append(gage_node_subdata)
-                            
-                    gage_node_list.append(gage_node_sublist)
-                
-            else:
-                gage_node_list.append(gage_node_data.tolist())
-        
-        # 중복되는 노드 제거한 후 Node List 생성 (Node 번호순으로 재배열)        
-        gage_node_list_zip = []
-        for gage_node_sublist in gage_node_list:
-            if len(gage_node_sublist) > 1:
-         
-                # 같은 Index(Wall ID, Z(mm))인 부재들의 Nodes를 Index에 맞춰 재배열한 list 만들기
-                gage_node_sublist_zip = [list(i) for i in zip(*gage_node_sublist)]
-                gage_node_list_zip.append(gage_node_sublist_zip)
-                
-            if len(gage_node_sublist) == 1:
-                gage_node_list_zip.append(gage_node_sublist)
-                
-        # 위에서 재배열한 list를 flatten
-        gage_node_list_flat = []
-        for gage_node_sublist_zip in gage_node_list_zip:
-            if len(gage_node_sublist_zip) > 1:
-                gage_node_sublist_flat = [i for gage_node_sublist_sublist_zip in gage_node_sublist_zip for i in gage_node_sublist_sublist_zip]
-                gage_node_list_flat.append(gage_node_sublist_flat)
-                
-            elif len(gage_node_sublist_zip) == 1:
-                gage_node_list_flat.append(gage_node_sublist_zip[0])
-                
-        # 중복되는 list 제거
-        gage_node_list_flat_set = set(map(tuple, gage_node_list_flat)) # list -> tuple (to make it hashable)
-        gage_node_list_flat_reduced = map(list, gage_node_list_flat_set) # tuple -> list  
-    
-        # sublist에서 중복되는 element 제거
-        gage_node_list_flat_set_reduced = []
-        for i in gage_node_list_flat_set:
-            temp = [x for x in i if i.count(x) == 1]
-            gage_node_list_flat_set_reduced.append(temp)
-    
-        # Node 번호에 맞는 좌표 매칭 후 출력
-        gage_node_coord = pd.DataFrame(gage_node_list_flat_set_reduced)
-        gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
-        
-        # Merge로 Node 번호에 맞는 좌표를 결합
-        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
-        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
-        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node3', right_on='Node', suffixes=(None, '3'))
-        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
-    
-        gage_node_coord = gage_node_coord.iloc[:, [5,6,7,9,10,11,17,18,19,13,14,15]]
-        
-        # Gage Element 결과값을 csv로 변환
-        gage_node_coord.to_csv(output_csv_dir+'\\'+wall_gage_csv, mode='w', index=False)
     
     #%% Axial Strain Gage 뽑기
     
@@ -474,6 +341,27 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node3', right_on='Node', suffixes=(None, '3'))
         wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
         
+        ### 부재의 orientation 맞추기
+        # X 좌표가 더 작은 노드를 i-node로!
+        wall_gage_pos = wall_gage[wall_gage['X(mm)2'] > wall_gage['X(mm)']]
+        wall_gage_neg = wall_gage[wall_gage['X(mm)2'] < wall_gage['X(mm)']]
+        wall_gage_zero = wall_gage[wall_gage['X(mm)2'] == wall_gage['X(mm)']]
+        
+        # node1(5,6,7,8), node2(9,10,11,12), node3(13,14,15,16), node4(17,18,19,20)
+        wall_gage_neg = wall_gage_neg.iloc[:,[0,2,1,4,3,9,10,11,12,5,6,7,8,17,18,19,20,13,14,15,16]]
+        wall_gage_neg.columns = wall_gage_pos.columns.values
+        
+        # Y 좌표가 더 작은 노드를 i-node로!
+        wall_gage_zero_pos = wall_gage_zero[wall_gage_zero['Y(mm)2'] >= wall_gage_zero['Y(mm)']]
+        wall_gage_zero_neg = wall_gage_zero[wall_gage_zero['Y(mm)2'] < wall_gage_zero['Y(mm)']]
+        
+        wall_gage_zero_neg = wall_gage_zero_neg.iloc[:,[0,2,1,4,3,9,10,11,12,5,6,7,8,17,18,19,20,13,14,15,16]]
+        wall_gage_zero_neg.columns = wall_gage_zero_pos.columns.values
+        
+        # pos, neg 합치기
+        wall_gage = pd.concat([wall_gage_pos, wall_gage_neg, wall_gage_zero_pos, wall_gage_zero_neg]\
+                              , ignore_index=True)
+        
         # 필요한 열 뽑고 재정렬
         wall_gage = wall_gage.iloc[:,[0,1,2,3,4,6,7,8,10,11,12,14,15,16,18,19,20]]
         wall_gage.columns = ['Wall ID', 'Node1', 'Node2', 'Node3', 'Node4', 'X(mm)1'\
@@ -486,9 +374,6 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         # 벽체의 4개 node list 만들기
         wall_gage['Node List'] = wall_gage.loc[:,['Node1', 'Node2', 'Node3', 'Node4']]\
                                  .values.tolist()
-                                 
-        wall_gage = wall_gage[wall_gage['Z(mm)']==3200]
-        wall_gage = wall_gage[wall_gage['Wall ID']==79]
         
         # 같은 Wall ID, Z(mm)에 따라 Sorting              
         wall_gage_sorted = wall_gage.loc[:,['Wall ID', 'Z(mm)', 'Node List']]\
@@ -581,7 +466,205 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         
         # Gage Element 결과값을 csv로 변환
         as_gage_node_coord.to_csv(output_csv_dir+'\\'+as_gage_csv, mode='w', index=False)
+
+    #%% Shear Wall Gage 뽑기
+    
+    if import_SWR_gage == True:
+        
+        # Story Info data 불러오기
+        story_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name=story_info_xlsx_sheet\
+                                   , skiprows=[0,2,3], usecols=[1,2,3,4], keep_default_na=False)
+        
+        # Wall Element만 추출(slicing)
+        wall = element.loc[lambda x: element['Type'] == 'WALL', :]
+        
+        wall_gage = wall.loc[:,['Wall ID', 'Node1', 'Node2', 'Node3', 'Node4']]
+        
+        # Merge로 Node 번호에 맞는 좌표를 결합
+        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
+        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
+        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node3', right_on='Node', suffixes=(None, '3'))
+        wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
+        
+        ### 부재의 orientation 맞추기
+        # X 좌표가 더 작은 노드를 i-node로!
+        wall_gage_pos = wall_gage[wall_gage['X(mm)2'] > wall_gage['X(mm)']]
+        wall_gage_neg = wall_gage[wall_gage['X(mm)2'] < wall_gage['X(mm)']]
+        wall_gage_zero = wall_gage[wall_gage['X(mm)2'] == wall_gage['X(mm)']]
+        
+        # node1(5,6,7,8), node2(9,10,11,12), node3(13,14,15,16), node4(17,18,19,20)
+        wall_gage_neg = wall_gage_neg.iloc[:,[0,2,1,4,3,9,10,11,12,5,6,7,8,17,18,19,20,13,14,15,16]]
+        wall_gage_neg.columns = wall_gage_pos.columns.values
+        
+        # Y 좌표가 더 작은 노드를 i-node로!
+        wall_gage_zero_pos = wall_gage_zero[wall_gage_zero['Y(mm)2'] >= wall_gage_zero['Y(mm)']]
+        wall_gage_zero_neg = wall_gage_zero[wall_gage_zero['Y(mm)2'] < wall_gage_zero['Y(mm)']]
+        
+        wall_gage_zero_neg = wall_gage_zero_neg.iloc[:,[0,2,1,4,3,9,10,11,12,5,6,7,8,17,18,19,20,13,14,15,16]]
+        wall_gage_zero_neg.columns = wall_gage_zero_pos.columns.values
+        
+        # pos, neg 합치기
+        wall_gage = pd.concat([wall_gage_pos, wall_gage_neg, wall_gage_zero_pos, wall_gage_zero_neg]\
+                              , ignore_index=True)
+        
+        ### SWR gage가 분할층에서 나눠지지 않게 만들기 
+        # 분할층 노드가 포함되지 않은 부재 slice
+        wall_gage_no_divide = wall_gage[(wall_gage['Z(mm)'].isin(story_info['Level']))\
+                                        & (wall_gage['Z(mm)3'].isin(story_info['Level']))]
+        
+        # 분할층 노드가 상부에만(k,l-node) 포함되는 부재 slice
+        wall_gage_divide = wall_gage[~wall_gage['Z(mm)3'].isin(story_info['Level'])]
+        
+        # wall_gage_divide 노드들의 상부 노드(k,l-node)의 z좌표를 다음 측으로 격상
+        next_level_list = []
+        for i in wall_gage_divide['Z(mm)3']:
+            level_bigger = story_info['Level'][story_info['Level']-i >= 0]
+            next_level = level_bigger.sort_values(ignore_index=True)[0]
+
+            next_level_list.append(next_level)
+        
+        pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
+
+        wall_gage_divide.loc[:,'Z(mm)3'] = next_level_list
+        wall_gage_divide['Z(mm)4'] = next_level_list
+                
+        # 필요한 열 뽑고 재정렬
+        wall_gage = wall_gage.iloc[:,[0,1,2,3,4,6,7,8,10,11,12,14,15,16,18,19,20]]
+        wall_gage.columns = ['Wall ID', 'Node1', 'Node2', 'Node3', 'Node4', 'X(mm)1'\
+                             , 'Y(mm)1', 'Z(mm)1', 'X(mm)2', 'Y(mm)2', 'Z(mm)2', 'X(mm)3'\
+                             , 'Y(mm)3', 'Z(mm)3', 'X(mm)4', 'Y(mm)4', 'Z(mm)4']
+        
+        # 각 Wall element의 z좌표 추출
+        wall_gage['Z(mm)'] =  wall_gage[['Z(mm)1', 'Z(mm)2', 'Z(mm)3']].min(axis=1)
+              
+        # 벽체의 4개 node list 만들기
+        wall_gage['Node List'] = wall_gage.loc[:,['Node1', 'Node2', 'Node3', 'Node4']]\
+                                 .values.tolist()
+        
+        # 같은 Wall ID, Z(mm)에 따라 Sorting              
+        wall_gage_sorted = wall_gage.loc[:,['Wall ID', 'Z(mm)', 'Node List']]\
+                           .set_index(['Wall ID', 'Z(mm)'])
+        
+        wall_gage_sorted = wall_gage_sorted.sort_values(['Wall ID', 'Z(mm)'])
+        
+        # For loop 돌리면서 Wall ID, Z(mm)에 따른 Node Data 리스트/ 겹치는 Node 리스트 만들기
+        duplicates_list = []
+        gage_node_data_list = []
+        for idx, gage_node_data in wall_gage_sorted.groupby(['Wall ID', 'Z(mm)'])['Node List']:
             
+            # 같은 Wall ID를 가지지만 붙어있지 않은 벽체 구별해내기
+            gage_node_list_flat = [i for gage_node_list in gage_node_data for i in gage_node_list]
+            duplicates = list(set([i for i in gage_node_list_flat if gage_node_list_flat.count(i) > 1])) # 위의 리스트에서 겹치는 부재들 remove
+            
+            duplicates_list.append(duplicates)
+            gage_node_data_list.append(gage_node_data)
+        
+        # 같은 wall mark를 갖고, 겹치는 Node가 있는 벽체, 없는 벽체를 구분
+        gage_node_list = []
+        for gage_node_data, duplicates in zip(gage_node_data_list, duplicates_list):
+            
+            if len(gage_node_data) > 1: # 같은 Index(Wall ID, Z(mm))에 2개 이상의 벽체가 Assign 되어있을때    
+                gage_node_sublist = []
+                for gage_node_subdata in gage_node_data:
+                                
+                    if any(i in gage_node_subdata for i in duplicates): # duplicates_list의 중복되는 node가 하나라도 포함되어있는 경우
+                        gage_node_sublist.append(gage_node_subdata)
+                    
+                    else:
+                        gage_node_list.append([gage_node_subdata])
+                            
+                    gage_node_list.append(gage_node_sublist)
+                
+            else:
+                gage_node_list.append(gage_node_data.tolist())
+        
+        # Node List 생성 (Node 번호순으로 재배열)        
+        gage_node_list_zip = []
+        for gage_node_sublist in gage_node_list:
+            if len(gage_node_sublist) > 1:
+                
+                # 같은 Index(Wall ID, Z(mm))인 부재들의 Nodes를 Index에 맞춰 재배열한 list 만들기
+                gage_node_sublist_zip = [list(i) for i in zip(*gage_node_sublist)]
+                gage_node_list_zip.append(gage_node_sublist_zip)
+    
+            elif len(gage_node_sublist) == 1:
+                gage_node_list_zip.append(gage_node_sublist)
+                
+        # 위에서 재배열한 list를 flatten
+        gage_node_list_flat = []
+        for gage_node_sublist_zip in gage_node_list_zip:
+            if len(gage_node_sublist_zip) > 1:
+                gage_node_sublist_flat = [i for gage_node_sublist_sublist_zip in gage_node_sublist_zip for i in gage_node_sublist_sublist_zip]
+                gage_node_list_flat.append(gage_node_sublist_flat)
+                
+            elif len(gage_node_sublist_zip) == 1:
+                gage_node_list_flat.append(gage_node_sublist_zip[0])
+                
+        # 중복되는 list 제거
+        gage_node_list_flat_set = set(map(tuple, gage_node_list_flat)) # list -> tuple (to make it hashable)
+        gage_node_list_flat_reduced = map(list, gage_node_list_flat_set) # tuple -> list  
+    
+        # sublist에서 중복되는 element 제거
+        gage_node_list_flat_set_reduced = []
+        for i in gage_node_list_flat_set:
+            temp = [x for x in i if i.count(x) == 1]
+            gage_node_list_flat_set_reduced.append(temp)
+    
+        # Node 번호에 맞는 좌표 매칭 후 출력
+        gage_node_coord = pd.DataFrame(gage_node_list_flat_set_reduced)
+        gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
+        
+        # Merge로 Node 번호에 맞는 좌표를 결합
+        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
+        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
+        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node3', right_on='Node', suffixes=(None, '3'))
+        gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
+    
+        gage_node_coord = gage_node_coord.iloc[:, [5,6,7,9,10,11,17,18,19,13,14,15]]
+        
+        # Gage Element 결과값을 csv로 변환
+        gage_node_coord.to_csv(output_csv_dir+'\\'+wall_gage_csv, mode='w', index=False)
+    
+    #%% Plate Element 뽑기
+    if (import_plate == True) or ('PLATE' in element['Type']):
+        
+    # Plate Element만 추출(slicing)
+        plate = element.loc[lambda x: element['Type'] == 'PLATE', :]
+        
+        # 필요한 열만 추출
+        plate_node_1 = plate.loc[:, 'Node1']
+        plate_node_2 = plate.loc[:, 'Node2']
+        plate_node_3 = plate.loc[:, 'Node3']
+        plate_node_4 = plate.loc[:, 'Node4']
+        
+        plate_node_1.name = 'Node'
+        plate_node_2.name = 'Node'
+        plate_node_3.name = 'Node'
+        plate_node_4.name = 'Node'
+        
+        # Merge로 Node 번호에 맞는 좌표를 결합
+        plate_node_1_coord = pd.merge(plate_node_1, node, how='left')
+        plate_node_2_coord = pd.merge(plate_node_2, node, how='left')
+        plate_node_3_coord = pd.merge(plate_node_3, node, how='left')
+        plate_node_4_coord = pd.merge(plate_node_4, node, how='left')
+        
+        # Node1, Node2, Node3, Node4의 좌표를 모두 결합시켜 출력
+        plate_node_1_coord = plate_node_1_coord.drop('Node', axis=1)
+        plate_node_2_coord = plate_node_2_coord.drop('Node', axis=1)
+        plate_node_3_coord = plate_node_3_coord.drop('Node', axis=1)
+        plate_node_4_coord = plate_node_4_coord.drop('Node', axis=1)
+        
+        plate_node_1_coord.columns = ['X_1(mm)', 'Y_1(mm)', 'Z_1(mm)']
+        plate_node_2_coord.columns = ['X_2(mm)', 'Y_2(mm)', 'Z_2(mm)']
+        plate_node_3_coord.columns = ['X_3(mm)', 'Y_3(mm)', 'Z_3(mm)']
+        plate_node_4_coord.columns = ['X_4(mm)', 'Y_4(mm)', 'Z_4(mm)']
+        
+        # plate_node_coord_list = [plate_node_1_coord, plate_node_2_coord, plate_node_3_coord, plate_node_4_coord]
+        plate_node_coord = pd.concat([plate_node_1_coord, plate_node_2_coord, plate_node_3_coord, plate_node_4_coord], axis=1)
+        
+        # plate Element 결과값을 csv로 변환
+        plate_node_coord.to_csv(output_csv_dir+'\\'+plate_csv, mode='w', index=False)
+                
 #%% Frame, Element, Section , Drift, Constraint Naming
 
 def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
@@ -682,11 +765,16 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
             frame_beam_name_output.append(row[0] + '_' + str(i))
             
     # Column Frame 이름 뽑기
-    frame_column_name_output = []
-
-    for row in column_info.values:    
-        for i in range(1, int(row[3]) + 1):
-            frame_column_name_output.append(row[0] + '_' + str(i))
+    if column_info.shape[0] != 0:
+        frame_column_name_output = []
+    
+        for row in column_info.values:    
+            for i in range(1, int(row[3]) + 1):
+                frame_column_name_output.append(row[0] + '_' + str(i))
+        frame_column_name_output = pd.Series(frame_column_name_output)
+        
+    else:
+        frame_column_name_output = pd.Series([], dtype='float64')
             
     #%% Constraints 이름 뽑기
 
