@@ -104,7 +104,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     column_csv = 'Column.csv'
     wall_csv = 'Wall.csv'
     plate_csv = 'Plate.csv'
-    wall_gage_csv = 'Shear Wall Rotation Gage.csv'
+    SWR_gage_csv = 'Shear Wall Rotation Gage.csv'
     as_gage_csv = 'Axial Strain Gage.csv'
     
     #%% Nodal Load 뽑기
@@ -507,27 +507,6 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         wall_gage = pd.concat([wall_gage_pos, wall_gage_neg, wall_gage_zero_pos, wall_gage_zero_neg]\
                               , ignore_index=True)
         
-        ### SWR gage가 분할층에서 나눠지지 않게 만들기 
-        # 분할층 노드가 포함되지 않은 부재 slice
-        wall_gage_no_divide = wall_gage[(wall_gage['Z(mm)'].isin(story_info['Level']))\
-                                        & (wall_gage['Z(mm)3'].isin(story_info['Level']))]
-        
-        # 분할층 노드가 상부에만(k,l-node) 포함되는 부재 slice
-        wall_gage_divide = wall_gage[~wall_gage['Z(mm)3'].isin(story_info['Level'])]
-        
-        # wall_gage_divide 노드들의 상부 노드(k,l-node)의 z좌표를 다음 측으로 격상
-        next_level_list = []
-        for i in wall_gage_divide['Z(mm)3']:
-            level_bigger = story_info['Level'][story_info['Level']-i >= 0]
-            next_level = level_bigger.sort_values(ignore_index=True)[0]
-
-            next_level_list.append(next_level)
-        
-        pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
-
-        wall_gage_divide.loc[:,'Z(mm)3'] = next_level_list
-        wall_gage_divide['Z(mm)4'] = next_level_list
-                
         # 필요한 열 뽑고 재정렬
         wall_gage = wall_gage.iloc[:,[0,1,2,3,4,6,7,8,10,11,12,14,15,16,18,19,20]]
         wall_gage.columns = ['Wall ID', 'Node1', 'Node2', 'Node3', 'Node4', 'X(mm)1'\
@@ -547,6 +526,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         
         wall_gage_sorted = wall_gage_sorted.sort_values(['Wall ID', 'Z(mm)'])
         
+        ### Wall ID, Z(mm)같은 부재들 합치기
         # For loop 돌리면서 Wall ID, Z(mm)에 따른 Node Data 리스트/ 겹치는 Node 리스트 만들기
         duplicates_list = []
         gage_node_data_list = []
@@ -610,7 +590,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
             temp = [x for x in i if i.count(x) == 1]
             gage_node_list_flat_set_reduced.append(temp)
     
-        # Node 번호에 맞는 좌표 매칭 후 출력
+        # Node 번호에 맞는 좌표 매칭
         gage_node_coord = pd.DataFrame(gage_node_list_flat_set_reduced)
         gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
         
@@ -621,9 +601,35 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
     
         gage_node_coord = gage_node_coord.iloc[:, [5,6,7,9,10,11,17,18,19,13,14,15]]
+
+        
+        ### SWR gage가 분할층에서 나눠지지 않게 만들기 
+        # 분할층 노드가 포함되지 않은 부재 slice
+        gage_node_coord_no_divide = gage_node_coord[(gage_node_coord['Z(mm)'].isin(story_info['Level']))\
+                                                    & (gage_node_coord['Z(mm)3'].isin(story_info['Level']))]
+        
+        # 분할층 노드가 상부에만(k,l-node) 포함되는 부재 slice
+        gage_node_coord_divide = gage_node_coord[(gage_node_coord['Z(mm)'].isin(story_info['Level']))\
+                                                 & (~gage_node_coord['Z(mm)3'].isin(story_info['Level']))]
+        
+        # gage_node_coord_divide 노드들의 상부 노드(k,l-node)의 z좌표를 다음 측으로 격상
+        next_level_list = []
+        for i in gage_node_coord_divide['Z(mm)3']:
+            level_bigger = story_info['Level'][story_info['Level']-i >= 0]
+            next_level = level_bigger.sort_values(ignore_index=True)[0]
+
+            next_level_list.append(next_level)
+        
+        pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
+
+        gage_node_coord_divide.loc[:, 'Z(mm)3'] = next_level_list
+        gage_node_coord_divide.loc[:, 'Z(mm)4'] = next_level_list
+        
+        gage_node_coord = pd.concat([gage_node_coord_no_divide, gage_node_coord_divide]\
+                                    , ignore_index=True)
         
         # Gage Element 결과값을 csv로 변환
-        gage_node_coord.to_csv(output_csv_dir+'\\'+wall_gage_csv, mode='w', index=False)
+        gage_node_coord.to_csv(output_csv_dir+'\\'+SWR_gage_csv, mode='w', index=False)
     
     #%% Plate Element 뽑기
     if (import_plate == True) or ('PLATE' in element['Type']):

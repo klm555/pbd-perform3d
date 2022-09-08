@@ -115,19 +115,17 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
 #%% 데이터 매칭 후 결과뽑기
 
     AS_result_data = AS_result_data[AS_result_data['Load Case']\
-                                    .str.contains('|'.join(seismic_load_name_list))]
-
-    # 층분할된 곳의 Axial strain gage는 max(abs(분할된 두 값))로 assign하기
-    
+                                    .str.contains('|'.join(seismic_load_name_list))]   
         
     ### Gage data에서 Element Name, I-Node ID 불러와서 v좌표 match하기
     AS_gage_data = AS_gage_data[['Element Name', 'I-Node ID']]; 
-    
-    gage_num = len(AS_gage_data) # gage 개수 얻기
+
     
     # I-Node의 v좌표 match해서 추가
     AS_gage_data = AS_gage_data.join(node_data.set_index('Node ID')[['H1', 'H2', 'V']], on='I-Node ID')
     
+    gage_num = len(AS_gage_data) # gage 개수 얻기
+   
     ### AS_total data 만들기
     AS_max = AS_result_data[(AS_result_data['Step Type'] == 'Max') & (AS_result_data['Performance Level'] == 1)][['Axial Strain']].values # dataframe을 array로
     AS_max = AS_max.reshape(gage_num, len(seismic_load_name_list), order='F') # order = 'C' 인 경우 row 우선 변경, order = 'F'인 경우 column 우선 변경
@@ -145,6 +143,35 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
     AS_avg_total = pd.concat([AS_gage_data.loc[:, ['H1', 'H2', 'V']], DE_max_avg, DE_min_avg, MCE_max_avg, MCE_min_avg], axis=1)
     AS_avg_total.columns = ['X(mm)', 'Y(mm)', 'Z(mm)', 'DE_max_avg', 'DE_min_avg', 'MCE_max_avg', 'MCE_min_avg']
 
+    ### 층분할된 곳의 Axial strain gage는 max(abs(분할된 두 값))로 assign하기
+    # 분할층 노드가 포함되지 않은 부재 slice
+    AS_avg_total_no_divide = AS_avg_total[AS_avg_total['Z(mm)'].isin(story_info['Height(mm)'])] 
+    
+    # i-node가 분할층에 있는 부재 slice
+    AS_avg_total_divide = AS_avg_total[~AS_avg_total['Z(mm)'].isin(story_info['Height(mm)'])]   
+ 
+    # AS_avg_total_divide 노드들의 i-node의 z좌표를 아래 층으로 격하
+    next_level_list = []
+    for i in AS_avg_total_divide['Z(mm)']:
+        level_smaller = story_info['Height(mm)'][i-story_info['Height(mm)'] >= 0]
+        next_level = level_smaller.sort_values(ignore_index=True, ascending=False)[0]
+   
+        next_level_list.append(next_level)
+    
+    pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
+   
+    AS_avg_total_divide.loc[:,'Z(mm)'] = next_level_list
+         
+    # divide, no_divide 정보 concat
+    AS_avg_total_joined = pd.concat([AS_avg_total_divide, AS_avg_total_no_divide]\
+                                    , ignore_index=True)
+
+    AS_output = AS_avg_total_joined.groupby(['X(mm)', 'Y(mm)', 'Z(mm)'])\
+                .agg({'DE_max_avg':'max', 'DE_min_avg':'min', 'MCE_max_avg':'max', 'MCE_min_avg':'min'})\
+                    [['DE_max_avg', 'DE_min_avg', 'MCE_max_avg', 'MCE_min_avg']]
+    
+    AS_output.reset_index(inplace=True)
+    
 #%% ***조작용 코드
     # 데이터 없애기 위한 기준값 입력
     # AS_avg_total = AS_avg_total.drop(AS_avg_total[(AS_avg_total.loc[:,'DE_min_avg'] < -0.002)].index)
@@ -161,8 +188,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
         fig1 = plt.figure(count, dpi=150, figsize=(5,4))  # 그래프 사이즈
         plt.xlim(-0.003, 0)
         
-        plt.scatter(AS_avg_total['DE_min_avg'], AS_avg_total['Z(mm)'], color = 'r', s=5) # s=1 : point size
-        plt.scatter(AS_avg_total['DE_max_avg'], AS_avg_total['Z(mm)'], color = 'k', s=5)
+        plt.scatter(AS_output['DE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5) # s=1 : point size
+        plt.scatter(AS_output['DE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
         
         # height값에 대응되는 층 이름으로 y축 눈금 작성
         plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
@@ -184,8 +211,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
         # AS_DE_2
         fig2 = plt.figure(count, dpi=150, figsize=(5,4))  # 그래프 사이즈
         plt.xlim(0, 0.013)
-        plt.scatter(AS_avg_total['DE_min_avg'], AS_avg_total['Z(mm)'], color = 'r', s=5) # s=1 : point size
-        plt.scatter(AS_avg_total['DE_max_avg'], AS_avg_total['Z(mm)'], color = 'k', s=5)
+        plt.scatter(AS_output['DE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5) # s=1 : point size
+        plt.scatter(AS_output['DE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
         
         # height값에 대응되는 층 이름으로 y축 눈금 작성
         plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
@@ -203,8 +230,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
         plt.close()
         count += 1
         
-        error_coord_DE = AS_avg_total[(AS_avg_total['DE_max_avg'] >= max_criteria)\
-                                      | (AS_avg_total['DE_min_avg'] <= min_criteria)]
+        error_coord_DE = AS_output[(AS_output['DE_max_avg'] >= max_criteria)\
+                                   | (AS_output['DE_min_avg'] <= min_criteria)]
         
         yield fig1
         yield fig2
@@ -216,8 +243,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
         # AS_MCE_1
         fig3 = plt.figure(count, dpi=150, figsize=(5,4))
         plt.xlim(-0.003, 0)
-        plt.scatter(AS_avg_total['MCE_min_avg'], AS_avg_total['Z(mm)'], color = 'r', s=5)
-        plt.scatter(AS_avg_total['MCE_max_avg'], AS_avg_total['Z(mm)'], color = 'k', s=5)
+        plt.scatter(AS_output['MCE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5)
+        plt.scatter(AS_output['MCE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
         
         plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
         
@@ -237,8 +264,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
         # AS_MCE_2
         fig4 = plt.figure(count, dpi=150, figsize=(5,4))
         plt.xlim(0, 0.013)
-        plt.scatter(AS_avg_total['MCE_min_avg'], AS_avg_total['Z(mm)'], color = 'r', s=5)
-        plt.scatter(AS_avg_total['MCE_max_avg'], AS_avg_total['Z(mm)'], color = 'k', s=5)
+        plt.scatter(AS_output['MCE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5)
+        plt.scatter(AS_output['MCE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
         
         plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
         
@@ -255,8 +282,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
         plt.close()
         count += 1
         
-        error_coord_MCE = AS_avg_total[(AS_avg_total['MCE_max_avg'] >= max_criteria)\
-                                       | (AS_avg_total['MCE_min_avg'] <= min_criteria)]      
+        error_coord_MCE = AS_output[(AS_output['MCE_max_avg'] >= max_criteria)\
+                                    | (AS_output['MCE_min_avg'] <= min_criteria)]      
         
         yield fig3
         yield fig4
@@ -966,7 +993,34 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
 
 
-#%% 데이터 Grouping
+#%% 중력하중에 대한 전단력 데이터 grouping
+
+    shear_force_H1_G_data_grouped = pd.DataFrame()
+    shear_force_H2_G_data_grouped = pd.DataFrame()
+    
+    # G를 max, min으로 grouping
+    for load_name in gravity_load_name:
+        shear_force_H1_G_data_grouped['G_H1_max'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Max')]['H1(kN)'].values
+            
+        shear_force_H1_G_data_grouped['G_H1_min'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Min')]['H1(kN)'].values
+
+        shear_force_H2_G_data_grouped['G_H2_max'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Max')]['H2(kN)'].values
+            
+        shear_force_H2_G_data_grouped['G_H2_min'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Min')]['H2(kN)'].values   
+
+    # all 절대값
+    shear_force_H1_G_abs = shear_force_H1_G_data_grouped.abs()
+    shear_force_H2_G_abs = shear_force_H2_G_data_grouped.abs()
+    
+    # 최대값 뽑기 & 0.2배
+    shear_force_H1_G_max = 0.2 * shear_force_H1_G_abs.max(axis=1)
+    shear_force_H2_G_max = 0.2 * shear_force_H2_G_abs.max(axis=1)
+
+#%% DE, MCE에 대한 전단력 데이터 Grouping
 
     shear_force_H1_DE_data_grouped = pd.DataFrame()
     shear_force_H2_DE_data_grouped = pd.DataFrame()
@@ -1015,6 +1069,10 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
         shear_force_H1_DE_avg = 1.2 * shear_force_H1_DE_max.mean(axis=1)
         shear_force_H2_DE_avg = 1.2 * shear_force_H2_DE_max.mean(axis=1)
         
+        # 0.2 * (전단력 from 중력하중) 빼주기
+        shear_force_H1_DE_avg = shear_force_H1_DE_avg - shear_force_H1_G_max
+        shear_force_H2_DE_avg = shear_force_H2_DE_avg - shear_force_H2_G_max
+        
     else : 
         shear_force_H1_DE_avg = ''
         shear_force_H2_DE_avg = ''
@@ -1033,6 +1091,10 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
         shear_force_H1_MCE_avg = 1.2 * shear_force_H1_MCE_max.mean(axis=1)
         shear_force_H2_MCE_avg = 1.2 * shear_force_H2_MCE_max.mean(axis=1)
         
+        # 0.2 * (전단력 from 중력하중) 빼주기
+        shear_force_H1_MCE_avg = shear_force_H1_MCE_avg - shear_force_H1_G_max
+        shear_force_H2_MCE_avg = shear_force_H2_MCE_avg - shear_force_H2_G_max
+        
     else : 
         shear_force_H1_MCE_avg = ''
         shear_force_H2_MCE_avg = ''
@@ -1048,7 +1110,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     # result
     axial_force_abs.reset_index(inplace=True, drop=True)
     axial_force = axial_force_abs.groupby([[i//2 for i in range(0, len(axial_force_abs))]], axis=0).max()
-
+    
 #%% 결과 정리 후 Input Sheets에 넣기
 
 # 출력용 Dataframe 만들기

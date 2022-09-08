@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['..\\02-Output\\Output.py', 'system.py', 'beam.py', 'column.py', '..\\..\\내진성능설계\\cw6, cw7 AS값 체크.py', '..\\..\\내진성능설계\\cw6, cw7 변형률 체크.py', 'wall.py', '..\\01-Input\\1. Node,Element,Mass,Load(from MIDAS).py', 'input.py']
+recent_files = ['..\\PBD_p3d_one_click\\post_processing_v1.0.0.py', '..\\PBD_p3d_one_click\\modelling_v1.0.0.py', 'system.py', 'beam.py', 'column.py', 'wall.py', 'input.py']
 
 [main]
 version = 0.2.0
