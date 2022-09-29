@@ -174,8 +174,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
     
 #%% ***조작용 코드
     # 데이터 없애기 위한 기준값 입력
-    # AS_avg_total = AS_avg_total.drop(AS_avg_total[(AS_avg_total.loc[:,'DE_min_avg'] < -0.002)].index)
-    # AS_avg_total = AS_avg_total.drop(AS_avg_total[(AS_avg_total.loc[:,'MCE_min_avg'] < -0.002)].index)
+    AS_output = AS_output.drop(AS_output[(AS_output.loc[:,'DE_min_avg'] < -0.002)].index)
+    AS_output = AS_output.drop(AS_output[(AS_output.loc[:,'MCE_min_avg'] < -0.002)].index)
     # .....위와 같은 포맷으로 계속
 
 #%% 그래프

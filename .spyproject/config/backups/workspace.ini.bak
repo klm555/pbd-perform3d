@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['..\\PBD_p3d_one_click\\post_processing_v1.0.0.py', '..\\PBD_p3d_one_click\\modelling_v1.0.0.py', 'system.py', 'beam.py', 'column.py', 'wall.py', 'data_proc.py', '..\\내진성능설계\\파이썬 매크로\\Macro_Property Assign_Wall.py', '..\\내진성능설계\\파이썬 매크로\\Macro_Attach Gage_WR, AS(작업완료).py']
+recent_files = ['..\\PBD_p3d_one_click\\post_processing_v1.0.0.py', '..\\PBD_p3d_one_click\\modelling_v1.0.0.py', '..\\내진성능설계\\파이썬 매크로\\Macro_Property Assign_Wall.py', '..\\내진성능설계\\파이썬 매크로\\Macro_Attach Gage_WR, AS(작업완료).py', 'PBD_p3d\\column.py', 'PBD_p3d\\beam.py']
 
 [main]
 version = 0.2.0

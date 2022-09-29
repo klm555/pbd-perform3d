@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import os
 from collections import deque # Double-ended Queue : 자료의 앞, 뒤 양 방향에서 자료를 추가하거나 제거가능
-# import openpyxl
 import win32com.client
 
 #%% Transfer Column SF (DCR)
@@ -192,7 +191,6 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
                          how='left', left_on='Property Name', right_on='Name')
     
     # 기존 시트에 V, M 값 넣기
-    # wb = openpyxl.load_workbook(input_path + '\\' + column_xlsx, keep_links=True)
     
     # for idx, row in SF_output.iterrows():
         

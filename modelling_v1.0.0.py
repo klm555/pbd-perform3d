@@ -9,8 +9,8 @@ time_start = time.time()
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_path = r'D:\이형우\내진성능평가\광명 4R\102\test'
-input_xlsx = '102_9_Data Conversion_Shear Wall Type_Ver.1.7.xlsx'
+input_path = r'D:\이형우\내진성능평가\광명 4R\103'
+input_xlsx = 'Input Sheets(103_15)_v.1.8.xlsx'
 
 DL = 'DL' # Midas Gen에서 Import해올 때 만든 하중 이름
 LL = 'LL'
@@ -19,12 +19,15 @@ LL = 'LL'
 ###############################################################################
 #%% Import (MIDAS Gen -> Perform-3D)
 
-pbd.import_midas(input_path, input_xlsx, DL_name=DL, LL_name=LL\
-                       , import_mass=False, import_AS_gage=False, import_plate=False)
+# pbd.import_midas(input_path, input_xlsx)
 
 #%% 이름 출력
 
-    
+
+#%% Properties 변환
+
+# pbd.convert_property(input_path, input_xlsx, get_beam=False, get_wall=True)
+pbd.convert_property_reverse(input_path, input_xlsx, get_beam=False, get_wall=True)
 
 #%% 시간 측정(END)
 time_end = time.time()
