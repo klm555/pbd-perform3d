@@ -60,10 +60,10 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
                      MCE(최대고려지진) 발생 시 벽체 인장, 압축변형률 NG 부재의 좌표
     
     Raises
-    -------
+    ------
     
     References
-    -------
+    ----------
     .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.44, 2021
     
     '''

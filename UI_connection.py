@@ -13,6 +13,11 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Cm
 from docx.oxml.ns import qn
 
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5 import uic
+from PyQt5.QtGui import *
+
 import PBD_p3d as pbd
 
 #%% 시간 측정(START)
@@ -237,3 +242,45 @@ output_word.save(output_path + '\\' + output_docx)
 time_end = time.time()
 time_run = (time_end-time_start)/60
 print('\n', 'total time = %0.7f min' %(time_run))
+
+
+#%%
+
+
+form_class = uic.loadUiType("UI/main.ui")[0] #UI파일 연결
+
+#화면을 띄우는데 사용되는 Class 선언
+class WindowClass(QMainWindow, form_class) :
+    def __init__(self) :
+        super().__init__()
+        self.setupUi(self)
+        
+        self.setWindowTitle('PBD_p3d(Quick \'n Easy Way to Use Perform-3D')
+        self.setWindowIcon(QIcon('../images/icon_earthquake.png'))
+        
+        
+        
+        self.print_btn.clicked.connect(self.print_btn_fn)
+        
+
+        
+    def print_btn_fn(self): # 출력 버튼
+        print('gg')
+        
+    
+    def select_file(): # 경로 찾기
+        lineEdit.setText(QFileDialog.getOpenFileName())
+            
+
+if __name__ == "__main__" :
+    #QApplication : 프로그램을 실행시켜주는 클래스
+    app = QApplication(sys.argv) # app이란 이름의 객체를 생성
+
+    #WindowClass의 인스턴스 생성
+    myWindow = WindowClass() 
+
+    #프로그램 화면을 보여주는 코드
+    myWindow.show()
+
+    #프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
+    app.exec_()

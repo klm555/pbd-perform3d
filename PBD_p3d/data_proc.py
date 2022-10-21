@@ -676,7 +676,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
                 
 #%% Frame, Element, Section , Drift, Constraint Naming
 
-# def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
+def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
     '''
     
     모델링에 사용되는 모든 이름들을 동일한 규칙에 의해 출력함.
@@ -703,149 +703,158 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     
     '''
 
-    #%% section, frame 이름 만들기 위한 정보 load
+    #%% wall, frame 이름 만들기 위한 정보 load
     
-    # section_info_xlsx_sheet = 'Wall Naming' # section naming 관련된 정보만 들어있는 시트
-    # beam_info_xlsx_sheet = 'Beam Naming'
-    # column_info_xlsx_sheet = 'Column Naming'
-    # story_info_xlsx_sheet = 'Story Data' # 층 정보 sheet
-    # drift_info_xlsx_sheet = 'ETC' # Drift 정보 sheet
-
-    # section_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = section_info_xlsx_sheet, skiprows = 3)
-    # section_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
-
-    # # Beam에 대해서도 똑같이...
-    # beam_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = beam_info_xlsx_sheet, skiprows = 3)
-    # beam_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
+    naming_info_xlsx_sheet = 'Naming' # wall naming 관련된 정보만 들어있는 시트
+    story_info_xlsx_sheet = 'Story Data' # 층 정보 sheet
+    drift_info_xlsx_sheet = 'ETC' # Drift 정보 sheet
     
-    # # Column에 대해서도 똑같이...
-    # column_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = column_info_xlsx_sheet, skiprows = 3)
-    # column_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
-
-    # #%% story 정보 load
+    naming_info = pd.read_excel(input_path + '\\' + input_xlsx\
+                                , sheet_name = naming_info_xlsx_sheet\
+                                , skiprows = 3)
     
-    # story_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = story_info_xlsx_sheet, skiprows = [0,2,3])
+    # Wall에 대해 정리
+    wall_info = naming_info.iloc[:,[8,9,10,11]]
+    wall_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
+    wall_info = wall_info[wall_info['Name'].notna()]
 
-    # story_info_reversed = story_info[::-1] # 배열이 내가 원하는 방향과 반대로 되어있어서, 리스트 거꾸로만들었음
-    # story_info_reversed.reset_index(inplace=True, drop=True)
+    # Beam에 대해서도 똑같이...
+    beam_info = naming_info.iloc[:,[0,1,2,3]]
+    beam_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
+    beam_info = beam_info[beam_info['Name'].notna()]
+    
+    # Column에 대해서도 똑같이...
+    column_info = naming_info.iloc[:,[4,5,6,7]]
+    column_info.columns = ['Name', 'Story(from)', 'Story(to)', 'Amount']
+    column_info = column_info[column_info['Name'].notna()]
+    
+    #%% story 정보 load
+    story_info = pd.read_excel(input_path + '\\' + input_xlsx\
+                               , sheet_name = story_info_xlsx_sheet\
+                               , skiprows = [0,2,3])
 
-    # #%% Section 이름 뽑기
+    story_info_reversed = story_info[::-1]
+    story_info_reversed.reset_index(inplace=True, drop=True)
+    # 배열이 내가 원하는 방향과 반대로 되어있어서, 리스트 거꾸로만들었음
 
-    # # for문으로 section naming에 사용할 섹션 이름(section_name_output) 뽑기
-    # section_name_output = [] # 결과로 나올 section_name_output 리스트 미리 정의
-
-    # for wall_name_parameter, amount_parameter, story_from_parameter, story_to_parameter\
-    #     in zip(section_info['Name'], section_info['Amount'], section_info['Story(from)'], section_info['Story(to)']):  # for 문에 조건 여러개 달고싶을 때는 zip으로 묶어서~ 
-        
-    #     story_from_index = story_info_reversed[story_info_reversed['Story Name'] == story_from_parameter].index[0]  # story_from이 문자열이라 story_from을 사용해서 slicing이 안되기 때문에(내 지식선에서) .index로 story_from의 index만 뽑음
-    #     story_to_index = story_info_reversed[story_info_reversed['Story Name'] == story_to_parameter].index[0]  # 마찬가지로 story_to의 index만 뽑음
-    #     story_window = story_info_reversed['Story Name'][story_from_index : story_to_index + 1]  # 내가 원하는 층 구간(story_from부터 story_to까지)만 뽑아서 리스트로 만들기
-    #     for i in range(1, amount_parameter + 1):  # (벽체 개수(amount))에 맞게 numbering하기 위해 1,2,3,4...amount[i]개의 배열을 만듦. 첫 시작을 1로 안하면 index 시작은 0이 default값이기 때문에 1씩 더해줌
-    #         for current_story_name in story_window:
-    #             if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
-    #                 current_story_name = str(current_story_name)
-    #             else:
-    #                 pass
-                
-    #             section_name_output.append(wall_name_parameter + '_' + str(i) + '_' + current_story_name)  # 반복될때마다 생성되는 section 이름을 .append를 이용하여 리스트의 끝에 하나씩 쌓아줌. i값은 숫자라 .astype(str)로 string으로 바꿔줌
-
-    # # 층전단력 확인을 위한 층 섹션 이름 뽑기
-    # # Base section 추가하기
-    # story_section_name_output = ['Base']
-
-    # # 각 층 전단력 확인을 위한 각 층 section 추가하기
-    # for i in story_info_reversed['Story Name'][1:story_info_reversed.shape[0]]:
-    #     story_section_name_output.append(i + '_Shear')
-
-    # #%% Frame 이름 뽑기
-
-    # # Wall Frame 이름 뽑기
-    # frame_wall_name_output = []
-
-    # for row in section_info.values: # for문을 빠르게 연산하기 위해 dataframe -> array    
-    #     for i in range(1, int(row[3]) + 1):  
-    #         frame_wall_name_output.append(row[0] + '_' + str(i))
+    #%% Section 이름 뽑기
+    if wall_info.shape[0] != 0:
+    
+        # for문으로 wall naming에 사용할 섹션 이름(wall_name_output) 뽑기
+        wall_name_output = [] # 결과로 나올 wall_name_output 리스트 미리 정의
+    
+        for wall_name_parameter, amount_parameter, story_from_parameter, story_to_parameter\
+            in zip(wall_info['Name'], wall_info['Amount'], wall_info['Story(from)'], wall_info['Story(to)']):  # for 문에 조건 여러개 달고싶을 때는 zip으로 묶어서~ 
             
-    # # Beam Frame 이름 뽑기
-    # frame_beam_name_output = []
-
-    # for row in beam_info.values:    
-    #     for i in range(1, int(row[3]) + 1):
-    #         frame_beam_name_output.append(row[0] + '_' + str(i))
-            
-    # # Column Frame 이름 뽑기
-    # if column_info.shape[0] != 0:
-    #     frame_column_name_output = []
-    
-    #     for row in column_info.values:    
-    #         for i in range(1, int(row[3]) + 1):
-    #             frame_column_name_output.append(row[0] + '_' + str(i))
-    #     frame_column_name_output = pd.Series(frame_column_name_output)
-        
-    # else:
-    #     frame_column_name_output = pd.Series([], dtype='float64')
-            
-    # #%% Constraints 이름 뽑기
-
-    # constraints_name = []
-
-    # for row in story_info_reversed.values:
-    #     if row[4] >= 2:
-    #         for i in range(1, int(row[4]) + 1):
-    #             constraints_name.append(row[1] + '-' + str(i))
-    #     else: constraints_name.append(row[1])
-        
-    # constraints_name = constraints_name[1:]
-
-    # #%% Drift 이름 뽑기
-
-    # # Drift의 방향 지정
-    # direction_list = ['X', 'Y']
-
-    # drift_name_output = []
-
-    # for position in drift_position:
-    #     for direction in direction_list:
-    #         for current_story_name in story_info['Story Name']:
-    #             if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
-    #                 current_story_name = str(current_story_name)
-    #             drift_name_output.append(current_story_name + '_' + str(int(position)) + '_' + direction)
+            story_from_index = story_info_reversed[story_info_reversed['Story Name'] == story_from_parameter].index[0]  # story_from이 문자열이라 story_from을 사용해서 slicing이 안되기 때문에(내 지식선에서) .index로 story_from의 index만 뽑음
+            story_to_index = story_info_reversed[story_info_reversed['Story Name'] == story_to_parameter].index[0]  # 마찬가지로 story_to의 index만 뽑음
+            story_window = story_info_reversed['Story Name'][story_from_index : story_to_index + 1]  # 내가 원하는 층 구간(story_from부터 story_to까지)만 뽑아서 리스트로 만들기
+            for i in range(1, amount_parameter + 1):  # (벽체 개수(amount))에 맞게 numbering하기 위해 1,2,3,4...amount[i]개의 배열을 만듦. 첫 시작을 1로 안하면 index 시작은 0이 default값이기 때문에 1씩 더해줌
+                for current_story_name in story_window:
+                    if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
+                        current_story_name = str(current_story_name)
+                    else:
+                        pass
                     
-    # #%% 출력
-
-    # name_output = pd.DataFrame(({'Frame(Beam) Name': pd.Series(frame_beam_name_output),\
-    #                              'Frame(Column) Name': pd.Series(frame_column_name_output),\
-    #                              'Frame(Wall) Name': pd.Series(frame_wall_name_output),\
-    #                              'Constraints Name': pd.Series(constraints_name),\
-    #                              'Section(Wall) Name': pd.Series(section_name_output),\
-    #                              'Section(Shear) Name': pd.Series(story_section_name_output),\
-    #                              'Drift Name': pd.Series(drift_name_output)}))
-
-    # # Output 경로 설정
-    # # name_output_xlsx = 'Naming Output Sheets.xlsx'
-    # # 개별 엑셀파일로 출력
-    # # name_output.to_excel(input_path+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
-
-    # # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-    # name_output = name_output.replace(np.nan, '', regex=True)
+                    wall_name_output.append(wall_name_parameter + '_' + str(i) + '_' + current_story_name)  # 반복될때마다 생성되는 section 이름을 .append를 이용하여 리스트의 끝에 하나씩 쌓아줌. i값은 숫자라 .astype(str)로 string으로 바꿔줌
     
-    # # Using win32com...
-    # excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    # excel.Visible = False # 엑셀창 안보이게
-
-    # wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
-    # ws = wb.Sheets('Output_Naming')
+        # 층전단력 확인을 위한 층 섹션 이름 뽑기
+        # Base section 추가하기
+        story_section_name_output = ['Base']
     
-    # startrow, startcol = 5, 1
+        # 각 층 전단력 확인을 위한 각 층 section 추가하기
+        for i in story_info_reversed['Story Name'][1:story_info_reversed.shape[0]]:
+            story_section_name_output.append(i + '_Shear')
 
-    # # 이름 열 입력
-    # ws.Range(ws.Cells(startrow, startcol),\
-    #          ws.Cells(startrow + name_output.shape[0]-1,\
-    #                   name_output.shape[1])).Value\
-    # = list(name_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능   
+    #%% Frame 이름 뽑기
+        
+    # Wall Frame 이름 뽑기
+    frame_wall_name_output = []
+
+    for row in wall_info.values: # for문을 빠르게 연산하기 위해 dataframe -> array    
+        for i in range(1, int(row[3]) + 1):  
+            frame_wall_name_output.append(row[0] + '_' + str(i))
+            
+    # Beam Frame 이름 뽑기
+    frame_beam_name_output = []
+
+    for row in beam_info.values:    
+        for i in range(1, int(row[3]) + 1):
+            frame_beam_name_output.append(row[0] + '_' + str(i))
+            
+    # Column Frame 이름 뽑기
+    if column_info.shape[0] != 0:
+        frame_column_name_output = []
     
-    # wb.Close(SaveChanges=1) # Closing the workbook
-    # excel.Quit() # Closing the application   
+        for row in column_info.values:    
+            for i in range(1, int(row[3]) + 1):
+                frame_column_name_output.append(row[0] + '_' + str(i))
+        frame_column_name_output = pd.Series(frame_column_name_output)
+        
+    else:
+        frame_column_name_output = pd.Series([], dtype='float64')
+            
+    #%% Constraints 이름 뽑기
+
+    constraints_name = []
+
+    for row in story_info_reversed.values:
+        if row[4] >= 2:
+            for i in range(1, int(row[4]) + 1):
+                constraints_name.append(row[1] + '-' + str(i))
+        else: constraints_name.append(row[1])
+        
+    constraints_name = constraints_name[1:]
+
+    #%% Drift 이름 뽑기
+
+    # Drift의 방향 지정
+    direction_list = ['X', 'Y']
+
+    drift_name_output = []
+
+    for position in drift_position:
+        for direction in direction_list:
+            for current_story_name in story_info['Story Name']:
+                if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
+                    current_story_name = str(current_story_name)
+                drift_name_output.append(current_story_name + '_' + str(int(position)) + '_' + direction)
+                    
+    #%% 출력
+
+    name_output = pd.DataFrame(({'Frame(Beam) Name': pd.Series(frame_beam_name_output),\
+                                  'Frame(Column) Name': pd.Series(frame_column_name_output),\
+                                  'Frame(Wall) Name': pd.Series(frame_wall_name_output),\
+                                  'Constraints Name': pd.Series(constraints_name),\
+                                  'Section(Wall) Name': pd.Series(wall_name_output),\
+                                  'Section(Shear) Name': pd.Series(story_wall_name_output),\
+                                  'Drift Name': pd.Series(drift_name_output)}))
+
+    # Output 경로 설정
+    # name_output_xlsx = 'Naming Output Sheets.xlsx'
+    # 개별 엑셀파일로 출력
+    # name_output.to_excel(input_path+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
+
+    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    name_output = name_output.replace(np.nan, '', regex=True)
+    
+    # Using win32com...
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
+    excel.Visible = False # 엑셀창 안보이게
+
+    wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
+    ws = wb.Sheets('Output_Naming')
+    
+    startrow, startcol = 5, 1
+
+    # 이름 열 입력
+    ws.Range(ws.Cells(startrow, startcol),\
+              ws.Cells(startrow + name_output.shape[0]-1,\
+                      name_output.shape[1])).Value\
+    = list(name_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능   
+    
+    wb.Close(SaveChanges=1) # Closing the workbook
+    excel.Quit() # Closing the application   
 
 #%% Node, Element, Mass, Load Import
 
@@ -1219,7 +1228,7 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
         else:
             wall_ongoing = pd.concat([pd.Series(name_output, name='Name'), wall_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
     
-        # wall_ongoing = wall_ongoing.sort_values(by=['Count']) # 층 오름차순으로 sort!
+        wall_ongoing = wall_ongoing.sort_values(by=['Count']) # 층 오름차순으로 sort!(주석처리 for 내림차순)
         wall_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
@@ -1446,3 +1455,8 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
 
     wb.Close(SaveChanges=1) # Closing the workbook
     excel.Quit() # Closing the application 
+    
+    
+#%% Property Assign Macro (Wall)
+
+# def property_assign_macro()

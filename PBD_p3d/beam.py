@@ -354,7 +354,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx, DCR_criteria=1, yti
     
 #%% 조작용 코드
     # 없애고 싶은 부재의 이름 입력(error_beam 확인 후!, DE, MCE에서 다 없어짐)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('B11_'))].index)
+    beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB4_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('B15_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4A_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4B_'))].index)
@@ -706,6 +706,10 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     # 필요한 부재만 선별
     element_info_data = element_info_data[element_info_data['Property Name'].isin(transfer_element_info)]
     
+    # 기둥과 겹치는 등 평가에 반영하지 않을 부재 제거
+    element_to_remove = ['E880','E26229','E555','E671','E658','E525','E528','E932','E914','E1256','E1165','E585']
+    element_info_data = element_info_data[~element_info_data['Element Name'].isin(element_to_remove)]
+    
     # 층 정보 Matching을 위한 Node 정보
     node_info_data = pd.DataFrame()    
     for i in to_load_list:
@@ -814,8 +818,6 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     
     wb.Close(SaveChanges=1) # Closing the workbook
     excel.Quit() # Closing the application
-    
-    print('Done!')
     
 #%% 부재의 위치별  V, M 값 확인을 위한 도면 작성
     
