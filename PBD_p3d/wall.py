@@ -1492,3 +1492,208 @@ def wall_SF_graph(input_path, input_xlsx, DCR_criteria=1, yticks=2, xlim=3):
     
         yield fig4
 
+#%% Wall Shear Force (elementwise)
+def wall_SF_graph_elementwise(input_path, input_xlsx, result_path\
+                              , result_xlsx='Analysis Result', DCR_criteria=1\
+                              , yticks=2, xlim=3):
+
+#%% Input Sheet 정보 load
+        
+    story_info = pd.DataFrame()
+    transfer_element_info = pd.DataFrame()
+
+    input_xlsx_sheet = 'Results_Wall'
+    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
+    input_data_raw.close()
+
+    story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
+    transfer_element_info = input_data_sheets[input_xlsx_sheet].iloc[:,0:11]
+    story_info = story_info[::-1]
+    story_info.reset_index(inplace=True, drop=True)
+
+    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
+    transfer_element_info.columns = ['Name', 'Length(mm)', 'Thickness(mm)', 'Concrete Grade', 'Rebar Type', 'V.Rebar Type',\
+                                     'V.Rebar Spacing(mm)', 'V.Rebar EA', 'H.Rebar Type', 'H.Rebar Spacing(mm)', 'Nu(kN)']
+
+    transfer_element_info.reset_index(inplace=True, drop=True)
+
+#%% Analysis Result 불러오기
+
+    to_load_list = []
+    file_names = os.listdir(result_path)
+    for file_name in file_names:
+        if (result_xlsx in file_name) and ('~$' not in file_name):
+            to_load_list.append(file_name)
+
+    # 전단력 불러오기
+    wall_SF_data = pd.DataFrame()
+
+    for i in to_load_list:
+        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces', 'Frame Results - End Forces'], skiprows=2)
+        
+        wall_SF_data_temp = result_data_sheets['Structure Section Forces'].iloc[:,[0,3,5,6,7,8]]
+        wall_SF_data = pd.concat([wall_SF_data, wall_SF_data_temp])
+
+    wall_SF_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)', 'V(kN)']
+
+    # 필요없는 전단력 제거(층전단력)
+    wall_SF_data = wall_SF_data[wall_SF_data['Name'].str.count('_') == 2] # underbar가 두개 들어간 행만 선택
+        
+    wall_SF_data.reset_index(inplace=True, drop=True)
+
+#%% 부재명, H1, H2 값 뽑기
+
+    # 지진파 이름 list 만들기
+    # gravity_load_name = [x.split('+',1)[1].strip() \
+    #                      for x in wall_SF_data['Load Case'].drop_duplicates() if '[0]' in x]
+    
+    load_name_list = []
+    for i in wall_SF_data['Load Case'].drop_duplicates():
+        new_i = i.split('+')[1]
+        new_i = new_i.strip()
+        load_name_list.append(new_i)
+
+    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
+    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
+
+    seismic_load_name_list.sort()
+    
+    DE_load_name_list = [x for x in load_name_list if 'DE' in x]
+    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
+
+#%% 중력하중에 대한 전단력 데이터 grouping
+
+    shear_force_H1_G_data_grouped = pd.DataFrame()
+    shear_force_H2_G_data_grouped = pd.DataFrame()
+    
+    # G를 max, min으로 grouping
+    for load_name in gravity_load_name:
+        shear_force_H1_G_data_grouped['G_H1_max'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Max')]['H1(kN)'].values
+            
+        shear_force_H1_G_data_grouped['G_H1_min'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Min')]['H1(kN)'].values
+
+        shear_force_H2_G_data_grouped['G_H2_max'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Max')]['H2(kN)'].values
+            
+        shear_force_H2_G_data_grouped['G_H2_min'] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                 (wall_SF_data['Step Type'] == 'Min')]['H2(kN)'].values   
+
+    # all 절대값
+    shear_force_H1_G_abs = shear_force_H1_G_data_grouped.abs()
+    shear_force_H2_G_abs = shear_force_H2_G_data_grouped.abs()
+    
+    # 최대값 뽑기 & 0.2배
+    shear_force_H1_G_max = 0.2 * shear_force_H1_G_abs.max(axis=1)
+    shear_force_H2_G_max = 0.2 * shear_force_H2_G_abs.max(axis=1)
+
+#%% DE, MCE에 대한 전단력 데이터 Grouping
+
+    shear_force_H1_DE_data_grouped = pd.DataFrame()
+    shear_force_H2_DE_data_grouped = pd.DataFrame()
+    shear_force_H1_MCE_data_grouped = pd.DataFrame()
+    shear_force_H2_MCE_data_grouped = pd.DataFrame()
+
+    # DE를 max, min으로 grouping
+    for load_name in DE_load_name_list:
+        shear_force_H1_DE_data_grouped['{}_H1_max'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Max')]['H1(kN)'].values
+            
+        shear_force_H1_DE_data_grouped['{}_H1_min'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Min')]['H1(kN)'].values
+
+        shear_force_H2_DE_data_grouped['{}_H2_max'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Max')]['H2(kN)'].values
+            
+        shear_force_H2_DE_data_grouped['{}_H2_min'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Min')]['H2(kN)'].values   
+
+    # MCE를 max, min으로 grouping
+    for load_name in MCE_load_name_list:
+        shear_force_H1_MCE_data_grouped['{}_H1_max'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Max')]['H1(kN)'].values
+            
+        shear_force_H1_MCE_data_grouped['{}_H1_min'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Min')]['H1(kN)'].values
+
+        shear_force_H2_MCE_data_grouped['{}_H2_max'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Max')]['H2(kN)'].values
+            
+        shear_force_H2_MCE_data_grouped['{}_H2_min'.format(load_name)] = wall_SF_data[(wall_SF_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (wall_SF_data['Step Type'] == 'Min')]['H2(kN)'].values   
+
+    if len(DE_load_name_list) != 0:
+
+        # all 절대값
+        shear_force_H1_DE_abs = shear_force_H1_DE_data_grouped.abs()
+        shear_force_H2_DE_abs = shear_force_H2_DE_data_grouped.abs()
+        
+        # 최대값 every 4 columns
+        shear_force_H1_DE_max = shear_force_H1_DE_abs.groupby([[i//4 for i in range(0,2*len(DE_load_name_list))]], axis=1).max()
+        shear_force_H2_DE_max = shear_force_H2_DE_abs.groupby([[i//4 for i in range(0,2*len(DE_load_name_list))]], axis=1).max()
+
+        # 1.2 * 평균값
+        shear_force_H1_DE_avg = 1.2 * shear_force_H1_DE_max.mean(axis=1)
+        shear_force_H2_DE_avg = 1.2 * shear_force_H2_DE_max.mean(axis=1)
+        
+        # 0.2 * (전단력 from 중력하중) 빼주기
+        shear_force_H1_DE_avg = shear_force_H1_DE_avg - shear_force_H1_G_max
+        shear_force_H2_DE_avg = shear_force_H2_DE_avg - shear_force_H2_G_max
+        
+    else : 
+        shear_force_H1_DE_avg = ''
+        shear_force_H2_DE_avg = ''
+
+    if len(MCE_load_name_list) != 0:
+
+        # all 절대값
+        shear_force_H1_MCE_abs = shear_force_H1_MCE_data_grouped.abs()
+        shear_force_H2_MCE_abs = shear_force_H2_MCE_data_grouped.abs()
+        
+        # 최대값 every 4 columns
+        shear_force_H1_MCE_max = shear_force_H1_MCE_abs.groupby([[i//4 for i in range(0,2*len(MCE_load_name_list))]], axis=1).max()
+        shear_force_H2_MCE_max = shear_force_H2_MCE_abs.groupby([[i//4 for i in range(0,2*len(MCE_load_name_list))]], axis=1).max()
+
+        # 1.2 * 평균값
+        shear_force_H1_MCE_avg = 1.2 * shear_force_H1_MCE_max.mean(axis=1)
+        shear_force_H2_MCE_avg = 1.2 * shear_force_H2_MCE_max.mean(axis=1)
+        
+        # 0.2 * (전단력 from 중력하중) 빼주기
+        shear_force_H1_MCE_avg = shear_force_H1_MCE_avg - shear_force_H1_G_max
+        shear_force_H2_MCE_avg = shear_force_H2_MCE_avg - shear_force_H2_G_max
+        
+    else : 
+        shear_force_H1_MCE_avg = ''
+        shear_force_H2_MCE_avg = ''
+
+#%% V(축력) 값 뽑기
+
+    # 축력 불러와서 Grouping
+    axial_force_data = wall_SF_data[wall_SF_data['Load Case'].str.contains(gravity_load_name[0])]['V(kN)']
+
+    # 절대값
+    axial_force_abs = axial_force_data.abs()
+
+    # result
+    axial_force_abs.reset_index(inplace=True, drop=True)
+    axial_force = axial_force_abs.groupby([[i//2 for i in range(0, len(axial_force_abs))]], axis=0).max()
+    
+#%% 결과 정리 후 Input Sheets에 넣기
+
+# 출력용 Dataframe 만들기
+    SF_output = pd.DataFrame()
+    SF_output['Name'] = wall_SF_data['Name'].drop_duplicates()
+    SF_output.reset_index(inplace=True, drop=True)
+
+    SF_output['Nu'] = axial_force
+    SF_output['1.2_DE_H1'] = shear_force_H1_DE_avg
+    SF_output['1.2_DE_H2'] = shear_force_H2_DE_avg
+    SF_output['1.2_MCE_H1'] = shear_force_H1_MCE_avg
+    SF_output['1.2_MCE_H2'] = shear_force_H2_MCE_avg
+       
+    SF_output = pd.merge(SF_output, transfer_element_info, how='left')
+
+    SF_output = SF_output.iloc[:,[0,6,7,8,9,10,11,12,13,14,1,2,3,4,5]] # SF_output 재정렬
