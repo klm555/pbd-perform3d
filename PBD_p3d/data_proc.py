@@ -1,23 +1,25 @@
+import os
 import pandas as pd
 import numpy as np
 import win32com.client
+import re
+import warnings
 
 #%% Node, Element, Mass, Load Import
 
-def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
+def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                  , import_node=True, import_DL=True, import_LL=True\
                  , import_mass=True, **kwargs):
     
-    #%% 변수 정리
+    #%% 변수 정리(default값=True)
     import_beam = kwargs['import_beam'] if 'import_beam' in kwargs.keys() else True
-    import_column = kwargs['import_column'] if 'import_column' in kwargs.keys() else True
+    import_column = kwargs['import_column'] if 'import_column' in kwargs.keys() else False
     import_wall = kwargs['import_wall'] if 'import_wall' in kwargs.keys() else True
-    import_plate = kwargs['import_plate'] if 'import_plate' in kwargs.keys() else True
-    import_SWR_gage = kwargs['import_SWR_gage'] if 'import_SWR_gage' in kwargs.keys() else True
-    import_AS_gage = kwargs['import_AS_gage'] if 'import_AS_gage' in kwargs.keys() else True
-    
-    '''
-    
+    import_plate = kwargs['import_plate'] if 'import_plate' in kwargs.keys() else False
+    import_WR_gage = kwargs['import_WR_gage'] if 'import_WR_gage' in kwargs.keys() else True
+    import_WAS_gage = kwargs['import_WAS_gage'] if 'import_WAS_gage' in kwargs.keys() else True
+
+    '''    
     Midas GEN 모델을 Perform-3D로 import할 수 있는 파일 형식(.csv)으로 변환.
     
     Parameters
@@ -26,7 +28,8 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
                  Data Conversion 엑셀 파일의 경로.
                  
     input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+                 Data Conversion 엑셀 파일의 이름. 확장자명(.xlsx)까지 
+                 기입해줘야한다. 하나의 파일만 불러온다.
     
     DL_name : str
               Perform-3D에서 생성한 고정하중(Dead Load)의 이름을 입력함.
@@ -73,11 +76,11 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
                    True = plate의 csv파일을 생성함.
                    False = plate의 csv파일을 생성 안 함.
 
-    import_SWR_gage : bool, optional, default=True
+    import_WR_gage : bool, optional, default=True
                       True = Wall Rotation Gage의 csv파일을 생성함.
                       False = Wall Rotation Gage의 csv파일을 생성 안 함.
                    
-    import_AS_gage : bool, optional, default=True
+    import_WAS_gage : bool, optional, default=True
                      True = Wall Axial Strain Gage의 csv파일을 생성함.
                      False = Wall Axial Strain Gage의 csv파일을 생성 안 함.                   
     Raises
@@ -97,29 +100,30 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     story_info_xlsx_sheet = 'Story Data'
     
     # Output 경로 설정
-    output_csv_dir = input_path # 또는 '경로'
+    output_csv_dir = os.path.dirname(input_xlsx_path) # 또는 '경로'
     
     node_DL_merged_csv = 'DL.csv'
     node_LL_merged_csv = 'LL.csv'
     mass_csv = 'Mass.csv'
     node_csv = 'Node.csv'
+    mass_node_csv = 'Node(Mass).csv'
     beam_csv = 'Beam.csv'
     column_csv = 'Column.csv'
     wall_csv = 'Wall.csv'
     plate_csv = 'Plate.csv'
-    SWR_gage_csv = 'Shear Wall Rotation Gage.csv'
-    as_gage_csv = 'Axial Strain Gage.csv'
+    WR_gage_csv = 'Shear Wall Rotation Gage.csv'
+    WAS_gage_csv = 'Axial Strain Gage.csv'
     
     #%% Nodal Load 뽑기
     
     # Node 정보 load
-    node = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name = input_xlsx_sheet, skiprows = 3, index_col = 0)  # Node 열을 인덱스로 지정
+    node = pd.read_excel(input_xlsx_path, sheet_name = input_xlsx_sheet, skiprows = 3, index_col = 0)  # Node 열을 인덱스로 지정
     node.columns = ['X(mm)', 'Y(mm)', 'Z(mm)']
     
     if (import_DL == True) or (import_LL == True):
     
         # Nodal Load 정보 load
-        nodal_load = pd.read_excel(input_path+'\\'+input_xlsx, sheet_name = nodal_load_raw_xlsx_sheet, skiprows = 3, index_col = 0)
+        nodal_load = pd.read_excel(input_xlsx_path, sheet_name = nodal_load_raw_xlsx_sheet, skiprows = 3, index_col = 0)
         nodal_load.columns = ['Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)', 'MX(kN-mm)', 'MY(kN-mm)', 'MZ(kN-mm)']
         
         # Nodal Load를 DL과 LL로 분리
@@ -155,7 +159,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     if import_mass == True:
         
         # Mass 정보 load
-        mass = pd.read_excel(input_path+'\\'+input_xlsx, sheet_name = mass_raw_xlsx_sheet, skiprows = 3)
+        mass = pd.read_excel(input_xlsx_path, sheet_name = mass_raw_xlsx_sheet, skiprows = 3)
         mass.columns = ['Story', 'Z(mm)', 'Trans Mass X-dir(kN/g)', 'Trans Mass Y-dir(kN/g)', 'Rotat Mass(kN/g-mm^2)',\
                         'X(mm)_Mass', 'Y(mm)_Mass', 'X(mm)_Stiffness', 'Y(mm)_Stiffness', 'X(mm)', 'Y(mm)']
         
@@ -185,11 +189,12 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
             node_mass_considered.to_csv(output_csv_dir+'\\'+node_csv, mode='w', index=False) # Import할 Mass의 좌표를 포함한 모든 좌표를 csv로 출력함
        
         else:
-            mass2.iloc[:,[0,1,2]].to_csv(output_csv_dir+'\\'+node_csv, mode='w', index=False) # Import할 Mass의 좌표만 csv로 출력함
+            mass2.iloc[:,[0,1,2]].to_csv(output_csv_dir+'\\'+mass_node_csv, mode='w', index=False) # Import할 Mass의 좌표만 csv로 출력함
             
     else:
-        # Node 결과값을 csv로 변환
-        node.to_csv(output_csv_dir+'\\'+node_csv, mode='w', index=False)
+        if import_node == True:
+            # Node 결과값을 csv로 변환
+            node.to_csv(output_csv_dir+'\\'+node_csv, mode='w', index=False)
         
     #%% Beam Element 뽑기
     
@@ -198,7 +203,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     node.reset_index(inplace=True)
     
     # Element 정보 load
-    element = pd.read_excel(input_path+'\\'+input_xlsx, sheet_name = element_raw_xlsx_sheet, skiprows = [0,2,3])
+    element = pd.read_excel(input_xlsx_path, sheet_name = element_raw_xlsx_sheet, skiprows = [0,2,3])
     
     # Beam Element만 추출(slicing)
     if (import_beam == True) or (import_column == True):
@@ -331,7 +336,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
     
     #%% Axial Strain Gage 뽑기
     
-    if import_AS_gage == True:
+    if import_WAS_gage == True:
         
         # Wall Element만 추출(slicing)
         wall = element.loc[lambda x: element['Type'] == 'WALL', :]
@@ -451,31 +456,31 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         gage_node_coord = pd.DataFrame(gage_node_list_flat_set_reduced)
         gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
         
-        # SWR_gage_node를 as_gage_node로 나누고 재배열
-        as_gage_node_coord_1 = gage_node_coord[['Node1', 'Node4']]
-        as_gage_node_coord_2 = gage_node_coord[['Node2', 'Node3']]
+        # WR_gage_node를 as_gage_node로 나누고 재배열
+        WAS_gage_node_coord_1 = gage_node_coord[['Node1', 'Node4']]
+        WAS_gage_node_coord_2 = gage_node_coord[['Node2', 'Node3']]
         
-        as_gage_node_coord_1.columns = ['Node1', 'Node2']
-        as_gage_node_coord_2.columns = ['Node1', 'Node2']
-        as_gage_node_coord = pd.concat([as_gage_node_coord_1, as_gage_node_coord_2])
+        WAS_gage_node_coord_1.columns = ['Node1', 'Node2']
+        WAS_gage_node_coord_2.columns = ['Node1', 'Node2']
+        WAS_gage_node_coord = pd.concat([WAS_gage_node_coord_1, WAS_gage_node_coord_2])
         
-        as_gage_node_coord.drop_duplicates(inplace=True)
+        WAS_gage_node_coord.drop_duplicates(inplace=True)
         
         # Merge로 Node 번호에 맞는 좌표를 결합
-        as_gage_node_coord = pd.merge(as_gage_node_coord, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
-        as_gage_node_coord = pd.merge(as_gage_node_coord, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
+        WAS_gage_node_coord = pd.merge(WAS_gage_node_coord, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
+        WAS_gage_node_coord = pd.merge(WAS_gage_node_coord, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
         
-        as_gage_node_coord = as_gage_node_coord.iloc[:,[3,4,5,7,8,9]]
+        WAS_gage_node_coord = WAS_gage_node_coord.iloc[:,[3,4,5,7,8,9]]
         
         # Gage Element 결과값을 csv로 변환
-        as_gage_node_coord.to_csv(output_csv_dir+'\\'+as_gage_csv, mode='w', index=False)
+        WAS_gage_node_coord.to_csv(output_csv_dir+'\\'+WAS_gage_csv, mode='w', index=False)
 
     #%% Shear Wall Gage 뽑기
     
-    if import_SWR_gage == True:
+    if import_WR_gage == True:
         
         # Story Info data 불러오기
-        story_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name=story_info_xlsx_sheet\
+        story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet\
                                    , skiprows=[0,2,3], usecols=[1,2,3,4], keep_default_na=False)
         
         # Wall Element만 추출(slicing)
@@ -606,7 +611,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
         gage_node_coord = gage_node_coord.iloc[:, [5,6,7,9,10,11,17,18,19,13,14,15]]
 
         
-        ### SWR gage가 분할층에서 나눠지지 않게 만들기 
+        ### WR gage가 분할층에서 나눠지지 않게 만들기 
         # 분할층 노드가 포함되지 않은 부재 slice
         gage_node_coord_no_divide = gage_node_coord[(gage_node_coord['Z(mm)'].isin(story_info['Level']))\
                                                     & (gage_node_coord['Z(mm)3'].isin(story_info['Level']))]
@@ -632,7 +637,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
                                     , ignore_index=True)
         
         # Gage Element 결과값을 csv로 변환
-        gage_node_coord.to_csv(output_csv_dir+'\\'+SWR_gage_csv, mode='w', index=False)
+        gage_node_coord.to_csv(output_csv_dir+'\\'+WR_gage_csv, mode='w', index=False)
     
     #%% Plate Element 뽑기
     if (import_plate == True) or ('PLATE' in element['Type']):
@@ -676,7 +681,7 @@ def import_midas(input_path, input_xlsx, DL_name='DL', LL_name='LL'\
                 
 #%% Frame, Element, Section , Drift, Constraint Naming
 
-def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
+def naming(input_xlsx_path, drift_position=[2,5,7,11]):
     '''
     
     모델링에 사용되는 모든 이름들을 동일한 규칙에 의해 출력함.
@@ -709,7 +714,7 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
     story_info_xlsx_sheet = 'Story Data' # 층 정보 sheet
     drift_info_xlsx_sheet = 'ETC' # Drift 정보 sheet
     
-    naming_info = pd.read_excel(input_path + '\\' + input_xlsx\
+    naming_info = pd.read_excel(input_xlsx_path\
                                 , sheet_name = naming_info_xlsx_sheet\
                                 , skiprows = 3)
     
@@ -729,7 +734,7 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
     column_info = column_info[column_info['Name'].notna()]
     
     #%% story 정보 load
-    story_info = pd.read_excel(input_path + '\\' + input_xlsx\
+    story_info = pd.read_excel(input_xlsx_path\
                                , sheet_name = story_info_xlsx_sheet\
                                , skiprows = [0,2,3])
 
@@ -763,7 +768,7 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
         story_section_name_output = ['Base']
     
         # 각 층 전단력 확인을 위한 각 층 section 추가하기
-        for i in story_info_reversed['Story Name'][1:story_info_reversed.shape[0]]:
+        for i in story_info_reversed['Story Name'][1:story_info_reversed.shape[0]-1]:
             story_section_name_output.append(i + '_Shear')
 
     #%% Frame 이름 뽑기
@@ -804,7 +809,7 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
                 constraints_name.append(row[1] + '-' + str(i))
         else: constraints_name.append(row[1])
         
-    constraints_name = constraints_name[1:]
+    constraints_name_output = constraints_name[1:]
 
     #%% Drift 이름 뽑기
 
@@ -815,7 +820,7 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
 
     for position in drift_position:
         for direction in direction_list:
-            for current_story_name in story_info['Story Name']:
+            for current_story_name in story_info['Story Name'][1:story_info.shape[0]]:
                 if isinstance(current_story_name, str) == False:  # 층이름이 int인 경우, 이름조합을 위해 str로 바꿈
                     current_story_name = str(current_story_name)
                 drift_name_output.append(current_story_name + '_' + str(int(position)) + '_' + direction)
@@ -825,24 +830,19 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
     name_output = pd.DataFrame(({'Frame(Beam) Name': pd.Series(frame_beam_name_output),\
                                   'Frame(Column) Name': pd.Series(frame_column_name_output),\
                                   'Frame(Wall) Name': pd.Series(frame_wall_name_output),\
-                                  'Constraints Name': pd.Series(constraints_name),\
+                                  'Constraints Name': pd.Series(constraints_name_output),\
                                   'Section(Wall) Name': pd.Series(wall_name_output),\
-                                  'Section(Shear) Name': pd.Series(story_wall_name_output),\
+                                  'Section(Shear) Name': pd.Series(story_section_name_output),\
                                   'Drift Name': pd.Series(drift_name_output)}))
-
-    # Output 경로 설정
-    # name_output_xlsx = 'Naming Output Sheets.xlsx'
-    # 개별 엑셀파일로 출력
-    # name_output.to_excel(input_path+ '\\'+ name_output_xlsx, sheet_name = 'Name List', index = False)
 
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     name_output = name_output.replace(np.nan, '', regex=True)
     
     # Using win32com...
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
+    wb = excel.Workbooks.Open(input_xlsx_path)
     ws = wb.Sheets('Output_Naming')
     
     startrow, startcol = 5, 1
@@ -853,12 +853,13 @@ def naming(input_path, input_xlsx, drift_position=[2,5,7,11]):
                       name_output.shape[1])).Value\
     = list(name_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능   
     
-    wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application   
+    wb.Save()
+    # wb.Close(SaveChanges=1) # Closing the workbook
+    # excel.Quit() # Closing the application  
 
 #%% Node, Element, Mass, Load Import
 
-def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=True):
+def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=True):
     '''
     
     User가 입력한 부재 정보들을 Perform-3D에 입력할 수 있는 형식으로 변환하여 Data Conversion 엑셀파일의 Output_Properties 시트에 작성.
@@ -874,6 +875,10 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
     get_beam : bool, optional, default=True
                True = C.Beam의 정보를 Perform-3D 입력용 정보로 변환함.
                False = C.Beam의 정보를 변환하지 않음.
+               
+    get_column : bool, optional, default=True
+                 True = G.Column의 정보를 Perform-3D 입력용 정보로 변환함.
+                 False = G.Column의 정보를 변환하지 않음.
                
     get_wall : bool, optional, default=True
                True = Wall의 정보를 Perform-3D 입력용 정보로 변환함.
@@ -896,19 +901,14 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
     #%% 파일 load
     
     pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
+    # UserWarning: openpyxl 안뜨게 하기
+    warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
     
-    wall_raw_xlsx_sheet = 'Wall Properties'
-    beam_raw_xlsx_sheet = 'C.Beam Properties'
-    story_info_xlsx_sheet = 'Story Data'
-    naming_criteria_xlsx_sheet = 'ETC'
-    wall_naming_xlsx_sheet = 'Wall Naming'
-    beam_naming_xlsx_sheet = 'Beam Naming'
-    
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw\
                                       , ['C.Beam Properties', 'Wall Properties'\
-                                         , 'Story Data', 'ETC', 'Beam Naming'\
-                                         , 'Wall Naming'], skiprows=3)
+                                         , 'G.Column Properties', 'Story Data'
+                                         , 'ETC', 'Naming'], skiprows=3)
     input_data_raw.close()
     
     # Wall 정보 load
@@ -919,6 +919,18 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
     wall = wall.dropna(axis=0, how='all')
     wall.reset_index(inplace=True, drop=True)
     wall = wall.fillna(method='ffill')
+
+    # Column 정보 load
+    column = input_data_sheets['G.Column Properties'].iloc[:,0:18]
+    column.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)', 'h(mm)'
+                      , 'Cover Thickness(mm)', '내진상세 여부', 'Type(Main)'
+                      , 'Main Rebar(DXX)', 'Type(Hoop)', 'Hoop Rebar(DXX)'
+                      , 'EA(Layer1)', 'Row(Layer1)', 'EA(Layer2)', 'Row(Layer2)'
+                      , 'EA(Hoop_X)', 'EA(Hoop_Y)', 'Spacing(Hoop)']
+
+    column = column.dropna(axis=0, how='all')
+    column.reset_index(inplace=True, drop=True)
+    column = column.fillna(method='ffill')
 
     # Beam 정보 load
     beam = input_data_sheets['C.Beam Properties'].iloc[:,0:20]
@@ -941,17 +953,20 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
     story_name = story_name[::-1]  # 층 이름 재배열
     story_name.reset_index(drop=True, inplace=True)
 
-    # 벽체 개수 load
-    num_of_wall = input_data_sheets['Wall Naming']
+    # 벽체,기둥,보 개수 load
+    num_of_elem = input_data_sheets['Naming']
+    
+    num_of_beam = num_of_elem.iloc[:,[0,3]]
+    num_of_wall = num_of_elem.iloc[:,[8,11]]
+    num_of_column = num_of_elem.iloc[:,[4,7]]
+    
+    num_of_beam = num_of_beam.dropna(axis=0)
+    num_of_wall = num_of_wall.dropna(axis=0)
+    num_of_column = num_of_column.dropna(axis=0)
 
-    num_of_wall = num_of_wall.drop(['from', 'to'], axis=1)
-    num_of_wall.columns = ['Name', 'EA']
-
-    # 보 개수 load
-    num_of_beam = input_data_sheets['Beam Naming']
-
-    num_of_beam = num_of_beam.drop(['from', 'to'], axis=1)
     num_of_beam.columns = ['Name', 'EA']
+    num_of_wall.columns = ['Name', 'EA']
+    num_of_column.columns = ['Name', 'EA']
 
     #%% 부재 이름 설정할 때 필요한 함수들
 
@@ -1241,7 +1256,190 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
         wall_output = wall_output.replace(np.nan, '', regex=True)
 
-    #%% 2. Beam
+    #%% 2. Column
+    #%% 불러온 Column 정보 정리
+    if get_column == True:
+        
+        # 글자가 합쳐져 있을 경우 글자 나누기 (12F~15F, D10@300)
+        # 층 나누기
+    
+        if column['Story(to)'].isnull().any() == True:
+            column['Story(to)'] = str_div(column['Story(from)'])[1]
+            column['Story(from)'] = str_div(column['Story(from)'])[0]
+        else: pass
+    
+        # 철근의 앞에붙은 D 떼어주기
+        new_m_rebar = []
+        new_h_rebar = []
+    
+        for i in column['Main Rebar(DXX)']:
+            if isinstance(i, int):
+                new_m_rebar.append(i)
+            else:
+                new_m_rebar.append(str_extract(i))
+                
+        for j in column['Hoop Rebar(DXX)']:
+            if isinstance(j, int):
+                new_h_rebar.append(j)
+            else:
+                new_h_rebar.append(str_extract(j))
+                
+        column['Main Rebar(DXX)'] = new_m_rebar
+        column['Hoop Rebar(DXX)'] = new_h_rebar
+    
+        #%% 이름 구분 조건 load & 정리
+    
+        # 층 구분 조건에  story_name의 index 매칭시켜서 새로 열 만들기
+        naming_criteria_1_index = []
+        naming_criteria_2_index = []
+    
+        for i, j in zip(naming_criteria.iloc[:,5].dropna(), naming_criteria.iloc[:,6].dropna()):
+            naming_criteria_1_index.append(pd.Index(story_name).get_loc(i))
+            naming_criteria_2_index.append(pd.Index(story_name).get_loc(j))
+    
+        ### 구분 조건이 층 순서에 상관없이 작동되게 재정렬
+        # 구분 조건에 해당하는 콘크리트 강도 재정렬
+        naming_criteria_property = pd.concat([pd.Series(naming_criteria_1_index, name='Story(from) Index'), naming_criteria.iloc[:,7].dropna()], axis=1)
+    
+        naming_criteria_property['Story(from) Index'] = pd.Categorical(naming_criteria_property['Story(from) Index'], naming_criteria_1_index.sort())
+        naming_criteria_property.sort_values('Story(from) Index', inplace=True)
+        naming_criteria_property.reset_index(inplace=True)
+    
+        # 구분 조건 재정렬
+        naming_criteria_1_index.sort()
+        naming_criteria_2_index.sort()
+    
+        #%% 시작층, 끝층 정리
+    
+        naming_from_index = []
+        naming_to_index = []
+    
+        for naming_from, naming_to in zip(column['Story(from)'], column['Story(to)']):
+            if isinstance(naming_from, str) == False:
+                naming_from = str(naming_from)
+            if isinstance(naming_to, str) == False:
+                naming_from = str(naming_from)
+                
+            naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
+            naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
+    
+        #%%  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
+    
+        naming_from_index_list = []
+        naming_to_index_list = []
+        naming_criteria_property_index_list = []
+    
+        for current_naming_from_index, current_naming_to_index in zip(naming_from_index, naming_to_index):  # 부재의 시작과 끝 층 loop
+            naming_from_index_sublist = [current_naming_from_index]
+            naming_to_index_sublist = [current_naming_to_index]
+            naming_criteria_property_index_sublist = []
+                
+            for i, j, k in zip(naming_criteria_1_index, naming_criteria_2_index, naming_criteria_property.index):
+                if (i >= current_naming_from_index) and (i <= current_naming_to_index):
+                    naming_from_index_sublist.append(i)
+                    naming_criteria_property_index_sublist.append(k)
+                                
+                    if (j >= current_naming_from_index) and (j <= current_naming_to_index):
+                        naming_to_index_sublist.append(j)
+                    else:
+                        naming_to_index_sublist.append(i-1)
+                        
+                    if i != current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(k-1)
+                                            
+                elif (i < current_naming_from_index) and (j >= current_naming_to_index):
+                    naming_criteria_property_index_sublist.append(k)
+                    
+                elif (i < current_naming_from_index) and (j <= current_naming_to_index):
+                    naming_to_index_sublist.append(j)
+                    
+                else:
+                    if max(naming_criteria_1_index) < current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(max(naming_criteria_property.index))
+                        
+                    elif min(naming_criteria_1_index) > current_naming_to_index:
+                            naming_criteria_property_index_sublist.append(min(naming_criteria_property.index))
+                    
+                naming_from_index_sublist = list(set(naming_from_index_sublist))
+                naming_to_index_sublist = list(set(naming_to_index_sublist))
+                naming_criteria_property_index_sublist = list(set(naming_criteria_property_index_sublist))
+                        
+                # sublist 안의 element들을 내림차순으로 정렬            
+                naming_from_index_sublist.sort(reverse = True)
+                naming_to_index_sublist.sort(reverse = True)
+                naming_criteria_property_index_sublist.sort(reverse = True)
+            
+            # sublist를 합쳐 list로 완성
+            naming_from_index_list.append(naming_from_index_sublist)
+            naming_to_index_list.append(naming_to_index_sublist)
+            naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
+    
+        # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
+        column_info = column.copy()  # input sheet에서 나온 properties
+        column_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
+    
+        name_output = []  # new names
+        property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
+        column_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
+    
+        count = 1000
+        count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
+    
+        for i, j in zip(num_of_column['Name'], num_of_column['EA']):
+            
+            for k in range(1,int(j)+1):
+    
+                for current_column_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_column_info_index\
+                            in zip(column['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, column_info.index):
+    
+                    if i == current_column_name:
+                    
+                        for p, q, r in zip(current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list):
+                            if p != q:
+                                for s in range(p, q+1):
+    
+                                    count_list.append(count + s)
+                                    
+                                    name_output.append(current_column_name + '_' + str(k) + '_' + str(story_name[s]))
+                                    
+                                    property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                    column_info_output.append(column_info.iloc[current_column_info_index])
+                                    
+                            else:
+                                count_list.append(count + q)
+                                
+                                name_output.append(current_column_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
+                                
+                                property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                column_info_output.append(column_info.iloc[current_column_info_index])  
+                                
+                count += 1000
+                
+        column_info_output = pd.DataFrame(column_info_output)
+        column_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
+    
+        column_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
+    
+        # 중간결과
+        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 column_info를 바로 출력
+            column_ongoing = column_info
+        else:
+            column_ongoing = pd.concat([pd.Series(name_output, name='Name'), column_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
+    
+        column_ongoing = column_ongoing.sort_values(by=['Count'])
+        column_ongoing.reset_index(inplace=True, drop=True)
+    
+        # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
+        column_output = column_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]  
+    
+        # 철근지름에 다시 D붙이기
+        column_output.loc[:,'Main Rebar(DXX)'] = 'D' + column_output['Main Rebar(DXX)'].astype(str)
+        column_output.loc[:,'Hoop Rebar(DXX)'] = 'D' + column_output['Hoop Rebar(DXX)'].astype(str)
+        
+        # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+        column_output = column_output.replace(np.nan, '', regex=True)
+    
+    #%% 3. Beam
     #%% 불러온 Beam 정보 정리
     if get_beam == True:
         
@@ -1430,32 +1628,36 @@ def convert_property_reverse(input_path, input_xlsx, get_beam=True, get_wall=Tru
     # Using win32com...
 
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
+    wb = excel.Workbooks.Open(input_xlsx_path)
     ws_beam = wb.Sheets('Output_C.Beam Properties')
+    ws_column = wb.Sheets('Output_G.Column Properties')
     ws_wall = wb.Sheets('Output_Wall Properties')
 
     startrow, startcol = 5, 1
 
-    if get_beam == True:
-        
+    if get_beam == True:        
         ws_beam.Range(ws_beam.Cells(startrow, startcol),\
                       ws_beam.Cells(startrow + beam_output.shape[0]-1,\
                                     startcol + beam_output.shape[1]-1)).Value\
         = list(beam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+        
+    if get_column == True:        
+        ws_column.Range(ws_column.Cells(startrow, startcol),\
+                        ws_column.Cells(startrow + column_output.shape[0]-1,\
+                                        startcol + column_output.shape[1]-1)).Value\
+        = list(column_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
 
-    if get_wall == True:
-    
+    if get_wall == True:    
         ws_wall.Range(ws_wall.Cells(startrow, startcol),\
                       ws_wall.Cells(startrow + wall_output.shape[0]-1,\
                                     startcol + wall_output.shape[1]-1)).Value\
         = list(wall_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
 
-
-    wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application 
-    
+    wb.Save()
+    # wb.Close(SaveChanges=1) # Closing the workbook
+    # excel.Quit() # Closing the application 
     
 #%% Property Assign Macro (Wall)
 

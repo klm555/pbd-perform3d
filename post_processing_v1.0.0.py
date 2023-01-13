@@ -28,12 +28,12 @@ print('\n########## Result ##########\n')
 bldg_name = '103동'
 
 # Analysis Result
-result_path = r'D:\이형우\내진성능평가\광명 4R\해석 결과\103_16'
+result_path = r'L:\33. 내진성능평가 & 성능설계\02. 진행 중\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\결과정리\107'
 result_xlsx = 'Analysis Result' # 해석결과에 공통으로 포함되는 이름 (확장자X)
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_path = r'D:\이형우\내진성능평가\광명 4R\103'
-input_xlsx = 'Input Sheets(103_16)_v.1.8 - 복사본.xlsx'
+input_path = r'L:\33. 내진성능평가 & 성능설계\02. 진행 중\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\결과정리\107'
+input_xlsx = '107D_Data Conversion_Shear Wall Type_Ver.1.9_11(2).xlsx'
 column_xlsx = 'Results_E.Column(103_16)_Ver.1.3.xlsx'
 beam_xlsx = 'Results_E.Beam(103_16).xlsx'
 
@@ -41,6 +41,7 @@ beam_xlsx = 'Results_E.Beam(103_16).xlsx'
 output_path = result_path # result_path와 동일하게 설정. 바꿔도 됨
 output_docx = '103_16 해석결과.docx'
 column_pdf_name = '103_16 전이기둥 결과' # 출력될 pdf 파일의 이름 (확장자X)
+appendix_docx = 'Appendix. Wall SF(elementwise).docx'
 
 # Base Shear
 ylim = 60000 #kN, 그래프의 y limit
@@ -55,45 +56,45 @@ yticks = 2
 #%% Post Processing
 
 # 밑면 전단력
-base_SF = pbd.base_SF(result_path, ylim=ylim)
+# base_SF = pbd.base_SF(result_path, ylim=ylim)
 
 # 층 전단력
-story_SF = pbd.story_SF(input_path, input_xlsx, result_path\
-                            , yticks=story_gap, xlim=xlim)
+# story_SF = pbd.story_SF(input_path, input_xlsx, result_path\
+                            # , yticks=story_gap, xlim=xlim)
 
 # 층간변위비
-IDR = pbd.IDR(input_path, input_xlsx, result_path, yticks=story_gap)
+# IDR = pbd.IDR(input_path, input_xlsx, result_path, yticks=story_gap)
 
 # 벽체 압축/인장 변형률
-AS = pbd.AS(input_path, input_xlsx, result_path, yticks=story_gap)
+# AS = pbd.AS(input_path, input_xlsx, result_path, yticks=story_gap)
 
 # 벽체 전단강도
-wall_SF = pbd.wall_SF(input_path, input_xlsx, result_path, graph=True\
+wall_SF = pbd.wall_SF(input_path, input_xlsx, result_path, graph=False\
                         , yticks=story_gap, xlim=3)
 
 # 벽체 전단력(only graph)
 # wall_SF_graph = pbd.wall_SF_graph(input_path, input_xlsx, yticks=story_gap)
 
 # 벽체 소성회전각
-SWR = pbd.SWR(input_path, input_xlsx, result_path, yticks=story_gap\
-                , DE_criteria=0.002, MCE_criteria=0.004/1.2)
+# SWR = pbd.SWR(input_path, input_xlsx, result_path, yticks=story_gap\
+#                 , DE_criteria=0.002, MCE_criteria=0.004/1.2)
 
 # 벽체 소성회전각(DCR)
-SWR_DCR = pbd.SWR_DCR(input_path, input_xlsx, result_path\
-                        , yticks=story_gap, xlim=3)
+# SWR_DCR = pbd.SWR_DCR(input_path, input_xlsx, result_path\
+#                         , yticks=story_gap, xlim=3)
 
 # 연결보 소성회전각(Gage 설치 X)    
-BR_no_gage = pbd.BR_no_gage(result_path, result_xlsx, input_path\
-                                , input_xlsx, cri_DE=0.01, cri_MCE=0.025/1.2\
-                                , yticks=2, xlim=0.03)
+# BR_no_gage = pbd.BR_no_gage(result_path, result_xlsx, input_path\
+#                                 , input_xlsx, cri_DE=0.01, cri_MCE=0.025/1.2\
+#                                 , yticks=2, xlim=0.03)
 
 # 연결보 소성회전각(DCR)
-BR_DCR = pbd.BR_DCR(result_path, result_xlsx, input_path, input_xlsx\
-                        , yticks=3, xlim=3)
+# BR_DCR = pbd.BR_DCR(result_path, result_xlsx, input_path, input_xlsx\
+#                         , yticks=3, xlim=3)
 
 # 전이보 전단력
 # trans_beam_SF = pbd.trans_beam_SF_2(result_path, result_xlsx, input_path\
-                                        # , input_xlsx, beam_xlsx, contour=True)
+#                                         , input_xlsx, beam_xlsx, contour=True)
 
 # 전이기둥 전단강도
 # trans_column_SF = pbd.trans_column_SF(result_path, result_xlsx, input_path\
@@ -103,6 +104,11 @@ BR_DCR = pbd.BR_DCR(result_path, result_xlsx, input_path, input_xlsx\
 # 전이기둥 전단강도(only pdf)
 # trans_column_SF_pdf = pbd.trans_column_SF_pdf(input_path, column_xlsx\
                                                   # , pdf_name=column_pdf_name)
+                                                  
+# Pushover
+# pushover = system.pushover(result_path, x_result_txt, y_result_txt, base_SF_design, pp_x=, pp_y=)
+
+
 
 ###############################################################################
 ###############################################################################
@@ -122,7 +128,7 @@ BR_DCR = pbd.BR_DCR(result_path, result_xlsx, input_path, input_xlsx\
 
 function_list = ['base_SF', 'story_SF', 'IDR', 'AS', 'wall_SF'\
                  , 'wall_SF_graph', 'SWR', 'SWR_DCR', 'BR', 'BR_no_gage'\
-                 , 'BR_DCR', 'trans_beam_SF']
+                 , 'BR_DCR', 'trans_beam_SF', 'pushover']
 
 # plot & dataframe 합쳐진 list 만들기
 plot_df_list = []
@@ -196,7 +202,7 @@ output_word_table_faster = output_word_table._cells
 # 그래프 사이즈(inch)
 figsize_x, figsize_y = 8.7, 2.3 # cm
 
-#%% Story Shear 그래프 그리기
+#%% 전체 결과 그래프 그리기
 
 count = 0
 for i in plot_list:
@@ -232,7 +238,132 @@ output_word_style.font.size = Pt(8)
         
 # 저장~
 output_word.save(output_path + '\\' + output_docx)
+'''
+#%% Appendix
 
+# Document 생성
+appendix_word = docx.Document()
+
+# Changing the page margins
+appendix_word_sections = appendix_word.sections
+for section in appendix_word_sections:
+    section.top_margin = Cm(1)
+    section.bottom_margin = Cm(0.44)
+    section.left_margin = Cm(2.5)
+    section.right_margin = Cm(1.5)
+
+# 제목
+appendix_word_title_para = appendix_word.add_paragraph()
+appendix_word_title_run = appendix_word_title_para.add_run(bldg_name+'(Appendix)')
+appendix_word_title_run.font.size = Pt(12)
+appendix_word_title_run.bold = True
+
+# 표 삽입  # int(-(-x//1)) = math.ceil()
+appendix_word_table = appendix_word.add_table(int(-(-len(plot_list)//2)), 2)
+appendix_word_table_faster = appendix_word_table._cells
+
+
+#%% 전체 결과 그래프 그리기
+
+# 지진파별 그래프
+count = 1
+
+for i in input_wall_name:  
+    
+    shear_force_major_max_temp = shear_force_major_max[(shear_force_major_max.index.str.contains(i + '_'))\
+                                                       & (shear_force_major_max.index.str[0] == i[0])]
+
+    story_temp = shear_force_major_max_temp.index.tolist()
+    story_temp = pd.Series(list(map(lambda x: x.rsplit('_', 1)[1], story_temp))).tolist()
+    
+    ### DE
+    memfile = BytesIO()
+    plt.figure(count, dpi=150, figsize=(5, 4.8))
+    # plt.xlim(0, story_shear_xlim)
+    
+    # 지진파별 plot
+    for j in range(14):
+        plt.plot(shear_force_major_max_temp.iloc[:,j], range(shear_force_major_max_temp.shape[0]), label=seismic_load_name_list[j], linewidth=0.7)
+        
+    # 평균 plot
+    plt.plot(shear_force_major_max_temp.iloc[:,0:14].mean(axis=1), range(shear_force_major_max_temp.shape[0]), color='k', label='Average', linewidth=2)
+    
+    plt.yticks(range(shear_force_major_max_temp.shape[0])[::story_shear_yticks], story_temp[::story_shear_yticks])
+    # plt.xticks(range(14), range(1,15))
+    
+    # 기타
+    plt.grid(linestyle='-.')
+    plt.xlabel('Story Shear(kN)')
+    plt.ylabel('Story')
+    plt.legend(loc=1, fontsize=8)
+    plt.title('{}'.format(i.split('_')[0]) + ' (DE)')
+    
+    plt.tight_layout()
+    plt.savefig(memfile)
+    plt.close()
+    
+    SF_word_table_faster_para = SF_word_table_faster[count-1].paragraphs[0]
+    SF_word_table_faster_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    SF_word_table_faster_run = SF_word_table_faster_para.add_run()
+    # SF_word_table_faster_run.add_picture(memfile, height = figsize_y, width = figsize_x)
+    SF_word_table_faster_run.add_picture(memfile, width=Cm(figsize_x))
+
+    memfile.close()
+    count += 1
+    
+    ### MCE
+    memfile2 = BytesIO()
+    plt.figure(count, dpi=150, figsize=(5, 4.8))
+    # plt.xlim(0, story_shear_xlim)
+    
+    # 지진파별 plot
+    for j in range(14):
+        plt.plot(shear_force_major_max_temp.iloc[:,j+14], range(shear_force_major_max_temp.shape[0]), label=seismic_load_name_list[j+14], linewidth=0.7)
+        
+    # 평균 plot
+    plt.plot(shear_force_major_max_temp.iloc[:,14:28].mean(axis=1), range(shear_force_major_max_temp.shape[0]), color='k', label='Average', linewidth=2)
+    
+    plt.yticks(range(shear_force_major_max_temp.shape[0])[::story_shear_yticks], story_temp[::story_shear_yticks])
+    # plt.xticks(range(14), range(1,15))
+    
+    # 기타
+    plt.grid(linestyle='-.')
+    plt.xlabel('Story Shear(kN)')
+    plt.ylabel('Story')
+    plt.legend(loc=1, fontsize=8)
+    plt.title('{}'.format(i.split('_')[0]) + ' (MCE)')
+    
+    plt.tight_layout()
+    plt.savefig(memfile2)
+    plt.close()
+    
+    SF_word_table_faster_para2 = SF_word_table_faster[count-1].paragraphs[0]
+    SF_word_table_faster_para2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    SF_word_table_faster_run2 = SF_word_table_faster_para2.add_run()
+    # SF_word_table_faster_run2.add_picture(memfile2, height = figsize_y, width = figsize_x)
+    SF_word_table_faster_run2.add_picture(memfile2, width=Cm(figsize_x))
+        
+    memfile2.close()
+    count += 1
+
+# Table 스타일  
+appendix_word_table.style = 'Table Grid'
+appendix_word_table.autofit = False
+appendix_word_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+# 스타일 지정(global)
+appendix_word_style = appendix_word.styles['Normal']
+appendix_word_style.font.name = '맑은 고딕'
+appendix_word_style._element.rPr.rFonts\
+    .set(qn('w:eastAsia'), '맑은 고딕') # 한글 폰트를 따로 설정해 준다
+appendix_word_style.font.size = Pt(8) 
+        
+# 저장~
+appendix_word.save(output_path + '\\' + appendix_docx)
+
+'''
 #%% 시간 측정(END)
 time_end = time.time()
 time_run = (time_end-time_start)/60

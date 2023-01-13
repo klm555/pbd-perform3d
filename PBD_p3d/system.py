@@ -37,9 +37,14 @@ def base_SF(result_path, result_xlsx='Analysis Result', ylim=70000):
     shear_force_data = pd.DataFrame()
     
     for i in to_load_list:
-        shear_force_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Structure Section Forces', skiprows=2, usecols=[0,3,5,6,7])
+        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces'], skiprows=[0,2])
+        
+        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2', 'FV']
+        shear_force_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
         shear_force_data = pd.concat([shear_force_data, shear_force_data_temp])
+        
+        wall_SF_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
         
     shear_force_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)']
     
@@ -814,3 +819,98 @@ def IDR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', cri_
         count += 1
         
         yield fig4
+        
+#%% Pushover
+
+def Pushover(result_path, x_result_txt, y_result_txt, base_SF_design=None, pp_x=None, pp_y=None):
+    ''' 
+
+    Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)
+    
+    Parameters
+    ----------
+    result_path : str
+                  Perform-3D에서 나온 해석 파일의 경로.
+                  
+    result_xlsx : str, optional, default='Analysis Result'
+                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
+                  
+    ylim : int, optional, default=70000
+           그래프의 y축 limit 값. y축 limit 안의 값만 표기되므로, limit를 넘어가는 값을 확인하고 싶을 시에는 ylim 값을 더 크게 설정하면 된다.
+    
+    Returns
+    -------
+    '''
+    
+#%%
+
+    # 설계밑면전단력 값 입력
+    result_path = r'K:\2105-이형우\성능기반 내진설계\GM4R\Pushover_txt'
+    x_result_txt = '111_PO_X.txt'
+    y_result_txt = '111_PO_Y.txt'
+    design_base_shear = 11291 # kN (GEN값 * 0.85)
+    pp_DE_x = [0.001864, 7466]
+    pp_MCE_x = [0.002373, 8265]
+    pp_DE_y = [4.449e-4, 3585]
+    pp_MCE_y = [5.403e-4, 3832]
+###############################################################################    
+
+    data_X = pd.read_csv(result_path+'\\'+x_result_txt, skiprows=8, header=None)
+    data_Y = pd.read_csv(result_path+'\\'+y_result_txt, skiprows=8, header=None)
+    data_X.columns = ['Drift', 'Base Shear']
+    data_Y.columns = ['Drift', 'Base Shear']
+    
+    ### 성능곡선 그리기
+    ### X Direction
+    fig1 = plt.figure(1, figsize=(8,5))  # 그래프 사이즈
+    plt.grid()
+    plt.plot(data_X['Drift'], data_X['Base Shear'], color = 'k', linewidth = 1)
+    plt.title('Capacity Curve (X-dir)', pad = 10)
+    plt.xlabel('Reference Drift', labelpad= 10) # fontweight='bold'
+    plt.ylabel('Base Shear(kN)', labelpad= 10)
+    plt.xlim([0, max(data_X['Drift'])])
+    plt.ylim([0, max(data_X['Base Shear'])+3000])
+    
+    # 설계 밑면전단력 그리기
+    if design_base_shear != None:
+        plt.axhline(design_base_shear, 0, 1, color = 'royalblue', linestyle='--', linewidth = 1.5)
+    
+    # 성능점 그리기
+    plt.plot(pp_DE_x[0], pp_DE_x[1], color='r', marker='o')
+    plt.text(pp_DE_x[0]*1.3, pp_DE_x[1], 'Performance Point at DE \n ({},{})'.format(pp_DE_x[0], pp_DE_x[1])
+             , verticalalignment='top')
+    
+    plt.plot(pp_MCE_x[0], pp_MCE_x[1], color='g', marker='o')
+    plt.text(pp_MCE_x[0]*1.3, pp_MCE_x[1], 'Performance Point at MCE \n ({},{})'.format(pp_MCE_x[0], pp_MCE_x[1])
+             , verticalalignment='bottom')
+    
+    plt.show()
+    # yield fig1
+    
+    
+    ### Y Direction
+    fig2 = plt.figure(2, figsize=(8,5))  # 그래프 사이즈
+    plt.grid()
+    plt.plot(data_Y['Drift'], data_Y['Base Shear'], color = 'k', linewidth = 1)
+    plt.title('Capacity Curve (Y-dir)', pad = 10)
+    plt.xlabel('Reference Drift', labelpad= 10) # fontweight='bold'
+    plt.ylabel('Base Shear(kN)', labelpad= 10)
+    plt.xlim([0, max(data_Y['Drift'])])
+    plt.ylim([0, max(data_Y['Base Shear'])+3000])
+    
+    if design_base_shear != None:
+        plt.axhline(design_base_shear, 0, 1, color='royalblue', linestyle='--', linewidth=1.5)
+
+    plt.plot(pp_DE_y[0], pp_DE_y[1], color='r', marker='o')
+    plt.text(pp_DE_y[0]*1.3, pp_DE_y[1], 'Performance Point at DE \n ({},{})'.format(pp_DE_y[0], pp_DE_y[1])
+             , verticalalignment='top')
+    
+    plt.plot(pp_MCE_y[0], pp_MCE_y[1], color='g', marker='o')
+    plt.text(pp_MCE_y[0]*1.3, pp_MCE_y[1], 'Performance Point at MCE \n ({},{})'.format(pp_MCE_y[0], pp_MCE_y[1])
+             , verticalalignment='bottom')
+    
+    plt.show()
+    # yield fig2
+    
+    print(max(data_X['Base Shear']), design_base_shear, max(data_X['Base Shear'])/design_base_shear)
+    print(max(data_Y['Base Shear']), design_base_shear, max(data_Y['Base Shear'])/design_base_shear)
