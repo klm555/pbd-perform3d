@@ -40,11 +40,9 @@ def base_SF(result_path, result_xlsx='Analysis Result', ylim=70000):
         result_data_raw = pd.ExcelFile(result_path + '\\' + i)
         result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces'], skiprows=[0,2])
         
-        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2', 'FV']
+        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2']
         shear_force_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
         shear_force_data = pd.concat([shear_force_data, shear_force_data_temp])
-        
-        wall_SF_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
         
     shear_force_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)']
     

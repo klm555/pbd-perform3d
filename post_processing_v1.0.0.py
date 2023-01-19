@@ -25,29 +25,32 @@ print('\n########## Result ##########\n')
 #%% User Input
 
 # Building Name
-bldg_name = '103동'
+bldg_name = '105동'
 
 # Analysis Result
-result_path = r'L:\33. 내진성능평가 & 성능설계\02. 진행 중\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\결과정리\107'
+result_path = r'K:\2105-이형우\from 박재성\test\Results_E.Column'
 result_xlsx = 'Analysis Result' # 해석결과에 공통으로 포함되는 이름 (확장자X)
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_path = r'L:\33. 내진성능평가 & 성능설계\02. 진행 중\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\결과정리\107'
-input_xlsx = '107D_Data Conversion_Shear Wall Type_Ver.1.9_11(2).xlsx'
-column_xlsx = 'Results_E.Column(103_16)_Ver.1.3.xlsx'
+input_path = r'K:\2105-이형우\from 박재성\test\Results_E.Column'
+input_xlsx = 'SW-105D_Data Conversion(E.Column)_Ver.1.1_230117.xlsx'
+column_xlsx = 'Results_E.Column(105D)_Ver.1.3.xlsx'
 beam_xlsx = 'Results_E.Beam(103_16).xlsx'
 
 # Post-processed Result
 output_path = result_path # result_path와 동일하게 설정. 바꿔도 됨
-output_docx = '103_16 해석결과.docx'
-column_pdf_name = '103_16 전이기둥 결과' # 출력될 pdf 파일의 이름 (확장자X)
+output_docx = '105 해석결과(E.Column).docx'
+column_pdf_name = '105D E.Column 결과' # 출력될 pdf 파일의 이름 (확장자X)
 appendix_docx = 'Appendix. Wall SF(elementwise).docx'
 
+c_beam_group = 'C.Beam'
+g_col_group = 'G.Column'
+
 # Base Shear
-ylim = 60000 #kN, 그래프의 y limit
+ylim = 30000 #kN, 그래프의 y limit
 
 # Story Shear
-xlim = 60000 # kN, 그래프의 x limit
+xlim = 30000 # kN, 그래프의 x limit
 story_gap = 2 # 층간격
 
 # BR
@@ -69,41 +72,52 @@ yticks = 2
 # AS = pbd.AS(input_path, input_xlsx, result_path, yticks=story_gap)
 
 # 벽체 전단강도
-wall_SF = pbd.wall_SF(input_path, input_xlsx, result_path, graph=False\
-                        , yticks=story_gap, xlim=3)
+# wall_SF = pbd.wall_SF(input_path, input_xlsx, result_path, graph=True\
+                        # , yticks=story_gap, xlim=3)
 
 # 벽체 전단력(only graph)
 # wall_SF_graph = pbd.wall_SF_graph(input_path, input_xlsx, yticks=story_gap)
 
 # 벽체 소성회전각
 # SWR = pbd.SWR(input_path, input_xlsx, result_path, yticks=story_gap\
-#                 , DE_criteria=0.002, MCE_criteria=0.004/1.2)
+                # , DE_criteria=0.002, MCE_criteria=0.004/1.2)
 
 # 벽체 소성회전각(DCR)
 # SWR_DCR = pbd.SWR_DCR(input_path, input_xlsx, result_path\
-#                         , yticks=story_gap, xlim=3)
-
+                        # , yticks=story_gap, xlim=3)
+# 
 # 연결보 소성회전각(Gage 설치 X)    
 # BR_no_gage = pbd.BR_no_gage(result_path, result_xlsx, input_path\
-#                                 , input_xlsx, cri_DE=0.01, cri_MCE=0.025/1.2\
-#                                 , yticks=2, xlim=0.03)
+                                # , input_xlsx, cri_DE=0.01, cri_MCE=0.025/1.2\
+                                # , yticks=2, xlim=0.03)
 
 # 연결보 소성회전각(DCR)
-# BR_DCR = pbd.BR_DCR(result_path, result_xlsx, input_path, input_xlsx\
-#                         , yticks=3, xlim=3)
+# BR_DCR = pbd.BR_DCR(result_path, result_xlsx, input_path, input_xlsx
+                    # , yticks=3, xlim=3)
 
 # 전이보 전단력
 # trans_beam_SF = pbd.trans_beam_SF_2(result_path, result_xlsx, input_path\
-#                                         , input_xlsx, beam_xlsx, contour=True)
+                                        # , input_xlsx, beam_xlsx, contour=True)
 
 # 전이기둥 전단강도
-# trans_column_SF = pbd.trans_column_SF(result_path, result_xlsx, input_path\
-                                # , input_xlsx, column_xlsx, export_to_pdf=True\
-                                    # , pdf_name=column_pdf_name)
+trans_column_SF = pbd.trans_column_SF(result_path, result_xlsx, input_path\
+                                , input_xlsx, column_xlsx, export_to_pdf=True\
+                                    , pdf_name=column_pdf_name)
 
 # 전이기둥 전단강도(only pdf)
 # trans_column_SF_pdf = pbd.trans_column_SF_pdf(input_path, column_xlsx\
-                                                  # , pdf_name=column_pdf_name)
+                                                   # , pdf_name=column_pdf_name)
+
+# 일반기둥 전단강도                                                  
+# gen_column_SF = pbd.general_column_SF(result_path, result_xlsx, input_path, input_xlsx)
+
+# 일반기둥 소성회전각(DCR)
+# CR = pbd.CR(result_path, result_xlsx, input_path, input_xlsx
+            # , yticks=2)  
+
+# 일반기둥 소성회전각(DCR)
+# CR_DCR = pbd.CR_DCR(result_path, result_xlsx, input_path, input_xlsx
+                    # , yticks=2, xlim=3)                             
                                                   
 # Pushover
 # pushover = system.pushover(result_path, x_result_txt, y_result_txt, base_SF_design, pp_x=, pp_y=)
@@ -128,7 +142,7 @@ wall_SF = pbd.wall_SF(input_path, input_xlsx, result_path, graph=False\
 
 function_list = ['base_SF', 'story_SF', 'IDR', 'AS', 'wall_SF'\
                  , 'wall_SF_graph', 'SWR', 'SWR_DCR', 'BR', 'BR_no_gage'\
-                 , 'BR_DCR', 'trans_beam_SF', 'pushover']
+                 , 'BR_DCR', 'CR', 'CR_DCR', 'trans_beam_SF', 'trans_column_SF', 'pushover']
 
 # plot & dataframe 합쳐진 list 만들기
 plot_df_list = []

@@ -19,13 +19,17 @@ time_start = time.time()
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'C:\Users\hwlee\Desktop\Python\내진성능설계\Data Conversion_Ver.1.0_220930.xlsx'
+input_xlsx_path = r'K:\2105-이형우\from 박재성\Results_E.Column\SW-105D_Data Conversion(E.Column)_Ver.1.1_230117.xlsx'
+result_path = r'K:\2105-이형우\from 박재성\Results_E.Column'
+result_xlsx = 'Analysis Result'
 
 DL = 'DL' # Midas Gen에서 Import해올 때 만든 하중 이름
 LL = 'LL'
 
 # Naming Option
 drift_position = [2,5,7,11]
+
+g_col_group_name = 'G.Column'
 
 # Properties Assign 매크로 Option
 # drag_duration = 0.15 # drag 하는 속도(너무 빨리하면 팅길 수 있으므로 적당한 속도 권장)
@@ -42,6 +46,9 @@ drift_position = [2,5,7,11]
 
 #%% Properties 변환
 pbd.convert_property(input_xlsx_path, get_beam=False, get_column=True, get_wall=False)
+
+#%% Properties 변환 (기둥, Nu값 포함)
+# pbd.convert_property_col_Nu(input_xlsx_path, result_path, result_xlsx=result_xlsx)
 
 #%% Properties Assign 매크로
 

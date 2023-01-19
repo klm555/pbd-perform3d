@@ -207,8 +207,8 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
             plt.yticks(story_info['Height(mm)'][::-yticks], story_name[::-yticks])
             
             # reference line 그려서 허용치 나타내기
-            plt.axvline(x= -s_cri_DE, color='r', linestyle='--')
-            plt.axvline(x= s_cri_DE, color='r', linestyle='--')
+            # plt.axvline(x= -s_cri_DE, color='r', linestyle='--')
+            # plt.axvline(x= s_cri_DE, color='r', linestyle='--')
             
             plt.grid(linestyle='-.')
             plt.xlabel('Rotation(rad)')
@@ -234,8 +234,8 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
             
             plt.yticks(story_info['Height(mm)'][::-yticks], story_name[::-yticks])
             
-            plt.axvline(x= -s_cri_MCE, color='r', linestyle='--')
-            plt.axvline(x= s_cri_MCE, color='r', linestyle='--')
+            # plt.axvline(x= -s_cri_MCE, color='r', linestyle='--')
+            # plt.axvline(x= s_cri_MCE, color='r', linestyle='--')
             
             plt.grid(linestyle='-.')
             plt.xlabel('Rotation(rad)')
@@ -252,11 +252,10 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
             yield error_coord_S_MCE
 
 #%% Beam Rotation (DCR)
-
-def BR_DCR(result_path, result_xlsx, input_path, input_xlsx, DCR_criteria=1, yticks=3, xlim=3):
+def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
+           , c_beam_group='C.Beam', DCR_criteria=1, yticks=3, xlim=3):
 
 #%% Input Sheets 정보 load
-    
     story_info = pd.DataFrame()
     deformation_cap = pd.DataFrame()
     
@@ -301,7 +300,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx, DCR_criteria=1, yti
     element_data.loc[:, 'Property Name'] = element_data.loc[:, 'Property Name'].str.split('(').str[0]
     
     #%% 필요없는 부재 빼기, 필요한 부재만 추출
-    
+    beam_rot_data = beam_rot_data[beam_rot_data['Group Name'] == c_beam_group]
     beam_rot_data = beam_rot_data[beam_rot_data['Distance from I-End'] == 0]
     
 #%% Analysis Result에 Element, Node 정보 매칭
@@ -354,7 +353,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx, DCR_criteria=1, yti
     
 #%% 조작용 코드
     # 없애고 싶은 부재의 이름 입력(error_beam 확인 후!, DE, MCE에서 다 없어짐)
-    beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB4_'))].index)
+    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB4_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('B15_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4A_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4B_'))].index)

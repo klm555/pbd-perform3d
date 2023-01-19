@@ -365,9 +365,9 @@ def SWR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result'\
         wall_rot_data_temp = pd.read_excel(result_path + '\\' + i,
                                    sheet_name='Gage Results - Wall Type', skiprows=[0,2])
         
-        columne_name_to_choose = ['Group Name', 'Element Name', 'Load Case'
+        column_name_to_choose = ['Group Name', 'Element Name', 'Load Case'
                                   , 'Step Type', 'Rotation', 'Performance Level']
-        wall_rot_data_temp = wall_rot_data_temp.loc[:,columne_name_to_choose]
+        wall_rot_data_temp = wall_rot_data_temp.loc[:,column_name_to_choose]
         wall_rot_data = pd.concat([wall_rot_data, wall_rot_data_temp])
 
     wall_rot_data.sort_values(['Load Case', 'Element Name'] , inplace=True)
@@ -446,8 +446,8 @@ def SWR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result'\
         plt.yticks(story_info['Height(mm)'][::-yticks], story_name[::-yticks])
     
         # reference line 그려서 허용치 나타내기
-        plt.axvline(x= -DE_criteria, color='r', linestyle='--')
-        plt.axvline(x= DE_criteria, color='r', linestyle='--')
+        # plt.axvline(x= -DE_criteria, color='r', linestyle='--')
+        # plt.axvline(x= DE_criteria, color='r', linestyle='--')
     
         plt.grid(linestyle='-.')
         plt.xlabel('Rotation(rad)')
@@ -474,8 +474,8 @@ def SWR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result'\
     
         plt.yticks(story_info['Height(mm)'][::-yticks], story_name[::-yticks])
     
-        plt.axvline(x= -MCE_criteria, color='r', linestyle='--')
-        plt.axvline(x= MCE_criteria, color='r', linestyle='--')
+        # plt.axvline(x= -MCE_criteria, color='r', linestyle='--')
+        # plt.axvline(x= MCE_criteria, color='r', linestyle='--')
     
         plt.grid(linestyle='-.')
         plt.xlabel('Rotation(rad)')
@@ -555,7 +555,7 @@ def SWR_DCR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     input_data_raw.close()
     
     story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    deformation_cap = input_data_sheets['Results_Wall'].iloc[:,[0,11,12,13,14,44,45,50,51]]
+    deformation_cap = input_data_sheets['Results_Wall'].iloc[:,[0,11,12,13,14,48,49,54,55]]
     
     story_info.columns = ['Index', 'Story Name', 'Height(mm)']
     deformation_cap.columns = ['Name', 'Vu_DE_H1', 'Vu_DE_H2', 'Vu_MCE_H1', 'Vu_MCE_H2'\
@@ -579,9 +579,9 @@ def SWR_DCR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
                                             ['Gage Results - Wall Type', 'Node Coordinate Data',\
                                             'Gage Data - Wall Type', 'Element Data - Shear Wall']\
                                             ,skiprows=[0,2])
-        columne_name_to_choose = ['Group Name', 'Element Name', 'Load Case'
+        column_name_to_choose = ['Group Name', 'Element Name', 'Load Case'
                                   , 'Step Type', 'Rotation', 'Performance Level']
-        wall_rot_data_temp = result_data_sheets['Gage Results - Wall Type'].loc[:,columne_name_to_choose]
+        wall_rot_data_temp = result_data_sheets['Gage Results - Wall Type'].loc[:,column_name_to_choose]
         wall_rot_data = pd.concat([wall_rot_data, wall_rot_data_temp])
         
     node_data = result_data_sheets['Node Coordinate Data'].iloc[:,[1,2,3,4]]
@@ -787,13 +787,13 @@ def SWR_DCR(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     #### OLD VERSION ####    
     # 이전 버전의 네이밍에 맞게 merge하는 방법
 
-    new_name = []
-    for i in SWR_criteria['Name']:
-        if i.count('_') == 2:
-            new_name.append(i.split('_')[0] + '_' + i.split('_')[2])
+    # new_name = []
+    # for i in SWR_criteria['Name']:
+    #     if i.count('_') == 2:
+    #         new_name.append(i.split('_')[0] + '_' + i.split('_')[2])
     
-    SWR_criteria['Name'] = new_name    
-    #####################
+    # SWR_criteria['Name'] = new_name    
+    # #####################
     
     ### SWR avg total에 SWR criteria join(wall name 기준)
     SWR_avg_total = pd.merge(SWR_avg_total, SWR_criteria, how='left'\
@@ -978,12 +978,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
         
     wall_SF_data.reset_index(inplace=True, drop=True)
 
-#%% 부재명, H1, H2 값 뽑기
-
-    # 지진파 이름 list 만들기
-    # gravity_load_name = [x.split('+',1)[1].strip() \
-    #                      for x in wall_SF_data['Load Case'].drop_duplicates() if '[0]' in x]
-    
+#%% 지진파 이름 list 만들기
     load_name_list = []
     for i in wall_SF_data['Load Case'].drop_duplicates():
         new_i = i.split('+')[1]
@@ -997,7 +992,6 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     
     DE_load_name_list = [x for x in load_name_list if 'DE' in x]
     MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-
 
 #%% 중력하중에 대한 전단력 데이터 grouping
 
@@ -1075,10 +1069,6 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
         shear_force_H1_DE_avg = 1.2 * shear_force_H1_DE_max.mean(axis=1)
         shear_force_H2_DE_avg = 1.2 * shear_force_H2_DE_max.mean(axis=1)
         
-        # 0.2 * (전단력 from 중력하중) 빼주기
-        shear_force_H1_DE_avg = shear_force_H1_DE_avg - shear_force_H1_G_max
-        shear_force_H2_DE_avg = shear_force_H2_DE_avg - shear_force_H2_G_max
-        
     else : 
         shear_force_H1_DE_avg = ''
         shear_force_H2_DE_avg = ''
@@ -1096,10 +1086,6 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
         # 1.2 * 평균값
         shear_force_H1_MCE_avg = 1.2 * shear_force_H1_MCE_max.mean(axis=1)
         shear_force_H2_MCE_avg = 1.2 * shear_force_H2_MCE_max.mean(axis=1)
-        
-        # 0.2 * (전단력 from 중력하중) 빼주기
-        shear_force_H1_MCE_avg = shear_force_H1_MCE_avg - shear_force_H1_G_max
-        shear_force_H2_MCE_avg = shear_force_H2_MCE_avg - shear_force_H2_G_max
         
     else : 
         shear_force_H1_MCE_avg = ''
@@ -1129,10 +1115,14 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     SF_output['1.2_DE_H2'] = shear_force_H2_DE_avg
     SF_output['1.2_MCE_H1'] = shear_force_H1_MCE_avg
     SF_output['1.2_MCE_H2'] = shear_force_H2_MCE_avg
+    SF_output['0.2_G_DE_H1'] = shear_force_H1_G_max
+    SF_output['0.2_G_DE_H2'] = shear_force_H2_G_max
+    SF_output['0.2_G_MCE_H1'] = shear_force_H1_G_max
+    SF_output['0.2_G_MCE_H2'] = shear_force_H2_G_max
        
     SF_output = pd.merge(SF_output, transfer_element_info, how='left')
 
-    SF_output = SF_output.iloc[:,[0,6,7,8,9,10,11,12,13,14,1,2,3,4,5]] # SF_output 재정렬
+    SF_output = SF_output.iloc[:,[0,10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9]] # SF_output 재정렬
     
 # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
 
@@ -1167,7 +1157,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
         wall_result = pd.read_excel(input_path +'\\' + input_xlsx,
                               sheet_name='Results_Wall', skiprows=3, header=0)
         
-        wall_result = wall_result.iloc[:, [0, 25, 27, 29, 31]]
+        wall_result = wall_result.iloc[:, [0,29,31,33,35]]
         wall_result.columns = ['Name', 'DE_H1', 'DE_H2', 'MCE_H1', 'MCE_H2']
         wall_result.reset_index(inplace=True, drop=True)
         
@@ -1208,7 +1198,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
             plt.grid(linestyle='-.')
             plt.xlabel('D/C Ratios')
             plt.ylabel('Story')
-            plt.title('Shear Strength (H1 DE)')
+            plt.title('Shear Strength (Y DE)')
             
             plt.tight_layout()
             plt.close()
@@ -1228,7 +1218,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
             plt.grid(linestyle='-.')
             plt.xlabel('D/C Ratios')
             plt.ylabel('Story')
-            plt.title('Shear Strength (H2 DE)')
+            plt.title('Shear Strength (Y DE)')
             
             plt.tight_layout()
             plt.close()  
@@ -1250,7 +1240,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
             plt.grid(linestyle='-.')
             plt.xlabel('D/C Ratios')
             plt.ylabel('Story')
-            plt.title('Shear Strength (H1 MCE)')    
+            plt.title('Shear Strength (X MCE)')    
             
             plt.tight_layout()
             plt.close()
@@ -1270,7 +1260,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
             plt.grid(linestyle='-.')
             plt.xlabel('D/C Ratios')
             plt.ylabel('Story')
-            plt.title('Shear Strength (H2 MCE)')
+            plt.title('Shear Strength (X MCE)')
             
             plt.tight_layout()
             plt.close()
@@ -1384,7 +1374,7 @@ def wall_SF_graph(input_path, input_xlsx, DCR_criteria=1, yticks=2, xlim=3):
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
 
     story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    wall_result = input_data_sheets[input_xlsx_sheet].iloc[:,[0,25,27,29,31]]
+    wall_result = input_data_sheets[input_xlsx_sheet].iloc[:,[0,29,31,33,35]]
     story_info = story_info[::-1]
     story_info.reset_index(inplace=True, drop=True)
 

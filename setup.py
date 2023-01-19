@@ -10,8 +10,9 @@ import sys
 
 # A list of packages to include in the build (this is to safeguard against cx_freeze missing a package since it automatically detects required packages).
 buildOptions = dict(packages = [],
+                    excludes = ['numpy_mkl'],
                     include_files = ['PBD_p3d.ui', './images'],
-                    zip_exclude_packages = [])
+                    zip_include_packages = ['PyQt5'])
 
 base = None
 if sys.platform == "win32":
@@ -32,3 +33,7 @@ setup(
     executables = exe
 )
 
+# 359 mb, 1.02 gb
+# 324 mb, 941 mb
+# 324 mb, 929 mb
+# 320 mb, 908 mb
