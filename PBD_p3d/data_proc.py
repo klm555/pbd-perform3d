@@ -4,6 +4,7 @@ import numpy as np
 import win32com.client
 import re
 import warnings
+from collections import deque
 
 #%% Node, Element, Mass, Load Import
 
@@ -388,72 +389,39 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                            .set_index(['Wall ID', 'Z(mm)'])
         
         wall_gage_sorted = wall_gage_sorted.sort_values(['Wall ID', 'Z(mm)'])
-        
+               
         # For loop 돌리면서 Wall ID, Z(mm)에 따른 Node Data 리스트/ 겹치는 Node 리스트 만들기
-        duplicates_list = []
+        # For loop 돌리면서 Wall ID, Z(mm)에 따라 Node 리스트 업데이트(겹치는거 없애면서)
         gage_node_data_list = []
         for idx, gage_node_data in wall_gage_sorted.groupby(['Wall ID', 'Z(mm)'])['Node List']:
+            gage_node_data = list(gage_node_data)
+            # deque 생성
+            gage_node_dq = deque()
             
-            # 같은 Wall ID를 가지지만 붙어있지 않은 벽체 구별해내기
-            gage_node_list_flat = [i for gage_node_list in gage_node_data for i in gage_node_list]
-            duplicates = list(set([i for i in gage_node_list_flat if gage_node_list_flat.count(i) > 1])) # 위의 리스트에서 겹치는 부재들 remove
+            # 노드를 위치 순서대로 deque에 insert
+            for i in range(0,len(gage_node_data)):
+                gage_node_dq.insert(int(len(gage_node_dq)/4), gage_node_data[i][0])
+                gage_node_dq.insert(int(len(gage_node_dq)/4*2+1), gage_node_data[i][1])
+                gage_node_dq.insert(int(len(gage_node_dq)/4*3+2), gage_node_data[i][2])
+                gage_node_dq.insert(int(len(gage_node_dq)/4*4+3), gage_node_data[i][3])
+            gage_node_dq = list(gage_node_dq) 
             
-            duplicates_list.append(duplicates)
-            gage_node_data_list.append(gage_node_data)
-        
-        # 같은 wall mark를 갖고, 겹치는 Node가 있는 벽체, 없는 벽체를 구분
-        gage_node_list = []
-        for gage_node_data, duplicates in zip(gage_node_data_list, duplicates_list):
+            # count == 1인 노드만 추출(중복되는 노드들 제거하는 법 몰라서 우회함)
+            gage_node_dq_flat = []
+            for i in gage_node_dq:
+                if gage_node_dq.count(i) == 1:
+                    gage_node_dq_flat.append(i)
             
-            if len(gage_node_data) > 1: # 같은 Index(Wall ID, Z(mm))에 2개 이상의 벽체가 Assign 되어있을때    
-                gage_node_sublist = []
-                for gage_node_subdata in gage_node_data:
-                                
-                    if any(i in gage_node_subdata for i in duplicates): # duplicates_list의 중복되는 node가 하나라도 포함되어있는 경우
-                        gage_node_sublist.append(gage_node_subdata)
-                    
-                    else:
-                        gage_node_list.append([gage_node_subdata])
-                            
-                    gage_node_list.append(gage_node_sublist)
-                
-            else:
-                gage_node_list.append(gage_node_data.tolist())
-        
-        # Node List 생성 (Node 번호순으로 재배열)        
-        gage_node_list_zip = []
-        for gage_node_sublist in gage_node_list:
-            if len(gage_node_sublist) > 1:
-                
-                # 같은 Index(Wall ID, Z(mm))인 부재들의 Nodes를 Index에 맞춰 재배열한 list 만들기
-                gage_node_sublist_zip = [list(i) for i in zip(*gage_node_sublist)]
-                gage_node_list_zip.append(gage_node_sublist_zip)
-    
-            elif len(gage_node_sublist) == 1:
-                gage_node_list_zip.append(gage_node_sublist)
-                
-        # 위에서 재배열한 list를 flatten
-        gage_node_list_flat = []
-        for gage_node_sublist_zip in gage_node_list_zip:
-            if len(gage_node_sublist_zip) > 1:
-                gage_node_sublist_flat = [i for gage_node_sublist_sublist_zip in gage_node_sublist_zip for i in gage_node_sublist_sublist_zip]
-                gage_node_list_flat.append(gage_node_sublist_flat)
-                
-            elif len(gage_node_sublist_zip) == 1:
-                gage_node_list_flat.append(gage_node_sublist_zip[0])
-                
-        # 중복되는 list 제거
-        gage_node_list_flat_set = set(map(tuple, gage_node_list_flat)) # list -> tuple (to make it hashable)
-        gage_node_list_flat_reduced = map(list, gage_node_list_flat_set) # tuple -> list  
-    
-        # sublist에서 중복되는 element 제거
-        gage_node_list_flat_set_reduced = []
-        for i in gage_node_list_flat_set:
-            temp = [x for x in i if i.count(x) == 1]
-            gage_node_list_flat_set_reduced.append(temp)
-    
+            # 합쳐져 있는 노드들 분류
+            for i in range(0,len(gage_node_dq_flat)//4):
+                temp = [gage_node_dq_flat[i+len(gage_node_dq_flat)//4*0]
+                        , gage_node_dq_flat[i+len(gage_node_dq_flat)//4*1]
+                        , gage_node_dq_flat[i+len(gage_node_dq_flat)//4*2]
+                        , gage_node_dq_flat[i+len(gage_node_dq_flat)//4*3]]        
+                gage_node_data_list.append(temp)
+               
         # Node 번호에 맞는 좌표 매칭 후 출력
-        gage_node_coord = pd.DataFrame(gage_node_list_flat_set_reduced)
+        gage_node_coord = pd.DataFrame(gage_node_data_list)
         gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
         
         # WR_gage_node를 as_gage_node로 나누고 재배열
@@ -533,73 +501,39 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                            .set_index(['Wall ID', 'Z(mm)'])
         
         wall_gage_sorted = wall_gage_sorted.sort_values(['Wall ID', 'Z(mm)'])
-        
-        ### Wall ID, Z(mm)같은 부재들 합치기
+               
         # For loop 돌리면서 Wall ID, Z(mm)에 따른 Node Data 리스트/ 겹치는 Node 리스트 만들기
-        duplicates_list = []
+        # For loop 돌리면서 Wall ID, Z(mm)에 따라 Node 리스트 업데이트(겹치는거 없애면서)
         gage_node_data_list = []
         for idx, gage_node_data in wall_gage_sorted.groupby(['Wall ID', 'Z(mm)'])['Node List']:
+            gage_node_data = list(gage_node_data)
+            # deque 생성
+            gage_node_dq = deque()
             
-            # 같은 Wall ID를 가지지만 붙어있지 않은 벽체 구별해내기
-            gage_node_list_flat = [i for gage_node_list in gage_node_data for i in gage_node_list]
-            duplicates = list(set([i for i in gage_node_list_flat if gage_node_list_flat.count(i) > 1])) # 위의 리스트에서 겹치는 부재들 remove
+            # 노드를 위치 순서대로 deque에 insert
+            for i in range(0,len(gage_node_data)):
+                gage_node_dq.insert(int(len(gage_node_dq)/4), gage_node_data[i][0])
+                gage_node_dq.insert(int(len(gage_node_dq)/4*2+1), gage_node_data[i][1])
+                gage_node_dq.insert(int(len(gage_node_dq)/4*3+2), gage_node_data[i][2])
+                gage_node_dq.insert(int(len(gage_node_dq)/4*4+3), gage_node_data[i][3])
+            gage_node_dq = list(gage_node_dq) 
             
-            duplicates_list.append(duplicates)
-            gage_node_data_list.append(gage_node_data)
-        
-        # 같은 wall mark를 갖고, 겹치는 Node가 있는 벽체, 없는 벽체를 구분
-        gage_node_list = []
-        for gage_node_data, duplicates in zip(gage_node_data_list, duplicates_list):
+            # count == 1인 노드만 추출(중복되는 노드들 제거하는 법 몰라서 우회함)
+            gage_node_dq_flat = []
+            for i in gage_node_dq:
+                if gage_node_dq.count(i) == 1:
+                    gage_node_dq_flat.append(i)
             
-            if len(gage_node_data) > 1: # 같은 Index(Wall ID, Z(mm))에 2개 이상의 벽체가 Assign 되어있을때    
-                gage_node_sublist = []
-                for gage_node_subdata in gage_node_data:
-                                
-                    if any(i in gage_node_subdata for i in duplicates): # duplicates_list의 중복되는 node가 하나라도 포함되어있는 경우
-                        gage_node_sublist.append(gage_node_subdata)
-                    
-                    else:
-                        gage_node_list.append([gage_node_subdata])
-                            
-                    gage_node_list.append(gage_node_sublist)
-                
-            else:
-                gage_node_list.append(gage_node_data.tolist())
-        
-        # Node List 생성 (Node 번호순으로 재배열)        
-        gage_node_list_zip = []
-        for gage_node_sublist in gage_node_list:
-            if len(gage_node_sublist) > 1:
-                
-                # 같은 Index(Wall ID, Z(mm))인 부재들의 Nodes를 Index에 맞춰 재배열한 list 만들기
-                gage_node_sublist_zip = [list(i) for i in zip(*gage_node_sublist)]
-                gage_node_list_zip.append(gage_node_sublist_zip)
-    
-            elif len(gage_node_sublist) == 1:
-                gage_node_list_zip.append(gage_node_sublist)
-                
-        # 위에서 재배열한 list를 flatten
-        gage_node_list_flat = []
-        for gage_node_sublist_zip in gage_node_list_zip:
-            if len(gage_node_sublist_zip) > 1:
-                gage_node_sublist_flat = [i for gage_node_sublist_sublist_zip in gage_node_sublist_zip for i in gage_node_sublist_sublist_zip]
-                gage_node_list_flat.append(gage_node_sublist_flat)
-                
-            elif len(gage_node_sublist_zip) == 1:
-                gage_node_list_flat.append(gage_node_sublist_zip[0])
-                
-        # 중복되는 list 제거
-        gage_node_list_flat_set = set(map(tuple, gage_node_list_flat)) # list -> tuple (to make it hashable)
-        gage_node_list_flat_reduced = map(list, gage_node_list_flat_set) # tuple -> list  
-    
-        # sublist에서 중복되는 element 제거
-        gage_node_list_flat_set_reduced = []
-        for i in gage_node_list_flat_set:
-            temp = [x for x in i if i.count(x) == 1]
-            gage_node_list_flat_set_reduced.append(temp)
-    
-        # Node 번호에 맞는 좌표 매칭
-        gage_node_coord = pd.DataFrame(gage_node_list_flat_set_reduced)
+            # 합쳐져 있는 노드들 분류
+            for i in range(0,len(gage_node_dq_flat)//4):
+                temp = [gage_node_dq_flat[i+len(gage_node_dq_flat)//4*0]
+                        , gage_node_dq_flat[i+len(gage_node_dq_flat)//4*1]
+                        , gage_node_dq_flat[i+len(gage_node_dq_flat)//4*2]
+                        , gage_node_dq_flat[i+len(gage_node_dq_flat)//4*3]]        
+                gage_node_data_list.append(temp)
+               
+        # Node 번호에 맞는 좌표 매칭 후 출력
+        gage_node_coord = pd.DataFrame(gage_node_data_list)
         gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
         
         # Merge로 Node 번호에 맞는 좌표를 결합
@@ -918,7 +852,14 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
 
     wall = wall.dropna(axis=0, how='all')
     wall.reset_index(inplace=True, drop=True)
+    
+    saved_wall_story_from = wall['Story(from)']
+    saved_wall_story_to = wall['Story(to)']
+    
     wall = wall.fillna(method='ffill')
+    
+    wall['Story(from)'] = saved_wall_story_from
+    wall['Story(to)'] = saved_wall_story_to
 
     # Column 정보 load
     column = input_data_sheets['G.Column Properties'].iloc[:,0:18]
@@ -930,18 +871,36 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
 
     column = column.dropna(axis=0, how='all')
     column.reset_index(inplace=True, drop=True)
+    
+    saved_column_story_from = column['Story(from)']
+    saved_column_story_to = column['Story(to)']
+    saved_column_rebar = column.iloc[:,[11,12,13,14,15,16,17]]
+    
     column = column.fillna(method='ffill')
+    
+    column['Story(from)'] = saved_column_story_from
+    column['Story(to)'] = saved_column_story_to
+    column.iloc[:,[11,12,13,14,15,16,17]] = saved_column_rebar
 
     # Beam 정보 load
-    beam = input_data_sheets['C.Beam Properties'].iloc[:,0:20]
+    beam = input_data_sheets['C.Beam Properties'].iloc[:,0:21]
     beam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
                     'h(mm)', 'Cover Thickness(mm)', 'Type', '배근', '내진상세 여부',\
                     'Main Rebar(DXX)', 'Stirrup Rebar(DXX)', 'X-Bracing Rebar', 'Top(1)', 'Top(2)',\
-                    'EA(Stirrup)', 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'D(mm)']
+                    'Top(3)', 'EA(Stirrup)', 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'D(mm)']
 
     beam = beam.dropna(axis=0, how='all')
     beam.reset_index(inplace=True, drop=True)
+    
+    saved_beam_story_from = beam['Story(from)']
+    saved_beam_story_to = beam['Story(to)']
+    saved_beam_rebar = beam.iloc[:,[12,13,14,15,16,17,18,19]]
+    
     beam = beam.fillna(method='ffill')
+    
+    beam['Story(from)'] = saved_beam_story_from
+    beam['Story(to)'] = saved_beam_story_to
+    beam.iloc[:,[12,13,14,15,16,17,18,19]] = saved_beam_rebar
 
     # 구분 조건 load
     naming_criteria = input_data_sheets['ETC']
@@ -1043,10 +1002,11 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     if get_wall == True:
         
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
-        if wall['Story(to)'].isnull().any() == True:
-            wall['Story(to)'] = str_div(wall['Story(from)'])[1]
-            wall['Story(from)'] = str_div(wall['Story(from)'])[0]
-        else: pass
+        new_story = wall[['Story(from)', 'Story(to)']]
+        new_story = new_story.fillna(method='ffill', axis=1)
+              
+        wall['Story(from)'] = new_story['Story(from)']
+        wall['Story(to)'] = new_story['Story(to)']
     
         # V. Rebar 나누기
         v_rebar_div = rebar_div(wall['Vertical Rebar(DXX)'], wall['V. Rebar Space'])
@@ -1260,13 +1220,12 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     #%% 불러온 Column 정보 정리
     if get_column == True:
         
-        # 글자가 합쳐져 있을 경우 글자 나누기 (12F~15F, D10@300)
-        # 층 나누기
-    
-        if column['Story(to)'].isnull().any() == True:
-            column['Story(to)'] = str_div(column['Story(from)'])[1]
-            column['Story(from)'] = str_div(column['Story(from)'])[0]
-        else: pass
+        # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
+        new_story = column[['Story(from)', 'Story(to)']]
+        new_story = new_story.fillna(method='ffill', axis=1)
+              
+        column['Story(from)'] = new_story['Story(from)']
+        column['Story(to)'] = new_story['Story(to)']
     
         # 철근의 앞에붙은 D 떼어주기
         new_m_rebar = []
@@ -1443,13 +1402,12 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     #%% 불러온 Beam 정보 정리
     if get_beam == True:
         
-        # 글자가 합쳐져 있을 경우 글자 나누기 (12F~15F, D10@300)
-        # 층 나누기
-    
-        if beam['Story(to)'].isnull().any() == True:
-            beam['Story(to)'] = str_div(beam['Story(from)'])[1]
-            beam['Story(from)'] = str_div(beam['Story(from)'])[0]
-        else: pass
+        # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
+        new_story = beam[['Story(from)', 'Story(to)']]
+        new_story = new_story.fillna(method='ffill', axis=1)
+              
+        beam['Story(from)'] = new_story['Story(from)']
+        beam['Story(to)'] = new_story['Story(to)']
     
         # 철근의 앞에붙은 D 떼어주기
         new_m_rebar = []
@@ -1615,7 +1573,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
         beam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        beam_output = beam_ongoing.iloc[:,[0,4,5,6,20,21,8,9,10,11,12,13,14,15,16,17,18,19]]  
+        beam_output = beam_ongoing.iloc[:,[0,4,5,6,21,22,8,9,10,11,12,13,14,15,16,17,18,19,20]]  
     
         # 철근지름에 다시 D붙이기
         beam_output.loc[:,'Main Rebar(DXX)'] = 'D' + beam_output['Main Rebar(DXX)'].astype(str)

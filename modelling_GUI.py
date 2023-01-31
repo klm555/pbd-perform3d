@@ -1,3 +1,4 @@
+
 import sys
 import os
 import time
@@ -214,7 +215,11 @@ class main_window(QMainWindow, ui_class):
         
         # Enable/Disable the Button
         self.import_midas_btn.setEnabled(False)
-        self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True)) 
+        self.print_name_btn.setEnabled(False)
+        self.convert_prop_btn.setEnabled(False)
+        self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True))
+        self.thread.finished.connect(lambda: self.print_name_btn.setEnabled(True))
+        self.thread.finished.connect(lambda: self.convert_prop_btn.setEnabled(True))
         
         # 완료 메세지 print
         self.worker.msg.connect(self.msg_fn)
@@ -247,8 +252,12 @@ class main_window(QMainWindow, ui_class):
         self.thread.start()
         
         # Enable/Disable the Button
+        self.import_midas_btn.setEnabled(False)
         self.print_name_btn.setEnabled(False)
+        self.convert_prop_btn.setEnabled(False)
+        self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True))
         self.thread.finished.connect(lambda: self.print_name_btn.setEnabled(True))
+        self.thread.finished.connect(lambda: self.convert_prop_btn.setEnabled(True))
         
         # 완료 메세지 print
         self.worker.msg.connect(self.msg_fn)
@@ -279,7 +288,11 @@ class main_window(QMainWindow, ui_class):
         self.thread.start()
         
         # Enable/Disable the Button
+        self.import_midas_btn.setEnabled(False)
+        self.print_name_btn.setEnabled(False)
         self.convert_prop_btn.setEnabled(False)
+        self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True))
+        self.thread.finished.connect(lambda: self.print_name_btn.setEnabled(True))
         self.thread.finished.connect(lambda: self.convert_prop_btn.setEnabled(True))
         
         # 완료 메세지 print

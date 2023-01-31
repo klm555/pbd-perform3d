@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['PBD_p3d\\data_proc.py', 'modelling_v1.0.0.py', '..\\SRT_reservation\\SRT_reservation_GUI.py', '..\\도형 외곽 추출하기\\corner detection.py', 'UI_connection.py', 'test\\9. Pushover.py', 'setup.py', 'modelling_GUI.py', 'post_processing_v1.0.0.py', 'PBD_p3d\\wall.py', 'PBD_p3d\\beam.py', 'PBD_p3d\\column.py']
+recent_files = ['PBD_p3d\\data_proc.py', 'modelling_v1.0.0.py', 'modelling_GUI.py', '..\\SRT_reservation\\SRT_reservation_GUI.py', '..\\도형 외곽 추출하기\\corner detection.py', 'UI_connection.py', 'test\\9. Pushover.py', 'post_processing_v1.0.0.py', 'PBD_p3d\\wall.py', 'PBD_p3d\\beam.py', 'PBD_p3d\\column.py', "..\\..\\Classes\\Computational Geometry\\Jarvis' March.py"]
 
 [main]
 version = 0.2.0

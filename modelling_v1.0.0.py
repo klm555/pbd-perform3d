@@ -19,12 +19,12 @@ time_start = time.time()
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'K:\2105-이형우\from 박재성\Results_E.Column\SW-105D_Data Conversion(E.Column)_Ver.1.1_230117.xlsx'
+input_xlsx_path = r'C:\Users\hwlee\Documents\하이웍스 받은파일\SW-102D_Data Conversion_Ver.1.1_230130.xlsx'
 result_path = r'K:\2105-이형우\from 박재성\Results_E.Column'
 result_xlsx = 'Analysis Result'
 
-DL = 'DL' # Midas Gen에서 Import해올 때 만든 하중 이름
-LL = 'LL'
+DL_name = 'DL' # Midas Gen에서 Import해올 때 만든 하중 이름
+LL_name = 'LL'
 
 # Naming Option
 drift_position = [2,5,7,11]

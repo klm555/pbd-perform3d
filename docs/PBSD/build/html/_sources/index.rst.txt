@@ -3,10 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-성능기반 내진설계 업무절차서
+성능기반 내진설계
 =============================
-
-본 업무절차서는 성능기반 내진설계를 정확하고, 빠르고, 편리하게 진행하기 위해 작성되었습니다.
+본 사이트는 성능기반 내진설계를 위한 업무절차서, 테크니컬 노트, PBD_p3d 프로그램 매뉴얼(for Developers) 등을 제공합니다.
 
 
 
@@ -14,10 +13,10 @@
 
 
 .. toctree::
-   :maxdepth: 3
-   :caption: 목차
+   :maxdepth: 1
+   :caption: STEPS
 
-   1_ref_model
+   0_pbd_p3d_manual
 
 
 
