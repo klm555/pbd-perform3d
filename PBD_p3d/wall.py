@@ -1198,7 +1198,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
             plt.grid(linestyle='-.')
             plt.xlabel('D/C Ratios')
             plt.ylabel('Story')
-            plt.title('Shear Strength (Y DE)')
+            plt.title('Shear Strength (X DE)')
             
             plt.tight_layout()
             plt.close()
@@ -1260,7 +1260,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
             plt.grid(linestyle='-.')
             plt.xlabel('D/C Ratios')
             plt.ylabel('Story')
-            plt.title('Shear Strength (X MCE)')
+            plt.title('Shear Strength (Y MCE)')
             
             plt.tight_layout()
             plt.close()

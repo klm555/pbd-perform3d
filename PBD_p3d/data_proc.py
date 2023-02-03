@@ -118,13 +118,15 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     #%% Nodal Load 뽑기
     
     # Node 정보 load
-    node = pd.read_excel(input_xlsx_path, sheet_name = input_xlsx_sheet, skiprows = 3, index_col = 0)  # Node 열을 인덱스로 지정
+    node = pd.read_excel(input_xlsx_path, sheet_name = input_xlsx_sheet
+                         , skiprows = 3, usecols=[0,1,2,3], index_col = 0)  # Node 열을 인덱스로 지정
     node.columns = ['X(mm)', 'Y(mm)', 'Z(mm)']
     
     if (import_DL == True) or (import_LL == True):
     
         # Nodal Load 정보 load
-        nodal_load = pd.read_excel(input_xlsx_path, sheet_name = nodal_load_raw_xlsx_sheet, skiprows = 3, index_col = 0)
+        nodal_load = pd.read_excel(input_xlsx_path, sheet_name = nodal_load_raw_xlsx_sheet
+                                   , skiprows = 3, usecols=[0,1,2,3,4,5,6,7], index_col = 0)
         nodal_load.columns = ['Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)', 'MX(kN-mm)', 'MY(kN-mm)', 'MZ(kN-mm)']
         
         # Nodal Load를 DL과 LL로 분리
@@ -160,7 +162,8 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     if import_mass == True:
         
         # Mass 정보 load
-        mass = pd.read_excel(input_xlsx_path, sheet_name = mass_raw_xlsx_sheet, skiprows = 3)
+        mass = pd.read_excel(input_xlsx_path, sheet_name = mass_raw_xlsx_sheet
+                             , skiprows = 3, usecols=[0,1,2,3,4,5,6,7,8,9,10])
         mass.columns = ['Story', 'Z(mm)', 'Trans Mass X-dir(kN/g)', 'Trans Mass Y-dir(kN/g)', 'Rotat Mass(kN/g-mm^2)',\
                         'X(mm)_Mass', 'Y(mm)_Mass', 'X(mm)_Stiffness', 'Y(mm)_Stiffness', 'X(mm)', 'Y(mm)']
         
@@ -204,7 +207,8 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     node.reset_index(inplace=True)
     
     # Element 정보 load
-    element = pd.read_excel(input_xlsx_path, sheet_name = element_raw_xlsx_sheet, skiprows = [0,2,3])
+    element = pd.read_excel(input_xlsx_path, sheet_name = element_raw_xlsx_sheet
+                            , skiprows = [0,2,3], usecols=[0,1,2,3,4,5,6,7,8,9,10,11])
     
     # Beam Element만 추출(slicing)
     if (import_beam == True) or (import_column == True):
@@ -646,11 +650,10 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
     
     naming_info_xlsx_sheet = 'Naming' # wall naming 관련된 정보만 들어있는 시트
     story_info_xlsx_sheet = 'Story Data' # 층 정보 sheet
-    drift_info_xlsx_sheet = 'ETC' # Drift 정보 sheet
     
     naming_info = pd.read_excel(input_xlsx_path\
                                 , sheet_name = naming_info_xlsx_sheet\
-                                , skiprows = 3)
+                                , skiprows = 3, usecols=[0,1,2,3,4,5,6,7,8,9,10,11])
     
     # Wall에 대해 정리
     wall_info = naming_info.iloc[:,[8,9,10,11]]
@@ -670,7 +673,7 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
     #%% story 정보 load
     story_info = pd.read_excel(input_xlsx_path\
                                , sheet_name = story_info_xlsx_sheet\
-                               , skiprows = [0,2,3])
+                               , skiprows = [0,2,3], usecols=[0,1,2,3,4])
 
     story_info_reversed = story_info[::-1]
     story_info_reversed.reset_index(inplace=True, drop=True)

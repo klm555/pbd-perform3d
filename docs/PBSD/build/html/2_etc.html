@@ -1,0 +1,510 @@
+
+<!DOCTYPE html>
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>ETC &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/translations.js"></script>
+    <script src="_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '2_etc';</script>
+    <link rel="index" title="색인" href="genindex.html" />
+    <link rel="search" title="검색" href="search.html" />
+    <link rel="next" title="Materials" href="2_materials.html" />
+    <link rel="prev" title="이름 표기법" href="2_naming_rules.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="ko">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fa-solid fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+  
+</a>
+    
+  </div>
+
+  
+  <div class="col-lg-9 navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
+                        성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+        <div class="navbar-end-item navbar-persistent--container">
+          
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="검색" aria-label="검색" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+        </div>
+      
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+
+
+  
+  
+    <div class="navbar-persistent--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="검색" aria-label="검색" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+    </div>
+  
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
+                        성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+  <div class="sidebar-start-items sidebar-primary__section">
+    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Section navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">
+    Section Navigation
+  </p>
+  <div class="bd-toc-item navbar-nav">
+    <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">ETC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_materials.html">Materials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+</nav>
+    </div>
+  </div>
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+  
+  <div id="rtd-footer-container"></div>
+
+      </div>
+      <main id="main-content" class="bd-main">
+        
+        
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+            </div>
+            
+            
+            <article class="bd-article" role="main">
+              
+  <section id="etc">
+<h1>ETC<a class="headerlink" href="#etc" title="이 제목에 대한 퍼머링크">#</a></h1>
+<p>ETC 시트에는 해당 건물의 재료 강도를 입력합니다.</p>
+<p>해당 건물의 콘크리트와 철근 강도는 보통 구조계산서에서 확인 가능하며,
+구조계산서가 없을 시, Midas Gen 모델이나 부재 일람표를 참조할 수 있습니다.</p>
+<p>ETC 시트의 작성은 <strong>예시를 통해 설명</strong>합니다.</p>
+<section id="id1">
+<h2>철근 강도<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p>철근 강도는 <strong>철근 종류에 해당하는 강도를 하나씩 입력하는 방식</strong>으로 입력합니다.</p>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>아래의 그림은 실제 구조계산서에 작성되어있는 철근 강도입니다.</p>
+<figure class="align-center" id="id6">
+<a class="reference internal image-reference" href="_images/2_철근강도_구조계산서.png"><img alt="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" src="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" style="width: 555.5px; height: 110.5px;" /></a>
+<figcaption>
+<p><span class="caption-text"><em>구조계산서에 기입된 철근 강도</em></span><a class="headerlink" href="#id6" title="이 이미지에 대한 퍼머링크">#</a></p>
+</figcaption>
+</figure>
+<p>ETC 시트의 철근 종류(<code class="docutils literal notranslate"><span class="pre">Type</span></code>열)에 해당하는 철근 강도를 <code class="docutils literal notranslate"><span class="pre">일반용</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">내진용</span></code>열에 기입합니다.</p>
+<a class="reference internal image-reference" href="_images/2_철근강도_기입.png"><img alt="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" class="align-center" src="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" style="width: 404.4px; height: 398.4px;" /></a>
+<ol class="arabic simple">
+<li><p>D10 이하의 철근 강도는 SD400이므로, D10, 일반용에 SD400을 입력합니다.</p></li>
+<li><p>D13 이하의 철근 강도는 SD500이므로, D13, 일반용에 SD500을 입력합니다.</p></li>
+<li><p>D16 이상의 철근 강도는 SD600이므로, D16부터 D57까지, 일반용에 SD600을 입력합니다.</p></li>
+<li><p>D16 이상의 전이보, 전이기둥 철근 강도는 SD600S이므로, D16부터 D57까지, 내진용에 SD600S을 입력합니다.</p></li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<p>사용되지 않는 부재이더라도, (확인 후 작성할 예정)</p>
+</div>
+</div>
+</section>
+<section id="id2">
+<h2>콘크리트 강도<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p>콘크리트 강도는 <strong>해당 콘크리트 강도가 적용되는 층의 범위를 입력하는 방식</strong>으로 입력합니다.</p>
+<div class="admonition-example-1 admonition">
+<p class="admonition-title">Example 1</p>
+<p>아래의 그림은 실제 구조계산서에 작성되어있는 콘크리트 강도입니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/2_콘크리트강도_구조계산서.png"><img alt="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" src="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" style="width: 560.5px; height: 347.0px;" /></a>
+</figure>
+<p>수직재는 수직재(<code class="docutils literal notranslate"><span class="pre">Vertical</span> <span class="pre">Member</span></code>)열에, 수평재는 수평재(<code class="docutils literal notranslate"><span class="pre">Horizontal</span> <span class="pre">Member</span></code>)열에 입력합니다.</p>
+<p>콘크리트 강도를 <code class="docutils literal notranslate"><span class="pre">Concrete</span></code>열에 입력하고, 해당 강도가 적용되는 층의 범위를 <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>부터 <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>열까지 입력합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/2_콘크리트강도_기입.png"><img alt="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" src="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" style="width: 562.5px; height: 332.0px;" /></a>
+</figure>
+<ol class="arabic simple">
+<li><p>16F 수직재는 수직재이므로, <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>열에는 16F를 입력합니다.</p></li>
+<li><p>최상층은 Roof이지만 Roof에는 수직재가 없습니다. 따라서 <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>열에는 Roof의 아래층인 36F를 입력합니다.</p></li>
+<li><p>해당되는 콘크리트 강도인 C24를 <code class="docutils literal notranslate"><span class="pre">Concrete</span></code>열에 입력합니다.</p></li>
+</ol>
+</div>
+<div class="admonition-example-2 admonition">
+<p class="admonition-title">Example 2</p>
+<p>Example 1의 콘크리트 강도를 사용합니다.</p>
+<ol class="arabic simple">
+<li><p>6F 수직재는 수직재입니다. 해당층의 보는 층의 바닥에 위치하므로, 6F 보는 층범위에 해당하지않습니다.
+따라서 <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>열에는 그 위층 보인 7F를 입력합니다.</p></li>
+<li><p>11F 수평재는 11F 보입니다. 따라서 <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>열에는 11F를 입력합니다.</p></li>
+<li><p>해당되는 콘크리트 강도인 C24를 <code class="docutils literal notranslate"><span class="pre">Concrete</span></code>열에 입력합니다.</p></li>
+</ol>
+</div>
+<p>..note:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">콘크리트</span> <span class="n">강도와</span> <span class="n">층의</span> <span class="n">범위의</span> <span class="n">입력은</span> <span class="n">특별한</span> <span class="n">순서에</span> <span class="n">따르지</span> <span class="n">않아도</span> <span class="n">됩니다</span><span class="o">.</span>
+</pre></div>
+</div>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<p>위의 예시에 따라 철근과 콘크리트 강도를 입력합니다.</p>
+</div>
+</section>
+<section id="id3">
+<h2>벽체 특수경계요소의 유무<a class="headerlink" href="#id3" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Acceptable</span> <span class="pre">Plastic</span> <span class="pre">Hinge</span> <span class="pre">Rotation_Wall</span></code>열은 벽체의 성능설계 허용기준이 저장되어있는 열입니다.
+벽체의 허용기준은 특수경계요소의 유무에 따라 달라지기 때문에<a class="footnote-reference brackets" href="#id5" id="id4">1</a>, 사용자가 <strong>벽체의 특수경계요소의 유무를 직접 확인하고 지정</strong>해야합니다.</p>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<p>벽체의 특수경계요소 유무를 확인하고, <code class="docutils literal notranslate"><span class="pre">Boundary</span></code>열에서 유무를 선택 또는 입력합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/2_DCS_etc.gif"><img alt="_images/2_DCS_etc.gif" src="_images/2_DCS_etc.gif" style="width: 458.40000000000003px; height: 337.6px;" /></a>
+</figure>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>
+<dd><p>대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계를 위한 비선형해석모델(2021) [표 6-1]</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+            </article>
+            
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="2_naming_rules.html" title="이전 페이지">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">이전</p>
+          <p class="prev-next-title">이름 표기법</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="2_materials.html" title="다음 페이지">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">다음</p>
+      <p class="prev-next-title">Materials</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id1">
+   철근 강도
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id2">
+   콘크리트 강도
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id3">
+   벽체 특수경계요소의 유무
+  </a>
+ </li>
+</ul>
+
+</nav>
+</div>
+
+<div class="toc-item">
+  
+<div id="searchbox"></div>
+</div>
+
+<div class="toc-item">
+  
+</div>
+
+<div class="toc-item">
+  
+<div class="tocsection sourcelink">
+    <a href="_sources/2_etc.rst.txt">
+        <i class="fa-solid fa-file-lines"></i> 소스 보기
+    </a>
+</div>
+
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+          </div>
+        </footer>
+        
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+
+  <footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">
+
+    &copy; Copyright 2023, CNP Dongyang.<br>
+
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="theme-version">
+    Built with the
+    <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">
+        PyData Sphinx Theme
+    </a>
+    0.12.0.
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
+</p>
+
+  </div>
+  
+</div>
+  </footer>
+  </body>
+</html>

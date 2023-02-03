@@ -5,7 +5,6 @@
 질량 설정
 ^^^^^^^^^^
 
-
 비선형 해석을 위해 입력되는 질량은 고정하중에 해당하는 질량만 고려됩니다.\ [#]_
 Midas Gen에서 이를 미리 설정하여
 
@@ -17,7 +16,7 @@ Midas Gen에서 이를 미리 설정하여
 
    1. :guilabel:`Load` - :guilabel:`Load to Masses` 를 클릭합니다. 
    
-   .. figure:: _static/images/load_to_masses.gif
+..   .. figure:: _static/images/load_to_masses.gif
       :align: center
 
 .. card::
