@@ -27,21 +27,24 @@ language = 'ko'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'pydata_sphinx_theme'
-html_title = " 성능기반 내진설계 업무절차서 " + release
+html_title = " 성능기반 내진설계 업무절차서 "
 # html_logo = "_static/images/myimage.png"
 # html_static_path = [_static]
 
 # -- LaTeX -------------------------------------------------
+release = ''
+
+latex_use_xindy = True
 sd_fontawesome_latex = True
 latex_engine = 'xelatex'
-latex_documents=[('pbd_p3d_manual', 'main.tex', '성능기반 내진설계 업무절차서', 'CNP Dongyang', 'manual')]
+latex_documents=[('pbd_p3d_manual_latex', 'manual.tex', '성능기반 내진설계 업무절차서', 'CNP Dongyang', 'manual')]
 # latex_logo='_static/images/CNP_logo.png'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
-    'pointsize': '10pt',
+    'pointsize': '11pt',
 
     # Additional stuff for the LaTeX preamble.
     'preamble': '',
@@ -49,14 +52,21 @@ latex_elements = {
     # Latex figure (float) alignment
     'figure_align': 'htbp',
 
+    # Remove blank pages
+    'extraclassoptions': 'openany,oneside',
+
+    # Delete Release
+    'releasename': '',
+
     # kotex config
     'figure_align': 'htbp',
 
     'fontpkg': r'''
 \usepackage{kotex}
 \usepackage{setspace}
-\singlespacing
+\onehalfspacing
 \usepackage[skip=10pt plus1pt]{parskip}
+\usepackage[bottom]{footmisc}
 
 \setmainfont{Noto Serif KR}
 \setsansfont{Noto Sans KR}

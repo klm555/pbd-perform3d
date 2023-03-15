@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 from collections import deque # Double-ended Queue : 자료의 앞, 뒤 양 방향에서 자료를 추가하거나 제거가능
 import win32com.client
+import pythoncom
 from PyPDF2 import PdfMerger, PdfFileReader
 
 #%% Transfer Column SF (DCR)
@@ -228,8 +229,10 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     SF_output = SF_output.replace(np.nan, '', regex=True)
 
 #%% 출력 (Using win32com...)    
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    # Using win32com...
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_path + '\\' + column_xlsx)
     ws = wb.Sheets('Results')
@@ -267,7 +270,7 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
         os.remove(pdf_file_path)
 
     wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application
+    # excel.Quit() # Closing the application
     
 #%% Transfer Column SF (DCR) PDF export
 def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Results'):
@@ -291,8 +294,10 @@ def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Resul
 
 #%% 출력 (Using win32com...)
     
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    # Using win32com...
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_path + '\\' + column_xlsx)
     ws = wb.Sheets('Results')
@@ -324,7 +329,7 @@ def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Resul
         os.remove(pdf_file_path)
             
     wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application
+    # excel.Quit() # Closing the application
     
 #%% General Column (DCR)
 def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
@@ -527,7 +532,9 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
 
 #%% 출력 (Using win32com...)
     
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
+    # Using win32com...
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)

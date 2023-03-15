@@ -19,7 +19,7 @@ time_start = time.time()
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'C:\Users\hwlee\Documents\하이웍스 받은파일\SW-102D_Data Conversion_Ver.1.1_230130.xlsx'
+input_xlsx_path = r'D:\이형우\성능기반 내진설계\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\101\101D_Data Conversion_Ver.1.2.xlsx'
 result_path = r'K:\2105-이형우\from 박재성\Results_E.Column'
 result_xlsx = 'Analysis Result'
 

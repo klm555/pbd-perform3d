@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>모델링 &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>모델링 &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -44,8 +44,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = '3_modelling';</script>
     <link rel="index" title="색인" href="genindex.html" />
     <link rel="search" title="검색" href="search.html" />
-    <link rel="next" title="Import Nodes / Elements / Loads / Mass" href="3_import.html" />
-    <link rel="prev" title="Story Mass" href="2_story_mass.html" />
+    <link rel="next" title="탄성설계 모델 Import" href="3_import.html" />
+    <link rel="prev" title="C.Beam Properties" href="2_c_beam_properties.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="ko">
   </head>
@@ -101,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -236,11 +236,16 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -250,12 +255,25 @@
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">모델링</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 
   </div>
@@ -290,13 +308,20 @@
   <section id="id1">
 <h1>모델링<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h1>
 <p><span class="sd-sphinx-override sd-badge sd-bg-success sd-bg-text-success">Excel</span> <span class="sd-sphinx-override sd-badge sd-bg-primary sd-bg-text-primary">Perform-3D</span> <span class="sd-sphinx-override sd-badge sd-bg-light sd-bg-text-light">key_macro</span> <span class="sd-sphinx-override sd-badge sd-bg-warning sd-bg-text-warning">Perform-3D Compound</span></p>
-<p>비선형 해석을 수행하기 위해 Perform-3D에서 비선형 모델을 생성합니다.</p>
-<p>많은 정보들은 앞서서 소개된 레퍼런스 모델과 Data Conversion Sheets을 Import할 수 있지만, 이 외의 정보들은 Perform-3D에서 직접 모델링해주어야 합니다.</p>
-<p>성능설계 모델의 생성을 위한 모델링 과정은 아래의 단계를 거칩니다.</p>
+<p>비선형 해석을 수행하기 위하여 Perform-3D에서 성능설계 모델을 생성합니다.</p>
+<p>성능설계 모델은 다음의 과정을 거쳐 생성됩니다.</p>
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">STEPS</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
 </ul>
 </div>
 </section>
@@ -309,17 +334,17 @@
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="2_story_mass.html" title="이전 페이지">
+  <a class='left-prev' id="prev-link" href="2_c_beam_properties.html" title="이전 페이지">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">이전</p>
-          <p class="prev-next-title">Story Mass</p>
+          <p class="prev-next-title">C.Beam Properties</p>
       </div>
   </a>
   <a class='right-next' id="next-link" href="3_import.html" title="다음 페이지">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">다음</p>
-      <p class="prev-next-title">Import Nodes / Elements / Loads / Mass</p>
+      <p class="prev-next-title">탄성설계 모델 Import</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>

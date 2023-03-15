@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Story Mass &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>Story Mass &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -44,6 +44,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = '2_story_mass';</script>
     <link rel="index" title="색인" href="genindex.html" />
     <link rel="search" title="검색" href="search.html" />
+    <link rel="next" title="C.Beam Properties" href="2_c_beam_properties.html" />
     <link rel="prev" title="Nodal Loads" href="2_nodal_loads.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="ko">
@@ -100,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -235,11 +236,14 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">중간단계 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
@@ -249,6 +253,11 @@
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
 </ul>
 </li>
 </ul>
@@ -284,6 +293,23 @@
               
   <section id="story-mass">
 <h1>Story Mass<a class="headerlink" href="#story-mass" title="이 제목에 대한 퍼머링크">#</a></h1>
+<p>Story Mass 시트에는 Midas Gen에서 Import할 Mass 정보를 입력합니다.
+다만 우발편심을 고려하는 경우, 앞서 적용하였던 우발편심이 Midas Gen에서 제공하는 질량중심에는 반영되지 않습니다.
+따라서 사용자가 직접 우발편심을 질량 중심에 적용한 후, 적용된 질량 중심을 Import해야합니다.</p>
+<section id="mass">
+<h2>Mass 정보 입력<a class="headerlink" href="#mass" title="이 제목에 대한 퍼머링크">#</a></h2>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic simple">
+<li><p><span class="guilabel">Query</span> - <span class="guilabel">Story Mass Table</span>을 클릭합니다.</p></li>
+<li><p>생성된 창에서 첫 번째 표(하늘색 셀)만 <kbd class="kbd docutils literal notranslate">Ctrl</kbd>+ <kbd class="kbd docutils literal notranslate">C</kbd>하여 Story Mass 시트의 해당 열에 <kbd class="kbd docutils literal notranslate">Ctrl</kbd>+ <kbd class="kbd docutils literal notranslate">V</kbd>합니다.</p>
+</li>
+</ol>
+</div>
+</section>
+<section id="id1">
+<h2>강성 중심 입력<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h2>
+</section>
 </section>
 
 
@@ -301,6 +327,13 @@
           <p class="prev-next-title">Nodal Loads</p>
       </div>
   </a>
+  <a class='right-next' id="next-link" href="2_c_beam_properties.html" title="다음 페이지">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">다음</p>
+      <p class="prev-next-title">C.Beam Properties</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
 </div>
             </footer>
             
@@ -310,6 +343,28 @@
           
             <div class="bd-sidebar-secondary bd-toc">
               
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#mass">
+   Mass 정보 입력
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id1">
+   강성 중심 입력
+  </a>
+ </li>
+</ul>
+
+</nav>
+</div>
+
 <div class="toc-item">
   
 <div id="searchbox"></div>

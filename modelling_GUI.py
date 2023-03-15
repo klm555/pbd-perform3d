@@ -1,15 +1,23 @@
-
 import sys
 import os
 import time
+import win32com.client
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import uic # ui 파일을 사용하기 위한 모듈
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import FigureCanvas as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+
 import PBD_p3d as pbd
 
 #%% Worker object
+# 전처리=======================================================================
+# Import Worker 만들기
 class worker1(QObject):               
     # Create signals
     finished = pyqtSignal()
@@ -115,6 +123,79 @@ class worker3(QObject):
             self.finished.emit()
             self.msg.emit('%s' %e)
 
+# 후처리=======================================================================
+# Show the results Worker 만들기
+class worker4(QObject):               
+    # Create signals
+    finished = pyqtSignal()
+    msg = pyqtSignal(str)
+    
+    def __init__(self, *args):
+        super().__init__()
+        # 변수 정리
+        self.result_xlsx_path = args[0]
+        # self.DL = args[1]
+        # self.LL = args[2]
+        # self.import_node = args[3]
+        # self.import_beam = args[4]
+        # self.import_col = args[5]
+        # self.import_wall = args[6]
+        # self.import_plate = args[7]
+        # self.import_WR_gage = args[8]
+        # self.import_WAS_gage = args[9]
+        # self.import_mass = args[10]
+        # self.import_nodal_load = args[11]
+        # self.time_start = args[12]
+    
+    # Import (MIDAS Gen -> Perform-3D) function    
+    def show_result_fn(self):  
+        try:
+            # 함수 실행
+            # pbd.import_midas(self.input_xlsx_path, DL_name=self.DL, LL_name=self.LL
+            #                   , import_node=self.import_node, import_beam=self.import_beam
+            #                   , import_column=self.import_col, import_wall=self.import_wall
+            #                   , import_plate=self.import_plate, import_WR_gage=self.import_WR_gage
+            #                   , import_WAS_gage=self.import_WAS_gage, import_mass=self.import_mass
+            #                   , import_DL=self.import_nodal_load, import_LL=self.import_nodal_load)
+            
+            self.figure = plt.figure()
+            self.canvas = FigureCanvas(self.figure)
+            self.toolbar = NavigationToolbar(self.canvas, self)
+            self.plot_display_area.addWidget(self.canvas)
+            
+            base_SF = pbd.base_SF_test(result_xlsx_path)
+            base_SF_list = list(base_SF)
+
+            for i in base_SF_list:
+                if str(type(i)).contains('axes'):
+                    # ax = subplot(1, len(base_SF_list), i+1)
+                    self.figure.axes.append(i)
+            
+                    
+
+            
+            
+            
+            # 실행 시간 계산
+            time_end = time.time()
+            time_run = (time_end-self.time_start)/60
+            
+            # Emit
+            self.finished.emit()
+            self.msg.emit('Completed!' + '  (total time = %0.5f min)' %(time_run))
+            
+        except Exception as e:
+            self.finished.emit()
+            self.msg.emit('%s' %e)
+            
+#%% Matplotlib object
+# class plot_canvas(FigureCanvasQTAgg, fig):
+    
+#     def __init__(self):
+#         FigureCanvas.__init__(self, fig)
+#         self.setParent(parent)
+        
+
 #%% UI
 ui_class = uic.loadUiType('PBD_p3d.ui')[0]
 
@@ -128,7 +209,10 @@ class main_window(QMainWindow, ui_class):
         self.qPixmapVar.load('./images/p3d_logo.png')
         self.label_16.setPixmap(self.qPixmapVar.scaled(self.label_16.size()
                                 , transformMode=Qt.SmoothTransformation))
-        self.label_17.setPixmap(self.qPixmapVar.scaled(self.label_17.size()
+        
+        self.qPixmapVar2 = QPixmap()
+        self.qPixmapVar2.load('./images/CNP_logo.png')
+        self.label_17.setPixmap(self.qPixmapVar2.scaled(self.label_17.size()
                                 , transformMode=Qt.SmoothTransformation))
         
         # setting에 저장된 value를 불러와서 입력
@@ -161,22 +245,38 @@ class main_window(QMainWindow, ui_class):
 
         # 버튼 누르기
         self.find_file_btn.clicked.connect(self.find_input_xlsx)
+        self.find_file_btn_3.clicked.connect(self.find_input_xlsx)
+        self.find_file_btn_4.clicked.connect(self.find_result_xlsx)
         self.import_midas_btn.clicked.connect(self.run_worker1)
         self.print_name_btn.clicked.connect(self.run_worker2)
         self.convert_prop_btn.clicked.connect(self.run_worker3)
+        
+        self.show_result_btn.clicked.connect(self.run_worker4)
 
          
         # 기타
         self.setWindowIcon(QIcon('./images/icon_earthquake.ico')) # icon 설정        
 
     # 파일 선택 function (QFileDialog)
-    def find_input_xlsx(self):
+    def find_input_xlsx(self): # Data Conversion Sheets
         # global input_xlsx_path
         input_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
                                     , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
         
         self.data_conv_path_editbox.setText(input_xlsx_path)
+        self.data_conv_path_editbox_3.setText(input_xlsx_path)
+        
+    def find_result_xlsx(self): # Analysis Resutls
+        # global input_xlsx_path
+        result_xlsx_path = QFileDialog.getOpenFileNames(parent=self, caption='Open Folder'
+                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
+        
+        all_result_xlsx_path = ['"%s"' %file_name for file_name in result_xlsx_path]
+        joined_result_xlsx_path = ','.join(all_result_xlsx_path)
+        self.result_path_editbox.setText(joined_result_xlsx_path)
+        self.display_selected_result_path.setText('%i개의 파일이 선택되었습니다.' %len(result_xlsx_path))
 
+#%% tab1
     def run_worker1(self):
         # 시작 메세지
         time_start = time.time()
@@ -298,6 +398,60 @@ class main_window(QMainWindow, ui_class):
         # 완료 메세지 print
         self.worker.msg.connect(self.msg_fn)
 
+#%% tab3
+    def run_worker4(self):
+        # 시작 메세지
+        time_start = time.time()
+        self.status_browser.append('Running.....')
+        
+        # 변수 정리
+        result_xlsx_path = self.result_path_editbox.text()
+        result_xlsx_path = result_xlsx_path.split(',')
+        result_xlsx_path = [i.strip("'") for i in result_xlsx_path]
+        # DL = self.DL_name_editbox.text()
+        # LL = self.LL_name_editbox.text()
+        # import_node = self.import_node_checkbox.isChecked()
+        # import_beam = self.import_beam_checkbox.isChecked()
+        # import_col = self.import_col_checkbox.isChecked()
+        # import_wall = self.import_wall_checkbox.isChecked()
+        # import_plate = self.import_plate_checkbox.isChecked()
+        # import_WR_gage = self.import_WR_gage_checkbox.isChecked()
+        # import_WAS_gage = self.import_WAS_gage_checkbox.isChecked()
+        # import_mass = self.import_mass_checkbox.isChecked()
+        # import_nodal_load = self.import_nodal_load_checkbox.isChecked()
+        
+        # self.thread.clear()
+        self.thread = QThread(parent=self) # Create a QThread object
+        # self.worker = worker1(input_xlsx_path, DL, LL, import_node, import_beam
+        #                       , import_col, import_wall, import_plate
+        #                       , import_WR_gage, import_WAS_gage, import_mass
+        #                       , import_nodal_load, time_start) # Create a worker object
+        
+        self.worker = worker4(result_xlsx_path, time_start) # Create a worker object
+        self.worker.moveToThread(self.thread) # Move worker to the thread
+        
+        # Connect signals and slots
+        self.thread.started.connect(self.worker.show_result_fn)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        
+        # Start the thread
+        self.thread.start()
+        
+        # Enable/Disable the Button
+        self.import_midas_btn.setEnabled(False)
+        self.print_name_btn.setEnabled(False)
+        self.convert_prop_btn.setEnabled(False)
+        self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True))
+        self.thread.finished.connect(lambda: self.print_name_btn.setEnabled(True))
+        self.thread.finished.connect(lambda: self.convert_prop_btn.setEnabled(True))
+        
+        self.show_result_btn.setEnabled(False)
+        self.thread.finished.connect(lambda: self.show_result_btn.setEnabled(True))
+
+#%% 
+
     # 로그(실행 시간, 오류) print function
     def msg_fn(self, msg):
         self.status_browser.append(msg)
@@ -348,3 +502,6 @@ if __name__ == '__main__':
     mywindow = main_window() # WindowClass의 인스턴스 생성   
     mywindow.show() # 프로그램 보여주기
     app.exec_() # 프로그램을 작동시키는 코드
+    
+#%% Call CoUninitialize function to uninitialize the COM library when you are done
+

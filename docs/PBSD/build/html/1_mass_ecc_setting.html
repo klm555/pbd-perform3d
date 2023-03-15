@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>질량 및 우발편심 설정 &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>질량 및 우발편심 설정 &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -44,7 +44,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = '1_mass_ecc_setting';</script>
     <link rel="index" title="색인" href="genindex.html" />
     <link rel="search" title="검색" href="search.html" />
-    <link rel="next" title="주기 확인(탄성설계 모델)" href="1_period_check_elastic.html" />
+    <link rel="next" title="지진파산정 모델" href="1_seismic_wave_request_model.html" />
     <link rel="prev" title="유효강성 설정" href="1_stiffness_setting.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="ko">
@@ -101,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -235,21 +235,37 @@
     Section Navigation
   </p>
   <div class="bd-toc-item navbar-nav">
-    <p aria-level="2" class="caption" role="heading"><span class="caption-text">STEPS</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+    <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_etc.html">ETC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_materials.html">Materials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
 </ul>
 </li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 
   </div>
@@ -285,32 +301,57 @@
 <h1>질량 및 우발편심 설정<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h1>
 <section id="id2">
 <h2>질량 설정<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크">#</a></h2>
-<p>비선형 해석을 위해 입력되는 질량은 고정하중에 해당하는 질량만 고려됩니다.<a class="footnote-reference brackets" href="#id5" id="id3">1</a>
-Midas Gen에서 이를 미리 설정하여</p>
-<p>그러나</p>
-<div class="sd-card sd-sphinx-override sd-mb-3 sd-shadow-sm docutils">
-<div class="sd-card-body docutils">
-<ol class="arabic simple">
-<li><p class="sd-card-text"><span class="guilabel">Load</span> - <span class="guilabel">Load to Masses</span> 를 클릭합니다.</p></li>
+<p>비선형 해석에서는 고정하중에 해당되는 질량만 고려됩니다. <a class="footnote-reference brackets" href="#id8" id="id3">1</a>
+그러나 탄성설계 과정에서는 엔지니어의 판단에 따라 고정하중 뿐만아니라 활하중도 고려되기도 합니다.
+따라서 <strong>같은 조건에서의 성능설계 모델과의 비교</strong> 및 <strong>고정하중만 고려된 질량의 Import</strong>를 위해 Midas Gen에서 질량을 설정해주어야 합니다.</p>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p><span class="guilabel">Load</span> - <span class="guilabel">Load to Masses</span> 를 클릭합니다.</p>
+</li>
+<li><p>생성된 창의 Load Case에 고정하중만 포함되게 변경, 추가, 제거합니다.
+설계자에 따라 고정하중의 이름이 바뀔 수 있지만, 대부분의 경우 DL이 포함된 하중은 모두 고정하중에 해당합니다.
+지침에 따라 고정하중의 100%를 적용하여야 하므로, Scale Factor는 1로 설정합니다.</p>
+<a class="reference internal image-reference" href="_images/2_질량_고정하중_설정.png"><img alt="_images/2_%EC%A7%88%EB%9F%89_%EA%B3%A0%EC%A0%95%ED%95%98%EC%A4%91_%EC%84%A4%EC%A0%95.png" class="align-center" src="_images/2_%EC%A7%88%EB%9F%89_%EA%B3%A0%EC%A0%95%ED%95%98%EC%A4%91_%EC%84%A4%EC%A0%95.png" style="width: 216.0px; height: 480.0px;" /></a>
+</li>
 </ol>
 </div>
-</div>
-<div class="sd-card sd-sphinx-override sd-mb-3 sd-shadow-sm docutils">
-<div class="sd-card-body docutils">
-<ol class="arabic simple" start="2">
-<li><p class="sd-card-text">생성된 창의 Load Case에 고정하중만 포함되게 변경, 추가, 제거합니다.
-설계자에 따라 고정하중의 이름이 바뀔 수 있지만, 대부분의 경우 DL이 포함된 하중은 모두 고정하중에 해당합니다.</p></li>
+<p>또한 비선형 해석에서는 지반-건축물 상호작용을 고려하기 위하여 지하층 구조물을 반드시 고려해야 합니다. <a class="footnote-reference brackets" href="#id9" id="id4">2</a>
+따라서 지하층 구조물의 질량을 모델에 포함시키도록 설정합니다.</p>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p><span class="guilabel">Structure</span> - <span class="guilabel">Contro Data…</span> - <span class="guilabel">Contro Data…</span>를 클릭합니다.</p>
+</li>
+<li><p>생성된 창에서 <span class="guilabel">Consider Mass below Ground Level for Eigenvalue Analysis</span>를 체크합니다.</p>
+<a class="reference internal image-reference" href="_images/2_질량_지하층_설정.png"><img alt="_images/2_%EC%A7%88%EB%9F%89_%EC%A7%80%ED%95%98%EC%B8%B5_%EC%84%A4%EC%A0%95.png" class="align-center" src="_images/2_%EC%A7%88%EB%9F%89_%EC%A7%80%ED%95%98%EC%B8%B5_%EC%84%A4%EC%A0%95.png" style="width: 387.59999999999997px; height: 612.0px;" /></a>
+</li>
 </ol>
-</div>
 </div>
 </section>
-<section id="id4">
-<h2>우발편심 설정<a class="headerlink" href="#id4" title="이 제목에 대한 퍼머링크">#</a></h2>
+<section id="id5">
+<h2>우발편심 설정<a class="headerlink" href="#id5" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p>성능기반 내진설계를 수행할 건물은 건축물 내진설계기준에 따른 우발편심이 고려되어야 합니다. <a class="footnote-reference brackets" href="#id10" id="id6">3</a>
+설계자의 판단에 따라 우발편심의 영향을 고려하지 않는 경우도 있지만,
+철근콘크리트 건물은 슬래브를 일체화시켜서 타설하므로 격막이 유연하지 않고 강체로 거동하므로 우발 편심을 고려하는 편이 타당합니다.</p>
+<p>따라서 본 절차서는 우발편심을 고려하여 성능기반 내진설계를 진행합니다.</p>
+<section id="id7">
+<h3>정적 지진하중 생성<a class="headerlink" href="#id7" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p>우발편심을 적용하기 위해서는 정적 지진하중을 만들어주어야 합니다.</p>
 <dl class="footnote brackets">
-<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
 <dd><p>대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021), 4.1-(4)</p>
 </dd>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
+<dd><p>대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021), 4.6-(1)</p>
+</dd>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id6">3</a></span></dt>
+<dd><p>대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021), 8.2.3</p>
+<p>국토교통부, KDS 41 17 00 건축물 내진설계기준(2022), 7.2.6.4</p>
+</dd>
 </dl>
+<p>우발편심(Accidental Eccentricity)이란, 편심을 구할 때 기준에서 명확하게 고려되지 않은 요인들의 영향을 보완하는</p>
+</section>
 </section>
 </section>
 
@@ -329,10 +370,10 @@ Midas Gen에서 이를 미리 설정하여</p>
           <p class="prev-next-title">유효강성 설정</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="1_period_check_elastic.html" title="다음 페이지">
+  <a class='right-next' id="next-link" href="1_seismic_wave_request_model.html" title="다음 페이지">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">다음</p>
-      <p class="prev-next-title">주기 확인(탄성설계 모델)</p>
+      <p class="prev-next-title">지진파산정 모델</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -358,9 +399,16 @@ Midas Gen에서 이를 미리 설정하여</p>
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id4">
+  <a class="reference internal nav-link" href="#id5">
    우발편심 설정
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id7">
+     정적 지진하중 생성
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 

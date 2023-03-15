@@ -5,6 +5,7 @@ from collections import deque  # Double-ended Queue : 자료의 앞, 뒤 양 방
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import win32com.client
+import pythoncom
 
 #%% Beam Rotation
 
@@ -264,7 +265,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
     input_data_raw.close()
     
     story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    deformation_cap = input_data_sheets['Output_C.Beam Properties'].iloc[:,[0,48,49]]
+    deformation_cap = input_data_sheets['Output_C.Beam Properties'].iloc[:,[0,80,81]]
     
     story_info.columns = ['Index', 'Story Name', 'Height(mm)']
     deformation_cap.columns = ['Name', 'LS', 'CP']
@@ -638,8 +639,9 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     SF_output = SF_output.replace(np.nan, '', regex=True)
     
     # Using win32com...
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
     ws = wb.Sheets('Results_E.Beam')
@@ -652,7 +654,7 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     = list(SF_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application
+    # excel.Quit() # Closing the application
     
     print('Done!')
 
@@ -795,8 +797,9 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     SF_output = SF_output.replace(np.nan, '', regex=True)
     
     # Using win32com...
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_path + '\\' + beam_xlsx)
     ws = wb.Sheets('Results_T.Beam')
@@ -816,7 +819,7 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     = list(SF_output.iloc[:,[1,2]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application
+    # excel.Quit() # Closing the application
     
 #%% 부재의 위치별  V, M 값 확인을 위한 도면 작성
     

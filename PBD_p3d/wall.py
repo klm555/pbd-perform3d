@@ -5,6 +5,7 @@ from collections import deque  # Double-ended Queue : 자료의 앞, 뒤 양 방
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import win32com.client
+import pythoncom
 
 #%% Wall Axial Strain
 
@@ -116,7 +117,10 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
 
     AS_result_data = AS_result_data[AS_result_data['Load Case']\
                                     .str.contains('|'.join(seismic_load_name_list))]   
-        
+    
+    # gage 개수 얻기
+    gage_num = len(AS_gage_data)
+    
     ### Gage data에서 Element Name, I-Node ID 불러와서 v좌표 match하기
     AS_gage_data = AS_gage_data[['Element Name', 'I-Node ID']]; 
 
@@ -124,7 +128,17 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
     # I-Node의 v좌표 match해서 추가
     AS_gage_data = AS_gage_data.join(node_data.set_index('Node ID')[['H1', 'H2', 'V']], on='I-Node ID')
     
-    gage_num = len(AS_gage_data) # gage 개수 얻기
+    ### AS_gage_data와 AS_result_data의 순서 맞추기 (Element Name열 기준으로)
+    # AS_gage_data의 Element Name 열을 Index로 설정
+    AS_gage_data = AS_gage_data.set_index('Element Name')
+
+    # AS_result_data의 Element Name 열 추출
+    elem_name_list = AS_result_data['Element Name'].drop_duplicates()
+
+    # AS_gage_data를 추출된 AS_result_data의 Element Name 열에 맞게 재구성
+    AS_gage_data = AS_gage_data.loc[elem_name_list]
+
+    AS_gage_data.reset_index(drop=False, inplace=True)
    
     ### AS_total data 만들기
     AS_max = AS_result_data[(AS_result_data['Step Type'] == 'Max') & (AS_result_data['Performance Level'] == 1)][['Axial Strain']].values # dataframe을 array로
@@ -174,8 +188,8 @@ def AS(input_path, input_xlsx, result_path, result_xlsx='Analysis Result' \
     
 #%% ***조작용 코드
     # 데이터 없애기 위한 기준값 입력
-    AS_output = AS_output.drop(AS_output[(AS_output.loc[:,'DE_min_avg'] < -0.002)].index)
-    AS_output = AS_output.drop(AS_output[(AS_output.loc[:,'MCE_min_avg'] < -0.002)].index)
+    # AS_output = AS_output.drop(AS_output[(AS_output.loc[:,'DE_min_avg'] < -0.002)].index)
+    # AS_output = AS_output.drop(AS_output[(AS_output.loc[:,'MCE_min_avg'] < -0.002)].index)
     # .....위와 같은 포맷으로 계속
 
 #%% 그래프
@@ -1130,8 +1144,10 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     
 # 엑셀로 출력(Using win32com)
     
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
-    excel.Visible = False # 엑셀창 안보이게
+    # Using win32com...
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
     
     wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
     ws = wb.Sheets('Results_Wall')
@@ -1144,7 +1160,7 @@ def wall_SF(input_path, input_xlsx, result_path, result_xlsx='Analysis Result', 
     = list(SF_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Close(SaveChanges=1) # Closing the workbook
-    excel.Quit() # Closing the application 
+    # excel.Quit() # Closing the application 
 
 #%% 그래프 process
 

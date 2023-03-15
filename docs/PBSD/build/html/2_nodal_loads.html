@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Nodal Loads &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>Nodal Loads &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -101,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -236,11 +236,14 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">중간단계 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
@@ -250,6 +253,7 @@
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Nodal Loads</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -294,10 +298,36 @@
 <div class="deprecated">
 <p><span class="versionmodified deprecated">버전 Beta부터 폐지됨: </span>기존에는 SDS를 사용하여 Floor Loads를 Nodal Loads로 변환한 후, Nodal Loads를 Import하는 방식을 사용하였습니다.</p>
 </div>
-<p>이러한 Floor Loads 입력의 번거로움을 해결하기 위해, 본 성능기반 내진설계 매뉴얼에서는 하중 대신 반력을 입력하는 방식을 사용합니다.</p>
-<p>하중을 Import하는 대신, 모든 수직 부재의 Reaction Force에 음수를 취해서 Import합니다.</p>
+<p>이러한 Floor Loads 입력의 번거로움을 해결하기 위해, 본 성능기반 내진설계 업무절차서에서는 <strong>하중 대신 반력</strong>을 입력하는 방식을 사용합니다.
+점, 선, 면의 다양한 형태로 입력된 모든 하중에 대한 반력은 수직 부재의 Nodes에서만 발생하기 때문에,
+반력을 이용한다면 모든 하중을 Nodal Loads의 형태로 입력할 수 있습니다.</p>
+<section id="supports">
+<h2>Supports 생성<a class="headerlink" href="#supports" title="이 제목에 대한 퍼머링크">#</a></h2>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p>반력은 Supports가 설정된 Nodes에서만 생성됩니다.
+따라서 모든 수직 부재에서의 반력을 구하기 위해서는, 모든 수직 부재들에 Supports를 생성해야 합니다.
+우선, 모든 수직 부재를 선택하기 위해 <span class="guilabel">Select Nodes by Identifying…</span>를 클릭합니다.</p>
+</li>
+<li><p>생성된 창에서 <span class="guilabel">Select Type</span> - <span class="guilabel">Material</span>을 선택한 후, Nodes만 선택하기 위해 <span class="guilabel">Nodes</span>만 체크합니다.</p>
+<p>Wall, Column과 같은 수직 부재의 재료들만 선택한 후, <kbd class="kbd docutils literal notranslate">Add</kbd> - <kbd class="kbd docutils literal notranslate">Close</kbd>를 클릭합니다.</p>
+</li>
+<li><p>선택된 수직 부재들에 Supports를 설정해주기 위해 <span class="guilabel">Boundary</span> - <span class="guilabel">Define Supports</span>를 클릭합니다.</p>
+<p>생성된 창에서 <span class="guilabel">Dz</span>만 체크 후 <kbd class="kbd docutils literal notranslate">Apply</kbd>를 클릭하면, 선택된 모든 수직 부재들에 Supports가 생성됩니다.</p>
+</li>
+</ol>
+</div>
+</section>
 <section id="id1">
-<h2>필요성<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h2>
+<h2>반력 입력<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h2>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Supports의 반력을 확인하기 위해, <span class="guilabel">Results</span> - <span class="guilabel">Results Table</span> - <span class="guilabel">Reaction</span>를 클릭합니다.</p>
+<p><a class="reference internal" href="2_etc.html"><span class="doc">하중의 의미</span></a>를 다시 한 번 확인하고, 생성된 창에서 DL과 LL에 포함되는 하중을 모두 체크한 후 <kbd class="kbd docutils literal notranslate">OK</kbd>를 클릭합니다.</p>
+</li>
+</ol>
+</div></blockquote>
 </section>
 </section>
 
@@ -340,8 +370,13 @@
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#supports">
+   Supports 생성
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id1">
-   필요성
+   반력 입력
   </a>
  </li>
 </ul>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>단위 설정 &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>단위 설정 &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -45,8 +45,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = '1_unit_setting';</script>
     <link rel="index" title="색인" href="genindex.html" />
     <link rel="search" title="검색" href="search.html" />
-    <link rel="next" title="유효강성 설정" href="1_stiffness_setting.html" />
-    <link rel="prev" title="탄성설계 모델, 레퍼런스 모델 생성" href="1_ref_model.html" />
+    <link rel="next" title="재료 설정" href="1_material_setting.html" />
+    <link rel="prev" title="레퍼런스 모델 생성" href="1_ref_model.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="ko">
   </head>
@@ -102,7 +102,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -236,21 +236,45 @@
     Section Navigation
   </p>
   <div class="bd-toc-item navbar-nav">
-    <p aria-level="2" class="caption" role="heading"><span class="caption-text">STEPS</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+    <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_etc.html">ETC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_materials.html">Materials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
 </ul>
 </li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 
   </div>
@@ -290,7 +314,10 @@
 저희가 앞으로 사용할 단위는 <span class="math notranslate nohighlight">\(\textbf{kN, mm}\)</span> 입니다.</p>
 <div class="topic">
 <p class="topic-title">What to do</p>
-<p>새로 생성한 탄성설계 모델의 단위를 <span class="math notranslate nohighlight">\(kN, mm\)</span> 로 설정합니다.</p>
+<ol class="arabic simple">
+<li><p>첫번째로, 지진파산정 모델을 생성하기 위해 최종 탄성설계 모델을 복사(또는 Save as)하여 새로운 모델을 생성합니다. 생성 후 파일을 실행합니다.</p></li>
+<li><p>새로 생성한 탄성설계 모델의 단위를 <span class="math notranslate nohighlight">\(kN, mm\)</span> 로 설정합니다.</p></li>
+</ol>
 </div>
 </section>
 
@@ -306,13 +333,13 @@
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">이전</p>
-          <p class="prev-next-title">탄성설계 모델, 레퍼런스 모델 생성</p>
+          <p class="prev-next-title">레퍼런스 모델 생성</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="1_stiffness_setting.html" title="다음 페이지">
+  <a class='right-next' id="next-link" href="1_material_setting.html" title="다음 페이지">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">다음</p>
-      <p class="prev-next-title">유효강성 설정</p>
+      <p class="prev-next-title">재료 설정</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>

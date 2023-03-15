@@ -27,11 +27,15 @@ def base_SF(result_path, result_xlsx='Analysis Result', ylim=70000):
     '''
 #%% Analysis Result 불러오기
 
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    if isinstance(result_path, list):
+        to_load_list = result_path
+        
+    else:
+        to_load_list = []
+        file_names = os.listdir(result_path)
+        for file_name in file_names:
+            if (result_xlsx in file_name) and ('~$' not in file_name):
+                to_load_list.append(file_name)
     
     # 전단력 불러오기
     shear_force_data = pd.DataFrame()
@@ -50,9 +54,6 @@ def base_SF(result_path, result_xlsx='Analysis Result', ylim=70000):
     shear_force_data = shear_force_data[shear_force_data['Name'].str.contains('base', case=False)]
       
     shear_force_data.reset_index(inplace=True, drop=True)
-    
-    # _shear 제거
-    shear_force_data['Name'] = shear_force_data['Name'].str.rstrip('_Shear')
     
 #%% 지진파 이름 list 만들기
     load_name_list = []
@@ -912,3 +913,165 @@ def Pushover(result_path, x_result_txt, y_result_txt, base_SF_design=None, pp_x=
     
     print(max(data_X['Base Shear']), design_base_shear, max(data_X['Base Shear'])/design_base_shear)
     print(max(data_Y['Base Shear']), design_base_shear, max(data_Y['Base Shear'])/design_base_shear)
+    
+#%% Base SF
+
+def base_SF_test(result_path, result_xlsx='Analysis Result', ylim=70000):
+    ''' 
+
+    Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)
+    
+    Parameters
+    ----------
+    result_path : str
+                  Perform-3D에서 나온 해석 파일의 경로.
+                  
+    result_xlsx : str, optional, default='Analysis Result'
+                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
+                  
+    ylim : int, optional, default=70000
+           그래프의 y축 limit 값. y축 limit 안의 값만 표기되므로, limit를 넘어가는 값을 확인하고 싶을 시에는 ylim 값을 더 크게 설정하면 된다.
+    
+    Returns
+    -------
+    '''
+#%% Analysis Result 불러오기
+
+    if isinstance(result_path, list):
+        to_load_list = result_path
+        
+    else:
+        to_load_list = []
+        file_names = os.listdir(result_path)
+        for file_name in file_names:
+            if (result_xlsx in file_name) and ('~$' not in file_name):
+                to_load_list.append(file_name)
+    
+    # 전단력 불러오기
+    shear_force_data = pd.DataFrame()
+    
+    for i in to_load_list:
+        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces'], skiprows=[0,2])
+        
+        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2']
+        shear_force_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
+        shear_force_data = pd.concat([shear_force_data, shear_force_data_temp])
+        
+    shear_force_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)']
+    
+    # Base 전단력 추출
+    shear_force_data = shear_force_data[shear_force_data['Name'].str.contains('base', case=False)]
+      
+    shear_force_data.reset_index(inplace=True, drop=True)
+    
+    # _shear 제거
+    shear_force_data['Name'] = shear_force_data['Name'].str.rstrip('_Shear')
+    
+#%% 지진파 이름 list 만들기
+    load_name_list = []
+    for i in shear_force_data['Load Case'].drop_duplicates():
+        new_i = i.split('+')[1]
+        new_i = new_i.strip()
+        load_name_list.append(new_i)
+    
+    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
+    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
+    
+    seismic_load_name_list.sort()
+    
+    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
+    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
+    
+#%% 데이터 Grouping
+    shear_force_H1_data_grouped = pd.DataFrame()
+    shear_force_H2_data_grouped = pd.DataFrame()
+    
+    for load_name in seismic_load_name_list:
+        shear_force_H1_data_grouped['{}_H1_max'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (shear_force_data['Step Type'] == 'Max')]['H1(kN)'].values
+            
+        shear_force_H1_data_grouped['{}_H1_min'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (shear_force_data['Step Type'] == 'Min')]['H1(kN)'].values
+    
+    for load_name in seismic_load_name_list:
+        shear_force_H2_data_grouped['{}_H2_max'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (shear_force_data['Step Type'] == 'Max')]['H2(kN)'].values
+            
+        shear_force_H2_data_grouped['{}_H2_min'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
+                                                                      (shear_force_data['Step Type'] == 'Min')]['H2(kN)'].values   
+    
+    # all 절대값
+    shear_force_H1_abs = shear_force_H1_data_grouped.abs()
+    shear_force_H2_abs = shear_force_H2_data_grouped.abs()
+    
+    # Min, Max 중 최대값
+    shear_force_H1_max = shear_force_H1_abs.groupby([[i//2 for i in range(0,len(seismic_load_name_list)*2)]], axis=1).max()
+    shear_force_H2_max = shear_force_H2_abs.groupby([[i//2 for i in range(0,len(seismic_load_name_list)*2)]], axis=1).max()
+    
+    shear_force_H1_max.columns = seismic_load_name_list
+    shear_force_H2_max.columns = seismic_load_name_list
+    
+    shear_force_H1_max.index = shear_force_data['Name'].drop_duplicates()
+    shear_force_H2_max.index = shear_force_data['Name'].drop_duplicates()
+    
+    #%% Base Shear 그래프 그리기
+# Base Shear
+    base_shear_H1 = shear_force_H1_max.copy()
+    base_shear_H2 = shear_force_H2_max.copy()
+    
+    count = 1
+    
+# DE Plot
+  
+    if len(MCE_load_name_list) != 0:
+    
+# H1_MCE
+        
+        # Figure=캔버스, ax=그래프
+        fig1, ax1 = plt.subplots(1,1)
+        fig1.set_dpi(150)
+        ax1.set_ylim(0, ylim)
+        
+        ax1.bar(range(len(MCE_load_name_list)), base_shear_H1.iloc[0, 0:len(MCE_load_name_list)]
+                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
+        ax1.axhline(y= base_shear_H1.iloc[0, 0:len(MCE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
+        ax1.set_xticks(range(14), range(1,15))
+        # ax1.xticks(range(14), load_name[0:14], fontsize=8.5)
+        
+        ax1.set_xlabel('Ground Motion No.')
+        ax1.set_ylabel('Base Shear(kN)')
+        ax1.legend(loc = 2)
+        ax1.set_title('H1 MCE')
+        
+        # plt.savefig(memfile)
+        # plt.close()
+        # count += 1
+        
+        yield ax1
+        print('base_shear_avg(H1_MCE) =', Decimal(str(base_shear_H1.iloc[0, 0:len(MCE_load_name_list)].mean()))\
+              .quantize(Decimal('.01'), rounding=ROUND_UP))
+        
+        # H2_MCE
+        fig2, ax2 = plt.subplots(1,1)
+        fig2.set_dpi(150)
+        ax2.set_ylim(0,ylim)
+        
+        ax2.bar(range(len(MCE_load_name_list)), base_shear_H2.iloc[0, 0:len(MCE_load_name_list)]
+                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
+        ax2.axhline(y= base_shear_H2.iloc[0, 0:len(MCE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
+        ax2.set_xticks(range(14), range(1,15))
+        # plt.xticks(range(14), load_name[0:14], fontsize=8.5)
+        
+        ax2.set_xlabel('Ground Motion No.')
+        ax2.set_ylabel('Base Shear(kN)')
+        ax2.legend(loc = 2)
+        ax2.set_title('H2 MCE')
+        
+        # plt.savefig(memfile2)
+        # plt.close()
+        # count += 1
+
+        yield ax2
+        print('base_shear_avg(H2_MCE) =', Decimal(str(base_shear_H2.iloc[0, 0:len(MCE_load_name_list)].mean()))\
+              .quantize(Decimal('.01'), rounding=ROUND_UP))

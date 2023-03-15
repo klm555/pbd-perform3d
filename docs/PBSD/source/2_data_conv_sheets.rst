@@ -1,7 +1,10 @@
 ===============================================================
 Data Conversion Sheets 작성
 ===============================================================
-:bdg-success:`Excel` :bdg-danger:`Midas GEN`
+
+.. only:: html
+    
+   :bdg-success:`Excel` :bdg-danger:`Midas GEN`
 
 Data Conversion Sheet는 성능기반 내진설계에 필요한 모든 정보를 입력할 엑셀 파일입니다.
 본 업무절차서에서 소개할 성능기반 내진설계의 모든 과정은 이 엑셀 파일을 기반으로 하며, 
@@ -25,7 +28,7 @@ Data Conversion Sheet는 성능기반 내진설계에 필요한 모든 정보를
     Naming에 필요한 정보를 입력할 시트.
 
 
-* \ C. Beam Properties / G.Column Properties / Wall Properties
+* :doc:`C. Beam Properties <2_c_beam_properties>` / G.Column Properties / Wall Properties
     연결보, 일반기둥, 벽체의 모든 정보를 입력할 시트.
 
 
@@ -70,3 +73,8 @@ Data Conversion Sheet는 성능기반 내진설계에 필요한 모든 정보를
    2_nodes_elements
    2_nodal_loads
    2_story_mass
+   2_story_data
+   2_c_beam_properties
+   2_g_column_properties
+   2_output_e_g_beam_properties
+   2_wall_properties

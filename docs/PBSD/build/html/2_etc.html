@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>ETC &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>ETC &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -101,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -236,11 +236,16 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
@@ -250,12 +255,25 @@
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 
   </div>
@@ -300,13 +318,13 @@
 <p class="admonition-title">Example</p>
 <p>아래의 그림은 실제 구조계산서에 작성되어있는 철근 강도입니다.</p>
 <figure class="align-center" id="id6">
-<a class="reference internal image-reference" href="_images/2_철근강도_구조계산서.png"><img alt="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" src="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" style="width: 555.5px; height: 110.5px;" /></a>
+<a class="reference internal image-reference" href="_images/2_철근강도_구조계산서.png"><img alt="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" src="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" style="width: 888.8000000000001px; height: 176.8px;" /></a>
 <figcaption>
 <p><span class="caption-text"><em>구조계산서에 기입된 철근 강도</em></span><a class="headerlink" href="#id6" title="이 이미지에 대한 퍼머링크">#</a></p>
 </figcaption>
 </figure>
 <p>ETC 시트의 철근 종류(<code class="docutils literal notranslate"><span class="pre">Type</span></code>열)에 해당하는 철근 강도를 <code class="docutils literal notranslate"><span class="pre">일반용</span></code> 또는 <code class="docutils literal notranslate"><span class="pre">내진용</span></code>열에 기입합니다.</p>
-<a class="reference internal image-reference" href="_images/2_철근강도_기입.png"><img alt="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" class="align-center" src="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" style="width: 404.4px; height: 398.4px;" /></a>
+<a class="reference internal image-reference" href="_images/2_철근강도_기입.png"><img alt="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" class="align-center" src="_images/2_%EC%B2%A0%EA%B7%BC%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" style="width: 539.2px; height: 531.2px;" /></a>
 <ol class="arabic simple">
 <li><p>D10 이하의 철근 강도는 SD400이므로, D10, 일반용에 SD400을 입력합니다.</p></li>
 <li><p>D13 이하의 철근 강도는 SD500이므로, D13, 일반용에 SD500을 입력합니다.</p></li>
@@ -326,12 +344,12 @@
 <p class="admonition-title">Example 1</p>
 <p>아래의 그림은 실제 구조계산서에 작성되어있는 콘크리트 강도입니다.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/2_콘크리트강도_구조계산서.png"><img alt="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" src="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" style="width: 560.5px; height: 347.0px;" /></a>
+<a class="reference internal image-reference" href="_images/2_콘크리트강도_구조계산서.png"><img alt="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" src="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B5%AC%EC%A1%B0%EA%B3%84%EC%82%B0%EC%84%9C.png" style="width: 896.8000000000001px; height: 555.2px;" /></a>
 </figure>
 <p>수직재는 수직재(<code class="docutils literal notranslate"><span class="pre">Vertical</span> <span class="pre">Member</span></code>)열에, 수평재는 수평재(<code class="docutils literal notranslate"><span class="pre">Horizontal</span> <span class="pre">Member</span></code>)열에 입력합니다.</p>
 <p>콘크리트 강도를 <code class="docutils literal notranslate"><span class="pre">Concrete</span></code>열에 입력하고, 해당 강도가 적용되는 층의 범위를 <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>부터 <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>열까지 입력합니다.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/2_콘크리트강도_기입.png"><img alt="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" src="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" style="width: 562.5px; height: 332.0px;" /></a>
+<a class="reference internal image-reference" href="_images/2_콘크리트강도_기입.png"><img alt="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" src="_images/2_%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8%EA%B0%95%EB%8F%84_%EA%B8%B0%EC%9E%85.png" style="width: 900.0px; height: 531.2px;" /></a>
 </figure>
 <ol class="arabic simple">
 <li><p>16F 수직재는 수직재이므로, <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>열에는 16F를 입력합니다.</p></li>
@@ -349,9 +367,9 @@
 <li><p>해당되는 콘크리트 강도인 C24를 <code class="docutils literal notranslate"><span class="pre">Concrete</span></code>열에 입력합니다.</p></li>
 </ol>
 </div>
-<p>..note:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">콘크리트</span> <span class="n">강도와</span> <span class="n">층의</span> <span class="n">범위의</span> <span class="n">입력은</span> <span class="n">특별한</span> <span class="n">순서에</span> <span class="n">따르지</span> <span class="n">않아도</span> <span class="n">됩니다</span><span class="o">.</span>
-</pre></div>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>콘크리트 강도와 층의 범위의 입력은 특별한 순서에 따르지 않아도 됩니다.</p>
 </div>
 <div class="topic">
 <p class="topic-title">What to do</p>
@@ -365,9 +383,6 @@
 <div class="topic">
 <p class="topic-title">What to do</p>
 <p>벽체의 특수경계요소 유무를 확인하고, <code class="docutils literal notranslate"><span class="pre">Boundary</span></code>열에서 유무를 선택 또는 입력합니다.</p>
-<figure class="align-center">
-<a class="reference internal image-reference" href="_images/2_DCS_etc.gif"><img alt="_images/2_DCS_etc.gif" src="_images/2_DCS_etc.gif" style="width: 458.40000000000003px; height: 337.6px;" /></a>
-</figure>
 </div>
 <dl class="footnote brackets">
 <dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>

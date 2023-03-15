@@ -20,7 +20,7 @@ Midas Gen과 같이 Perform-3D도 부재들에 고유의 ID를 부여하지만, 
 
 .. figure:: _static/images/2_층_이름_예시.png
    :align: center
-   :scale: 60%
+   :scale: 80%
    
    *층 이름의 예시*
 
@@ -30,7 +30,7 @@ Midas Gen과 같이 Perform-3D도 부재들에 고유의 ID를 부여하지만, 
 
 .. figure:: _static/images/2_부재_이름_구조.png
    :align: center
-   :scale: 60%
+   :scale: 40%
    
    *부재 이름의 구조*
 
@@ -60,3 +60,8 @@ Midas Gen과 같이 Perform-3D도 부재들에 고유의 ID를 부여하지만, 
    :scale: 60%
 
    *부재 이름의 예시*
+
+.. topic:: What to do
+
+   * 앞서서 생성한 Midas Gen 파일들의 층이름을 위의 규칙에 맞게 변경합니다.
+   * 앞으로 입력해야할 부재의 이름을 위의 구조와 규칙에 맞게 설정합니다.

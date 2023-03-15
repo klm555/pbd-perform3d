@@ -19,7 +19,7 @@ ETC 시트의 작성은 **예시를 통해 설명**\합니다.
 
    .. figure:: _static/images/2_철근강도_구조계산서.png
       :align: center
-      :scale: 50%
+      :scale: 80%
 
       *구조계산서에 기입된 철근 강도*
 
@@ -27,7 +27,7 @@ ETC 시트의 작성은 **예시를 통해 설명**\합니다.
    
    .. image:: _static/images/2_철근강도_기입.png
       :align: center
-      :scale: 60%
+      :scale: 80%
 
    #. D10 이하의 철근 강도는 SD400이므로, D10, 일반용에 SD400을 입력합니다.
    #. D13 이하의 철근 강도는 SD500이므로, D13, 일반용에 SD500을 입력합니다.
@@ -48,7 +48,7 @@ ETC 시트의 작성은 **예시를 통해 설명**\합니다.
 
    .. figure:: _static/images/2_콘크리트강도_구조계산서.png
       :align: center
-      :scale: 50%
+      :scale: 80%
 
    수직재는 수직재(``Vertical Member``\)열에, 수평재는 수평재(``Horizontal Member``\)열에 입력합니다.
    
@@ -56,7 +56,7 @@ ETC 시트의 작성은 **예시를 통해 설명**\합니다.
 
    .. figure:: _static/images/2_콘크리트강도_기입.png
       :align: center
-      :scale: 50%
+      :scale: 80%
 
    1. 16F 수직재는 수직재이므로, ``Story(from)``\열에는 16F를 입력합니다.
    2. 최상층은 Roof이지만 Roof에는 수직재가 없습니다. 따라서 ``Story(to)``\열에는 Roof의 아래층인 36F를 입력합니다.
@@ -71,7 +71,7 @@ ETC 시트의 작성은 **예시를 통해 설명**\합니다.
    2. 11F 수평재는 11F 보입니다. 따라서 ``Story(to)``\열에는 11F를 입력합니다.
    3. 해당되는 콘크리트 강도인 C24를 ``Concrete``\열에 입력합니다.
 
-..note::
+.. note::
 
    콘크리트 강도와 층의 범위의 입력은 특별한 순서에 따르지 않아도 됩니다.
 
@@ -88,8 +88,9 @@ ETC 시트의 작성은 **예시를 통해 설명**\합니다.
 
    벽체의 특수경계요소 유무를 확인하고, ``Boundary``\열에서 유무를 선택 또는 입력합니다.
 
-   .. figure:: _static/images/2_DCS_etc.gif
-      :align: center
-      :scale: 80%
+   ..
+    .. figure:: _static/images/2_DCS_etc.gif
+       :align: center
+       :scale: 80%
 
 .. [#] 대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계를 위한 비선형해석모델(2021) [표 6-1]

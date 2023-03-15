@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>성능기반 내진설계 업무절차서 v1.0 &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>성능기반 내진설계 업무절차서 v1.0 &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -44,7 +44,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'pbd_p3d_manual';</script>
     <link rel="index" title="색인" href="genindex.html" />
     <link rel="search" title="검색" href="search.html" />
-    <link rel="next" title="탄성설계 모델, 레퍼런스 모델 생성" href="1_ref_model.html" />
+    <link rel="next" title="레퍼런스 모델 생성" href="1_ref_model.html" />
     <link rel="prev" title="성능기반 내진설계" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="ko">
@@ -101,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -236,11 +236,16 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -250,12 +255,28 @@
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_g_column_properties.html">G.Column Properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_output_e_g_beam_properties.html">Output_G.Beam Properties / Output_E.Beam Properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_wall_properties.html">Wall Properties</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 
   </div>
@@ -289,45 +310,100 @@
               
   <section id="v1-0">
 <h1>성능기반 내진설계 업무절차서 v1.0<a class="headerlink" href="#v1-0" title="이 제목에 대한 퍼머링크">#</a></h1>
-<p>본 업무절차서는 성능기반 내진설계를 <strong>정확하고, 빠르고, 편리하게</strong> 진행하기 위해 작성되었습니다.</p>
+<p>본 업무절차서는 CNP 동양에서의 성능기반 내진설계 수행 절차를 기술한 문서입니다.</p>
 <section id="id1">
 <h2>필요성<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h2>
-</section>
+<p>성능기반 내진설계 업무절차서는 성능기반 내진설계를 더 <strong>정확하고, 빠르고, 편리하게</strong> 진행하기 위해 작성되었습니다.</p>
 <section id="id2">
-<h2>절차<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크">#</a></h2>
+<h3>모델링 시간 단축<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크">#</a></h3>
+<ol class="arabic simple">
+<li><p>성능기반 내진설계의 절차는 매우 길고 복잡합니다.
+따라서 숙련되지 않은 엔지니어들은 성능기반 내진설계 과정에서 필요한 정보나 절차를 빠뜨리거나 잘못 입력할 수 있습니다.
+성능기반 내진설계 업무절차서를 참고함으로써 엔지니어는 <strong>실수를 줄이고, 실수로 인한 반복 작업을 줄일 수 있습니다.</strong></p></li>
+<li><p>성능기반 내진설계에 사용되는 소프트웨어인 Perform-3D는 숙련되지 않은 사용자가 사용하기에 불편한 점이 많은 소프트웨어입니다.
+사용자가 인식하지 못하는 오류들이 발생할 수 있으며, 오류나 예외의 처리가 미흡합니다. 또한 소프트웨어 매뉴얼에도 오류의 처리에 대한 정보가 많지 않습니다.
+성능기반 내진설계 업무절차서는 오류를 최대한 방지할 수 있는 모델링 방법을 제시하고 있으며,
+오류의 발생이 불가피할 경우, 이를 처리할 수 있는 방법들을 기술하였습니다.
+사용자는 이를 통해 <strong>프로그램 상의 오류를 발견하고 처리하는 불필요한 시간을 줄일 수 있습니다.</strong></p></li>
+<li><p>성능기반 내진설계 시간을 증가시키는 가장 큰 요인은 해석 시간입니다.
+모델링 방법에 따라 모델링 시간뿐만 아니라 해석 시간도 크게 증가할 수 있기 때문에,
+본 업무절차서에서는 <strong>해석 시간을 최대한 절감할 수 있도록 모델링하는 방법을 기술하였습니다.</strong></p></li>
+</ol>
+</section>
+<section id="id3">
+<h3>학습의 용이함<a class="headerlink" href="#id3" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p>성능기반 내진설계의 절차가 매우 길고 복잡한 만큼, 이를 학습하고 교육하는 것도 복잡하고 시간이 많이 소요됩니다.
+또한 Perform-3D는 Midas Gen, Etabs와 같은 프로그램과는 달리 튜토리얼이나 교육자료뿐만 아니라 유튜브 동영상마저 부족하기 때문에,
+스스로 학습이 쉽지 않습니다. 성능기반 내진설계 업무절차서는 <strong>성능기반 내진설계에 익숙하지 않은 엔지니어들이 학습할 수 있는 자료를 제공할 뿐만 아니라,
+선임 엔지니어들이 교육에 쏟아야하는 시간을 절감할 수 있습니다.</strong></p>
+</section>
+<section id="id4">
+<h3>지식과 노하우의 공유와 축적<a class="headerlink" href="#id4" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p>본 업무절차서는 CNP 동양의 모든 엔지니어들이 <strong>성능기반 내진설계에 대한 지식과 노하우를 공유하고 축적하는 플랫폼으로 활용될 수 있습니다.</strong>
+성능기반 내진설계에 대해 본 업무절차서와 다른 생각을 갖고 계시거나, 도움이 될 만한 팁, 정보를 공유하고 싶으신 분,
+개선할 점이나 오류 등의 의견을 주시고 싶으신 분들이 직접 참여하여 업무절차서를 더 발전시킬 수 있습니다.</p>
+</section>
+<section id="id5">
+<h3>엔지니어의 건강 증진<a class="headerlink" href="#id5" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p>성능기반 내진설계에서는 사용자가 수동으로 수행해야 할 작업이 매우 많습니다.
+수동 작업을 하면 의자에 앉아 작업하는 시간이 늘어나기 때문에, 허리, 시력 등의 육체적 건강에 문제가 생길 수 있습니다.
+또한 같은 작업을 계속 반복해야하기 때문에 정신적으로도 피폐해집니다.
+성능기반 내진설계 업무절차서는 프로세스를 간소화하고 모델링 시간을 단축시킴으로써, <strong>엔지니어의 건강에 문제가 될 수 있는 요인들을 줄일 수 있습니다.</strong></p>
+</section>
+</section>
+<section id="id6">
+<h2>절차<a class="headerlink" href="#id6" title="이 제목에 대한 퍼머링크">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="1_ref_model.html#id2">탄성설계 모델</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_ref_model.html#id3">레퍼런스 모델</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_ref_model.html#id4">성능설계 모델</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3_modelling.html">모델링</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="3_modelling.html">모델링</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 </div>
 </section>
-<section id="id3">
-<h2>소프트웨어<a class="headerlink" href="#id3" title="이 제목에 대한 퍼머링크">#</a></h2>
-<p>본 성능기반 내진설계 매뉴얼에 사용된 소프트웨어들은 다음과 같습니다.
-사용자의 기호에 따라 아래의 소프트웨어를 모두 사용할 필요는 없으나,</p>
-<ol class="arabic simple">
-<li><p>엑셀
-엑셀은 사용자가
-엑셀로만 성능기반 내진설계를 진행해도 될 만큼 엑셀은 훌륭한 소프트웨어이지만, 성능기반 내진설계에 있어서는</p></li>
-<li><p>PBD_p3d (In-house 프로그램)</p></li>
-<li><p>key_macro
-key_macro(매크로)는 엑셀과 PBD_p3d</p></li>
-<li><p>Perform-3D Compound</p></li>
-</ol>
+<section id="id7">
+<h2>소프트웨어<a class="headerlink" href="#id7" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p>본 성능기반 내진설계 업무절차서에서는 Midas Gen과 Perform-3D 외에 다음의 소프트웨어들을 사용합니다.</p>
+<section id="id8">
+<h3>엑셀<a class="headerlink" href="#id8" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p><span class="sd-sphinx-override sd-badge sd-bg-success sd-bg-text-success">Excel</span></p>
+<p>엑셀은 대부분의 엔지니어들에게 익숙한 소프트웨어입니다.
+특히 많은 데이터를 입력하거나 데이터의 결과값을 확인해야하는 경우, 엑셀은 유용하게 쓰일 수 있습니다.
+따라서 본 업무절차서에서는 <strong>Data Conversion Sheets</strong>라고 하는 엑셀 파일로 모델링 정보를 입력하고 출력할 것입니다.</p>
+<p>사용자는 Data Conversion Sheets에 대상 건물에 대한 모든 정보를 입력합니다.
+Data Conversion Sheets는 입력된 정보를 이용하여 모델링에 필요한 파라미터, 부재력 등을 계산합니다.
+또한 해석결과도 Data Conversion Sheets에서 부분적으로 확인이 가능합니다.</p>
 </section>
-<section id="id4">
-<h2>적용기준<a class="headerlink" href="#id4" title="이 제목에 대한 퍼머링크">#</a></h2>
+<section id="pbd-p3d-in-house">
+<h3>PBD_p3d (In-house 프로그램)<a class="headerlink" href="#pbd-p3d-in-house" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p>엑셀은 매우 훌륭한 프로그램이지만, 비선형 동적해석(시간이력해석)에서 생성되는 데이터의 양은 엑셀로 처리하기에 벅찹니다.
+PBD_p3d는 방대한 양의 데이터를 처리하는 역할을 하며, 엔</p>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<p>PBD_p3d를 사용하는 도중 오류가 발생하는 경우, 연구소로 문의해주세요.
+그러나 대부분의 경우, 성능기반 내진설계 업무절차서에 따라 모델링한다면 오류없이 진행이 가능합니다.</p>
+</div>
+</section>
+<section id="key-macro">
+<h3>key_macro<a class="headerlink" href="#key-macro" title="이 제목에 대한 퍼머링크">#</a></h3>
+<p>key_macro(매크로)는 엑셀과 PBD_p3d</p>
+<p>매크로는 엑셀과, PBD_p3d가 처리할 수 없기 때문에 엔지니어가 직접 처리해야하는 작업들을 대신하는 역할을 합니다.
+PBD_p3d와는 달리 컴퓨터가 작업하는 모습을 화면으로 볼 수 있기 때문에, 그 기능을 직접 확인하실 수 있습니다.
+매크로 역시 단점은 있습니다. 분명 사람의 눈과 손보다는 빠르고 정확하게 작동하지만, 방대한 양의 부재를 처리함에 있어서는 빠르다고 말할 수 없습니다.
+매크로 실행 중에는 다른 작업을 못하기 때문에, 실행이 끝나기 전까지 PC 사용이 불가능하며, 가끔씩 오류가 생기기도 합니다.
+이런 단점들에도 불구하고 단점보다 장점이 더 많은 소프트웨어입니다.</p>
+</section>
+<section id="perform-3d-compound">
+<h3>Perform-3D Compound<a class="headerlink" href="#perform-3d-compound" title="이 제목에 대한 퍼머링크">#</a></h3>
+</section>
+</section>
+<section id="id9">
+<h2>적용기준<a class="headerlink" href="#id9" title="이 제목에 대한 퍼머링크">#</a></h2>
 <ul class="simple">
+<li><p>KDS 41 17 00 건축물 내진설계기준(2022), 국토교통부</p></li>
 <li><p>철근콘크리트 건축구조물의 성능기반 내진설계 지침 (2021), 대한건축학회</p></li>
 <li><p>철근콘크리트 건축구조물의 성능기반 내진설계를 위한 비선형해석모델 (2021), 대한건축학회</p></li>
 <li><p>철근콘크리트 건축물 성능기반 내진설계 지침 및 모델링 가이드 (2019), 한국지진공학회</p></li>
@@ -353,7 +429,7 @@ key_macro(매크로)는 엑셀과 PBD_p3d</p></li>
   <a class='right-next' id="next-link" href="1_ref_model.html" title="다음 페이지">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">다음</p>
-      <p class="prev-next-title">탄성설계 모델, 레퍼런스 모델 생성</p>
+      <p class="prev-next-title">레퍼런스 모델 생성</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -377,19 +453,63 @@ key_macro(매크로)는 엑셀과 PBD_p3d</p></li>
   <a class="reference internal nav-link" href="#id1">
    필요성
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id2">
+     모델링 시간 단축
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id3">
+     학습의 용이함
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id4">
+     지식과 노하우의 공유와 축적
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id5">
+     엔지니어의 건강 증진
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id2">
+  <a class="reference internal nav-link" href="#id6">
    절차
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id3">
+  <a class="reference internal nav-link" href="#id7">
    소프트웨어
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id8">
+     엑셀
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pbd-p3d-in-house">
+     PBD_p3d (In-house 프로그램)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#key-macro">
+     key_macro
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#perform-3d-compound">
+     Perform-3D Compound
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id4">
+  <a class="reference internal nav-link" href="#id9">
    적용기준
   </a>
  </li>

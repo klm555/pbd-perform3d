@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import win32com.client
+import pythoncom
 import re
 import warnings
 from collections import deque
@@ -184,12 +185,11 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         
         # Mass 결과값을 csv로 변환
         mass2.to_csv(output_csv_dir+'\\'+mass_csv, mode='w', index=False)
-        
-        # Mass의 nodes(좌표) 추가        
-        node_mass_considered = pd.concat([node, mass2.iloc[:,[0,1,2]]])
     
         # Node 결과값을 csv로 변환
         if import_node == True:
+            # Mass의 nodes(좌표) 추가        
+            node_mass_considered = pd.concat([node, mass2.iloc[:,[0,1,2]]])
             node_mass_considered.to_csv(output_csv_dir+'\\'+node_csv, mode='w', index=False) # Import할 Mass의 좌표를 포함한 모든 좌표를 csv로 출력함
        
         else:
@@ -354,11 +354,15 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node3', right_on='Node', suffixes=(None, '3'))
         wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
         
-        ### 부재의 orientation 맞추기
+        ### 부재의 orientation 맞추기        
+        
         # X 좌표가 더 작은 노드를 i-node로!
-        wall_gage_pos = wall_gage[wall_gage['X(mm)2'] > wall_gage['X(mm)']]
-        wall_gage_neg = wall_gage[wall_gage['X(mm)2'] < wall_gage['X(mm)']]
-        wall_gage_zero = wall_gage[wall_gage['X(mm)2'] == wall_gage['X(mm)']]
+        # 허용 오차
+        tolerance = 5 # mm
+        wall_gage_pos = wall_gage[wall_gage['X(mm)2'] - wall_gage['X(mm)'] > tolerance]
+        wall_gage_neg = wall_gage[wall_gage['X(mm)2'] - wall_gage['X(mm)'] < -tolerance]
+        wall_gage_zero = wall_gage[(wall_gage['X(mm)2'] - wall_gage['X(mm)'] >= -tolerance) 
+                                   & (wall_gage['X(mm)2'] - wall_gage['X(mm)'] <= tolerance)]
         
         # node1(5,6,7,8), node2(9,10,11,12), node3(13,14,15,16), node4(17,18,19,20)
         wall_gage_neg = wall_gage_neg.iloc[:,[0,2,1,4,3,9,10,11,12,5,6,7,8,17,18,19,20,13,14,15,16]]
@@ -382,7 +386,7 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                              , 'Y(mm)3', 'Z(mm)3', 'X(mm)4', 'Y(mm)4', 'Z(mm)4']
         
         # 각 Wall element의 z좌표 추출
-        wall_gage['Z(mm)'] =  wall_gage[['Z(mm)1', 'Z(mm)2', 'Z(mm)3']].min(axis=1)
+        wall_gage['Z(mm)'] =  wall_gage[['Z(mm)1', 'Z(mm)2', 'Z(mm)3', 'Z(mm)4']].min(axis=1)
               
         # 벽체의 4개 node list 만들기
         wall_gage['Node List'] = wall_gage.loc[:,['Node1', 'Node2', 'Node3', 'Node4']]\
@@ -398,16 +402,17 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         # For loop 돌리면서 Wall ID, Z(mm)에 따라 Node 리스트 업데이트(겹치는거 없애면서)
         gage_node_data_list = []
         for idx, gage_node_data in wall_gage_sorted.groupby(['Wall ID', 'Z(mm)'])['Node List']:
+            # series -> list
             gage_node_data = list(gage_node_data)
             # deque 생성
             gage_node_dq = deque()
             
             # 노드를 위치 순서대로 deque에 insert
             for i in range(0,len(gage_node_data)):
-                gage_node_dq.insert(int(len(gage_node_dq)/4), gage_node_data[i][0])
-                gage_node_dq.insert(int(len(gage_node_dq)/4*2+1), gage_node_data[i][1])
-                gage_node_dq.insert(int(len(gage_node_dq)/4*3+2), gage_node_data[i][2])
-                gage_node_dq.insert(int(len(gage_node_dq)/4*4+3), gage_node_data[i][3])
+                gage_node_dq.insert(int(i*1+0), gage_node_data[i][0])
+                gage_node_dq.insert(int(i*2+1), gage_node_data[i][1])
+                gage_node_dq.insert(int(i*3+2), gage_node_data[i][2])
+                gage_node_dq.insert(int(i*4+3), gage_node_data[i][3])
             gage_node_dq = list(gage_node_dq) 
             
             # count == 1인 노드만 추출(중복되는 노드들 제거하는 법 몰라서 우회함)
@@ -467,10 +472,12 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         wall_gage = pd.merge(wall_gage, node, how='left', left_on='Node4', right_on='Node', suffixes=(None, '4'))
         
         ### 부재의 orientation 맞추기
-        # X 좌표가 더 작은 노드를 i-node로!
-        wall_gage_pos = wall_gage[wall_gage['X(mm)2'] > wall_gage['X(mm)']]
-        wall_gage_neg = wall_gage[wall_gage['X(mm)2'] < wall_gage['X(mm)']]
-        wall_gage_zero = wall_gage[wall_gage['X(mm)2'] == wall_gage['X(mm)']]
+        # 허용 오차
+        tolerance = 5 # mm
+        wall_gage_pos = wall_gage[wall_gage['X(mm)2'] - wall_gage['X(mm)'] > tolerance]
+        wall_gage_neg = wall_gage[wall_gage['X(mm)2'] - wall_gage['X(mm)'] < -tolerance]
+        wall_gage_zero = wall_gage[(wall_gage['X(mm)2'] - wall_gage['X(mm)'] >= -tolerance) 
+                                   & (wall_gage['X(mm)2'] - wall_gage['X(mm)'] <= tolerance)]
         
         # node1(5,6,7,8), node2(9,10,11,12), node3(13,14,15,16), node4(17,18,19,20)
         wall_gage_neg = wall_gage_neg.iloc[:,[0,2,1,4,3,9,10,11,12,5,6,7,8,17,18,19,20,13,14,15,16]]
@@ -516,10 +523,10 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
             
             # 노드를 위치 순서대로 deque에 insert
             for i in range(0,len(gage_node_data)):
-                gage_node_dq.insert(int(len(gage_node_dq)/4), gage_node_data[i][0])
-                gage_node_dq.insert(int(len(gage_node_dq)/4*2+1), gage_node_data[i][1])
-                gage_node_dq.insert(int(len(gage_node_dq)/4*3+2), gage_node_data[i][2])
-                gage_node_dq.insert(int(len(gage_node_dq)/4*4+3), gage_node_data[i][3])
+                gage_node_dq.insert(int(i*1+0), gage_node_data[i][0])
+                gage_node_dq.insert(int(i*2+1), gage_node_data[i][1])
+                gage_node_dq.insert(int(i*3+2), gage_node_data[i][2])
+                gage_node_dq.insert(int(i*4+3), gage_node_data[i][3])
             gage_node_dq = list(gage_node_dq) 
             
             # count == 1인 노드만 추출(중복되는 노드들 제거하는 법 몰라서 우회함)
@@ -539,6 +546,9 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         # Node 번호에 맞는 좌표 매칭 후 출력
         gage_node_coord = pd.DataFrame(gage_node_data_list)
         gage_node_coord.columns = ['Node1', 'Node2', 'Node3', 'Node4']
+        
+        # 벽체 노드 순서 바꾸기(Midas 1234 -> Perform-3d 1243)
+        # gage_node_coord = gage_node_coord.iloc[:,[0,1,3,2]]
         
         # Merge로 Node 번호에 맞는 좌표를 결합
         gage_node_coord = pd.merge(gage_node_coord, node, how='left', left_on='Node1', right_on='Node', suffixes=(None, '1'))
@@ -776,7 +786,8 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
     name_output = name_output.replace(np.nan, '', regex=True)
     
     # Using win32com...
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)
@@ -794,7 +805,7 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application  
 
-#%% Node, Element, Mass, Load Import
+#%% Convert C.Beam, G.Beam, Wall
 
 def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=True):
     '''
@@ -1588,7 +1599,8 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     #%% Printout
     # Using win32com...
 
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)
@@ -1620,7 +1632,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
     
-#%% Node, Element, Mass, Load Import
+#%% Convert Column Nu
 
 def convert_property_col_Nu(input_xlsx_path, result_path, result_xlsx='Analysis Result'
                             , g_col_group_name = 'G.Column'):
@@ -2020,7 +2032,8 @@ def convert_property_col_Nu(input_xlsx_path, result_path, result_xlsx='Analysis 
     #%% Printout
     # Using win32com...
 
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application') # 엑셀 실행
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)

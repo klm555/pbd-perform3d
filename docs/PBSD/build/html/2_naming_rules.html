@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>이름 표기법 &#8212;  성능기반 내진설계 업무절차서 v1.0</title>
+    <title>이름 표기법 &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -101,7 +101,7 @@
 
   
   
-    <p class="title logo__title"> 성능기반 내진설계 업무절차서 v1.0</p>
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
   
 </a>
     
@@ -236,11 +236,16 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">탄성설계 모델, 레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_elastic.html">주기 확인(탄성설계 모델)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
@@ -248,8 +253,27 @@
 <li class="toctree-l2"><a class="reference internal" href="2_etc.html">ETC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_materials.html">Materials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
 </ul>
 </li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
 </ul>
 
   </div>
@@ -299,7 +323,7 @@ Midas Gen과 같이 Perform-3D도 부재들에 고유의 ID를 부여하지만, 
 </ol>
 </div>
 <figure class="align-center" id="id3">
-<a class="reference internal image-reference" href="_images/2_층_이름_예시.png"><img alt="_images/2_%EC%B8%B5_%EC%9D%B4%EB%A6%84_%EC%98%88%EC%8B%9C.png" src="_images/2_%EC%B8%B5_%EC%9D%B4%EB%A6%84_%EC%98%88%EC%8B%9C.png" style="width: 433.8px; height: 84.6px;" /></a>
+<a class="reference internal image-reference" href="_images/2_층_이름_예시.png"><img alt="_images/2_%EC%B8%B5_%EC%9D%B4%EB%A6%84_%EC%98%88%EC%8B%9C.png" src="_images/2_%EC%B8%B5_%EC%9D%B4%EB%A6%84_%EC%98%88%EC%8B%9C.png" style="width: 578.4px; height: 112.80000000000001px;" /></a>
 <figcaption>
 <p><span class="caption-text"><em>층 이름의 예시</em></span><a class="headerlink" href="#id3" title="이 이미지에 대한 퍼머링크">#</a></p>
 </figcaption>
@@ -309,7 +333,7 @@ Midas Gen과 같이 Perform-3D도 부재들에 고유의 ID를 부여하지만, 
 <h2>부재 Naming<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크">#</a></h2>
 <p>시트에 입력되는 모든 부재들(벽체, 기둥, 보)은 아래의 구조 형식을 이루고 있어야 합니다.</p>
 <figure class="align-center" id="id4">
-<a class="reference internal image-reference" href="_images/2_부재_이름_구조.png"><img alt="_images/2_%EB%B6%80%EC%9E%AC_%EC%9D%B4%EB%A6%84_%EA%B5%AC%EC%A1%B0.png" src="_images/2_%EB%B6%80%EC%9E%AC_%EC%9D%B4%EB%A6%84_%EA%B5%AC%EC%A1%B0.png" style="width: 351.59999999999997px; height: 158.4px;" /></a>
+<a class="reference internal image-reference" href="_images/2_부재_이름_구조.png"><img alt="_images/2_%EB%B6%80%EC%9E%AC_%EC%9D%B4%EB%A6%84_%EA%B5%AC%EC%A1%B0.png" src="_images/2_%EB%B6%80%EC%9E%AC_%EC%9D%B4%EB%A6%84_%EA%B5%AC%EC%A1%B0.png" style="width: 234.4px; height: 105.60000000000001px;" /></a>
 <figcaption>
 <p><span class="caption-text"><em>부재 이름의 구조</em></span><a class="headerlink" href="#id4" title="이 이미지에 대한 퍼머링크">#</a></p>
 </figcaption>
@@ -348,6 +372,13 @@ Midas Gen과 같이 Perform-3D도 부재들에 고유의 ID를 부여하지만, 
 <p><span class="caption-text"><em>부재 이름의 예시</em></span><a class="headerlink" href="#id5" title="이 이미지에 대한 퍼머링크">#</a></p>
 </figcaption>
 </figure>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ul class="simple">
+<li><p>앞서서 생성한 Midas Gen 파일들의 층이름을 위의 규칙에 맞게 변경합니다.</p></li>
+<li><p>앞으로 입력해야할 부재의 이름을 위의 구조와 규칙에 맞게 설정합니다.</p></li>
+</ul>
+</div>
 </section>
 </section>
 
