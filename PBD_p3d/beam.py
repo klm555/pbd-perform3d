@@ -9,8 +9,8 @@ import pythoncom
 
 #%% Beam Rotation
 
-def BR(result_path, result_xlsx, input_path, input_xlsx,\
-       m_hinge_group_name, **kwargs): 
+def BR(input_xlsx_path, result_xlsx_path
+       , m_hinge_group_name, **kwargs): 
     # arguments가 너무 많을 때, 함수를 사용할 때 직접 매개변수를 명시해주는 방식
 
 #%% 변수 정리
@@ -23,15 +23,11 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
     xlim = kwargs['xlim'] if 'xlim' in kwargs.keys() else 0.03
 
 #%% Analysis Result 불러오기(BR)
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
     
     # Gage data
-    gage_data = pd.read_excel(result_path + '\\' + to_load_list[0],
-                                    sheet_name='Gage Data - Beam Type', skiprows=[0, 2], header=0, usecols=[0, 2, 7, 9]) # usecols로 원하는 열만 불러오기
+    gage_data = pd.read_excel(to_load_list[0], sheet_name='Gage Data - Beam Type'
+                              , skiprows=[0, 2], header=0, usecols=[0, 2, 7, 9]) # usecols로 원하는 열만 불러오기
     
     BR_M_gage_data = gage_data[gage_data['Group Name'] == m_hinge_group_name]
     BR_S_gage_data = gage_data[gage_data['Group Name'] == s_hinge_group_name]
@@ -40,8 +36,8 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
     # Gage result data
     result_data = pd.DataFrame()
     for i in to_load_list:
-        result_data_temp = pd.read_excel(result_path + '\\' + i,
-                                    sheet_name='Gage Results - Beam Type', skiprows=[0, 2], header=0, usecols=[0, 2, 5, 7, 8, 9])
+        result_data_temp = pd.read_excel(i, sheet_name='Gage Results - Beam Type'
+                                         , skiprows=[0, 2], header=0, usecols=[0, 2, 5, 7, 8, 9])
         result_data = pd.concat([result_data, result_data_temp])
     
     result_data = result_data.sort_values(by=['Load Case', 'Element Name', 'Step Type']) # 지진파 순서가 섞여있을 때 sort
@@ -54,12 +50,12 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
 #%% Node, Story 정보 불러오기
     
     # Node Coord data
-    Node_coord_data = pd.read_excel(result_path + '\\' + to_load_list[0],
-                                    sheet_name='Node Coordinate Data', skiprows=[0, 2], header=0, usecols=[1, 2, 3, 4])
+    Node_coord_data = pd.read_excel(to_load_list[0], sheet_name='Node Coordinate Data'
+                                    , skiprows=[0, 2], header=0, usecols=[1, 2, 3, 4])
     
     # Story Info data
     story_info_xlsx_sheet = 'Story Data'
-    story_info = pd.read_excel(input_path + '\\' + input_xlsx, sheet_name=story_info_xlsx_sheet, skiprows=3, usecols=[0, 1, 2], keep_default_na=False)
+    story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet, skiprows=3, usecols=[0, 1, 2], keep_default_na=False)
     story_info.columns = ['Index', 'Story Name', 'Height(mm)']
     story_name = story_info.loc[:, 'Story Name']
 
@@ -163,6 +159,8 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
                 
             yield fig1
             yield error_coord_M_DE
+            yield 'DE' # Marker 출력
+            
 
 # MCE 그래프    
         if len(MCE_load_name_list) != 0:
@@ -190,6 +188,7 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
     
             yield fig2
             yield error_coord_M_MCE
+            yield 'MCE' # Marker 출력
             
 #%% BR(Shear Hinge) 그래프
 
@@ -224,6 +223,7 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
     
             yield fig3
             yield error_coord_S_DE
+            yield 'DE' # Marker 출력
 
 # MCE 그래프    
         if len(MCE_load_name_list) != 0:
@@ -251,16 +251,17 @@ def BR(result_path, result_xlsx, input_path, input_xlsx,\
 
             yield fig4
             yield error_coord_S_MCE
+            yield 'MCE' # Marker 출력
 
 #%% Beam Rotation (DCR)
-def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
+def BR_DCR(input_xlsx_path, result_xlsx_path
            , c_beam_group='C.Beam', DCR_criteria=1, yticks=3, xlim=3):
 
 #%% Input Sheets 정보 load
     story_info = pd.DataFrame()
     deformation_cap = pd.DataFrame()
     
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'Output_C.Beam Properties'], skiprows=3)
     input_data_raw.close()
     
@@ -271,17 +272,12 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
     deformation_cap.columns = ['Name', 'LS', 'CP']
     
 #%% Analysis Result 불러오기
-    
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
     
     beam_rot_data = pd.DataFrame()
     
     for i in to_load_list:
-        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_raw = pd.ExcelFile(i)
         result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - Bending Deform', 'Node Coordinate Data',\
                                                          'Element Data - Frame Types'], skiprows=2)
         
@@ -354,9 +350,11 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
     
 #%% 조작용 코드
     # 없애고 싶은 부재의 이름 입력(error_beam 확인 후!, DE, MCE에서 다 없어짐)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB4_'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('B15_'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4A_'))].index)
+    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('PB1-10_1'))].index)
+    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('PB1-8_1'))].index)
+    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB1A_2'))].index)
+    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB1A_4'))].index)
+    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB2_1'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4B_'))].index)
     # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB3D_'))].index)
 
@@ -429,6 +427,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
         
         yield fig1
         yield error_beam_DE
+        yield 'DE' # Marker 출력
         
 #%% MCE 결과 Plot
     
@@ -497,6 +496,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
         
         yield fig2
         yield error_beam_MCE
+        yield 'MCE' # Marker 출력
         
 #%% Return! (지진파가 다 없는 경우도 고려함)
     # if 'fig1' in locals():
@@ -512,7 +512,7 @@ def BR_DCR(result_path, result_xlsx, input_path, input_xlsx
 
 #%% Transfer Beam SF (DCR)
 
-def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
+def trans_beam_SF(input_xlsx_path, result_xlsx_path):
 
 #%% Input Sheet 정보 load
         
@@ -520,7 +520,7 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     transfer_element_info = pd.DataFrame()
 
     input_xlsx_sheet = 'Output_E.Beam Properties'
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
     input_data_raw.close()
 
@@ -533,18 +533,14 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     transfer_element_info.name = 'Name'
 
     #%% Analysis Result 불러오기
-
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
 
     # 전단력 Data
     SF_info_data = pd.DataFrame()
     for i in to_load_list:
-        SF_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Frame Results - End Forces', skiprows=[0, 2], header=0, usecols=[0,2,5,7,10,11,17,18]) # usecols로 원하는 열만 불러오기
+        SF_info_data_temp = pd.read_excel(i, sheet_name='Frame Results - End Forces'
+                                          , skiprows=[0, 2], header=0
+                                          , usecols=[0,2,5,7,10,11,17,18]) # usecols로 원하는 열만 불러오기
         SF_info_data = pd.concat([SF_info_data, SF_info_data_temp])
 
     SF_info_data = SF_info_data.sort_values(by=['Load Case', 'Element Name', 'Step Type']) # 지진파 순서가 섞여있을 때 sort
@@ -552,8 +548,8 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     # 부재 이름 Matching을 위한 Element 정보
     element_info_data = pd.DataFrame()
     for i in to_load_list:
-        element_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Element Data - Frame Types', skiprows=[0, 2], header=0, usecols=[0, 2, 5, 7]) # usecols로 원하는 열만 불러오기
+        element_info_data_temp = pd.read_excel(i, sheet_name='Element Data - Frame Types'
+                                               , skiprows=[0, 2], header=0, usecols=[0, 2, 5, 7]) # usecols로 원하는 열만 불러오기
         element_info_data = pd.concat([element_info_data, element_info_data_temp])
 
     # 필요한 부재만 선별
@@ -562,8 +558,8 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     # 층 정보 Matching을 위한 Node 정보
     height_info_data = pd.DataFrame()    
     for i in to_load_list:
-        height_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Node Coordinate Data', skiprows=[0, 2], header=0, usecols=[1, 4]) # usecols로 원하는 열만 불러오기
+        height_info_data_temp = pd.read_excel(i, sheet_name='Node Coordinate Data'
+                                              , skiprows=[0, 2], header=0, usecols=[1, 4]) # usecols로 원하는 열만 불러오기
         height_info_data = pd.concat([height_info_data, height_info_data_temp])
 
     element_info_data = pd.merge(element_info_data, height_info_data, how='left', left_on='I-Node ID', right_on='Node ID')
@@ -643,7 +639,7 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
+    wb = excel.Workbooks.Open(input_xlsx_path)
     ws = wb.Sheets('Results_E.Beam')
     
     startrow, startcol = 5, 1
@@ -660,7 +656,7 @@ def trans_beam_SF(result_path, result_xlsx, input_path, input_xlsx):
 
 #%% Transfer Beam SF (DCR) ------ revising
 
-def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx, contour=True):
+def E_BSF(input_xlsx_path, result_xlsx_path, contour=True):
 
 #%% Input Sheet 정보 load
         
@@ -668,9 +664,9 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     transfer_element_info = pd.DataFrame()
 
     input_xlsx_sheet = 'Output_E.Beam Properties'
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
-    # input_data_raw.close()
+    input_data_raw.close()
 
     story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
     transfer_element_info = input_data_sheets[input_xlsx_sheet].iloc[:,0]
@@ -682,17 +678,14 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
 
     #%% Analysis Result 불러오기
 
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
 
     # 전단력 Data
     SF_info_data = pd.DataFrame()
     for i in to_load_list:
-        SF_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Frame Results - End Forces', skiprows=[0, 2], header=0, usecols=[0,2,5,7,10,11,17,18]) # usecols로 원하는 열만 불러오기
+        SF_info_data_temp = pd.read_excel(i, sheet_name='Frame Results - End Forces'
+                                          , skiprows=[0, 2], header=0
+                                          , usecols=[0,2,5,7,10,11,17,18]) # usecols로 원하는 열만 불러오기
         SF_info_data = pd.concat([SF_info_data, SF_info_data_temp])
 
     SF_info_data = SF_info_data.sort_values(by=['Load Case', 'Element Name', 'Step Type']) # 지진파 순서가 섞여있을 때 sort
@@ -700,8 +693,8 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     # 부재 이름 Matching을 위한 Element 정보
     element_info_data = pd.DataFrame()
     for i in to_load_list:
-        element_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Element Data - Frame Types', skiprows=[0, 2], header=0, usecols=[0,2,5,7,9]) # usecols로 원하는 열만 불러오기
+        element_info_data_temp = pd.read_excel(i, sheet_name='Element Data - Frame Types'
+                                               , skiprows=[0, 2], header=0, usecols=[0,2,5,7,9]) # usecols로 원하는 열만 불러오기
         element_info_data = pd.concat([element_info_data, element_info_data_temp])
 
     # 필요한 부재만 선별
@@ -714,8 +707,8 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     # 층 정보 Matching을 위한 Node 정보
     node_info_data = pd.DataFrame()    
     for i in to_load_list:
-        node_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Node Coordinate Data', skiprows=[0, 2], header=0, usecols=[1,2,3,4]) # usecols로 원하는 열만 불러오기
+        node_info_data_temp = pd.read_excel(i, sheet_name='Node Coordinate Data'
+                                            , skiprows=[0, 2], header=0, usecols=[1,2,3,4]) # usecols로 원하는 열만 불러오기
         node_info_data = pd.concat([node_info_data, node_info_data_temp])
     
     # 나중에 element_info_data 열이름 깔끔하게 하기 위해 미리 깔끔하게
@@ -751,6 +744,39 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     DE_load_name_list = [x for x in load_name_list if 'DE' in x]
     MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
 
+    #%% (중력하중에 대한) V, M값에 절대값, 최대값 뽑기
+    
+    # 절대값 0.2배
+    SF_ongoing_G = SF_ongoing.copy()
+    SF_ongoing_G.iloc[:,[5,6,7,8]] = SF_ongoing_G.iloc[:,[5,6,7,8]].abs() * 0.2
+    
+    # i, j 노드 중 최대값 뽑기
+    SF_ongoing_G['V2 max(G)'] = SF_ongoing_G[['V2 I-End', 'V2 J-End']].max(axis = 1)
+    SF_ongoing_G['M3 max(G)'] = SF_ongoing_G[['M3 I-End', 'M3 J-End']].max(axis = 1)
+
+    # max, min 중 최대값 뽑기
+    SF_ongoing_G_max = SF_ongoing_G.loc[SF_ongoing_G.groupby(SF_ongoing_G.index // 2)['V2 max(G)'].idxmax()]
+    SF_ongoing_G_max['M3 max(G)'] = SF_ongoing_G.groupby(SF_ongoing_G.index // 2)['M3 max(G)'].max().tolist()
+
+    # 필요한 하중만 포함된 데이터 slice (MCE, G)
+    SF_ongoing_G_max = SF_ongoing_G_max[SF_ongoing_G_max['Load Case']\
+                                    .str.contains('|'.join(gravity_load_name))] # function equivalent of a combination of df.isin() and df.str.contains()
+
+    # 부재별 최대값 뽑기
+    SF_ongoing_elements = SF_ongoing_G_max.iloc[:,[0,1,2]]
+    SF_ongoing_elements= SF_ongoing_elements.drop_duplicates()
+    SF_ongoing_elements.set_index('Element Name', inplace=True)
+    
+    SF_ongoing_G_max_avg = SF_ongoing_elements.copy() # 평균값을 뽑진 않지만, 아래의 SF_ongoing_max_avg와 형태 맞춰주기위해 이렇게 naming됨 
+    SF_ongoing_G_max_avg['V2 max(G)'] = SF_ongoing_G_max.groupby(['Element Name'])['V2 max(G)'].max()
+    SF_ongoing_G_max_avg['M3 max(G)'] = SF_ongoing_G_max.groupby(['Element Name'])['M3 max(G)'].max()
+
+    # 같은 부재(그러나 잘려있는) 경우 최대값 뽑기
+    SF_ongoing_G_max_max = SF_ongoing_G_max_avg.loc[SF_ongoing_G_max_avg.groupby(['Property Name'])['V2 max(G)'].idxmax()]
+    SF_ongoing_G_max_max['M3 max(G)'] = SF_ongoing_G_max_avg.groupby(['Property Name'])['M3 max(G)'].max().tolist()
+    
+    SF_ongoing_G_max_max.reset_index(inplace=True, drop=True) 
+
     #%% V, M값에 절대값, 최대값, 평균값 뽑기
 
     # 절대값, 1.2배
@@ -764,15 +790,12 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     SF_ongoing_max = SF_ongoing.loc[SF_ongoing.groupby(SF_ongoing.index // 2)['V2 max'].idxmax()]
     SF_ongoing_max['M3 max'] = SF_ongoing.groupby(SF_ongoing.index // 2)['M3 max'].max().tolist()
 
-    # 필요한 하중만 포함된 데이터 slice (MCE)
+    # 필요한 하중만 포함된 데이터 slice (MCE, G)
     SF_ongoing_max = SF_ongoing_max[SF_ongoing_max['Load Case']\
                                     .str.contains('|'.join(MCE_load_name_list))] # function equivalent of a combination of df.isin() and df.str.contains()
-    
+
     # 부재별 평균값 뽑기
-    SF_ongoing_max_avg = SF_ongoing_max.iloc[:,[0,1,2]]
-    SF_ongoing_max_avg = SF_ongoing_max_avg.drop_duplicates()
-    SF_ongoing_max_avg.set_index('Element Name', inplace=True)
-    
+    SF_ongoing_max_avg = SF_ongoing_elements.copy()    
     SF_ongoing_max_avg['V2 max'] = SF_ongoing_max.groupby(['Element Name'])['V2 max'].mean()
     SF_ongoing_max_avg['M3 max'] = SF_ongoing_max.groupby(['Element Name'])['M3 max'].mean()
  
@@ -780,18 +803,20 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     SF_ongoing_max_avg_max = SF_ongoing_max_avg.loc[SF_ongoing_max_avg.groupby(['Property Name'])['V2 max'].idxmax()]
     SF_ongoing_max_avg_max['M3 max'] = SF_ongoing_max_avg.groupby(['Property Name'])['M3 max'].max().tolist()
     
-    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=True)
+    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=True)    
 
-#%% 결과값 정리 후 input sheets에 넣기
-    
+    #%% 결과값 정리 후 input sheets에 넣기    
     SF_ongoing_max_avg_max = pd.merge(transfer_element_info.rename('Property Name'),\
                                       SF_ongoing_max_avg_max, how='left')
         
     SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.dropna()
     SF_ongoing_max_avg_max.reset_index(inplace=True, drop=True)
     
+    # 중력하중, 지진하중에 대한 V,M값 합치기
+    SF_output = pd.merge(SF_ongoing_max_avg_max, SF_ongoing_G_max_max, how='left')
+    
     # SF_ongoing_max_avg 재정렬
-    SF_output = SF_ongoing_max_avg_max.iloc[:,[0,2,3]] 
+    SF_output = SF_output.iloc[:,[0,2,4,3,5]] 
     
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     SF_output = SF_output.replace(np.nan, '', regex=True)
@@ -801,8 +826,8 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + beam_xlsx)
-    ws = wb.Sheets('Results_T.Beam')
+    wb = excel.Workbooks.Open(input_xlsx_path)
+    ws = wb.Sheets('Results_E.Beam')
     
     startrow, startcol = 5, 1
     
@@ -816,21 +841,47 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
     ws.Range(ws.Cells(startrow, startcol+12),\
              ws.Cells(startrow + SF_output.shape[0]-1,\
                       startcol + 12 + 2 - 1)).Value\
-    = list(SF_output.iloc[:,[1,2]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+    = list(SF_output.iloc[:,[1,2,3,4]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application
     
 #%% 부재의 위치별  V, M 값 확인을 위한 도면 작성
+    # DCR 구하기    
+    # 1.2Vus, 1.2Mus, 0.2Vuns, 0.2Muns 불러오기
+    SF_ongoing_combined = pd.concat([SF_ongoing_G_max_avg, SF_ongoing_max_avg.iloc[:,[2,3]]]
+                                   , axis=1)
+    SF_ongoing_combined.reset_index(inplace=True, drop=False)
     
-    # 도면을 그리기 위한 Node List 만들기
+    # Vu, Mu 구하기
+    SF_ongoing_combined['Vu'] = SF_ongoing_combined['V2 max'] - SF_ongoing_combined['V2 max(G)']
+    SF_ongoing_combined['Mu'] = SF_ongoing_combined['M3 max'] - SF_ongoing_combined['M3 max(G)']
+    
+    # Mu unit 변경 (mm -> m)
+    SF_ongoing_combined['Mu'] = SF_ongoing_combined['Mu'] / 1000
+    
+    # Vn, Mn값 불러오기
+    e_beam_result = pd.read_excel(input_xlsx_path, sheet_name='Results_E.Beam'
+                                  , skiprows=3, header=0)
+    e_beam_result = e_beam_result.iloc[:,[0,29,32]]
+    e_beam_result.columns = ['Property Name', 'Vn', 'Mn']
+    e_beam_result.reset_index(inplace=True, drop=True)
+    
+    # DCR 구하기
+    SF_ongoing_combined = pd.merge(SF_ongoing_combined, e_beam_result, how='left')
+    SF_ongoing_combined['DCR(V)'] = SF_ongoing_combined['Vu'] / SF_ongoing_combined['Vn']
+    SF_ongoing_combined['DCR(M)'] = SF_ongoing_combined['Mu'] / SF_ongoing_combined['Mn']
+    
+
+    # 도면을 그리기 위한 Node List 만들기    
     node_map_z = SF_ongoing_max_avg['i-V'].drop_duplicates()
     node_map_z.sort_values(ascending=False, inplace=True)
     node_map_list = node_info_data[node_info_data['V'].isin(node_map_z)]
     
     # 도면을 그리기 위한 Element List 만들기
-    element_map_list = pd.merge(SF_ongoing_max_avg, element_info_data.iloc[:,[1,5,6,8,9]]
-                                , how='left', left_index=True, right_on='Element Name')
+    element_map_list = pd.merge(SF_ongoing_combined.iloc[:,[0,1,2,11,12]]
+                                , element_info_data.iloc[:,[1,5,6,8,9]]
+                                , how='left', on='Element Name')
     
     # V, M 크기에 따른 Color 지정
     cmap_V = plt.get_cmap('Reds')
@@ -845,14 +896,14 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
         element_map_list_extracted.reset_index(inplace=True, drop=True)
         
         # Colorbar, 그래프 Coloring을 위한 설정
-        norm_V = plt.Normalize(vmin = element_map_list_extracted['V2 max'].min()\
-                             , vmax = element_map_list_extracted['V2 max'].max())
-        cmap_V_elem = cmap_V(norm_V(element_map_list_extracted['V2 max']))
+        norm_V = plt.Normalize(vmin = element_map_list_extracted['DCR(V)'].min()\
+                             , vmax = element_map_list_extracted['DCR(V)'].max())
+        cmap_V_elem = cmap_V(norm_V(element_map_list_extracted['DCR(V)']))
         scalar_map_V = mpl.cm.ScalarMappable(norm_V, cmap_V)
         
-        norm_M = plt.Normalize(vmin = element_map_list_extracted['M3 max'].min()\
-                             , vmax = element_map_list_extracted['M3 max'].max())
-        cmap_M_elem = cmap_M(norm_M(element_map_list_extracted['M3 max']))
+        norm_M = plt.Normalize(vmin = element_map_list_extracted['DCR(M)'].min()\
+                             , vmax = element_map_list_extracted['DCR(M)'].max())
+        cmap_M_elem = cmap_M(norm_M(element_map_list_extracted['DCR(M)']))
         scalar_map_M = mpl.cm.ScalarMappable(norm_M, cmap_M)
         
         ## V(전단)     
@@ -869,7 +920,7 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
             plt.plot(element_map_x, element_map_y, c = cmap_V_elem[idx])
         
         # Colorbar 만들기
-        plt.colorbar(scalar_map_V, shrink=0.7, label='V(kN)')
+        plt.colorbar(scalar_map_V, shrink=0.7, label='DCR (V)')
     
         # 기타
         plt.axis('off')
@@ -894,7 +945,7 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
             plt.plot(element_map_x, element_map_y, c = cmap_M_elem[idx])
         
         # Colorbar 만들기
-        plt.colorbar(scalar_map_M, shrink=0.7, label='M(kN-mm)')
+        plt.colorbar(scalar_map_M, shrink=0.7, label='DCR (M)')
     
         # 기타
         plt.axis('off')
@@ -907,15 +958,15 @@ def trans_beam_SF_2(result_path, result_xlsx, input_path, input_xlsx, beam_xlsx,
         
 #%% Beam Rotation (N) GAGE)
 
-def BR_no_gage(result_path, result_xlsx, input_path, input_xlsx\
-               , cri_DE=0.01, cri_MCE=0.025/1.2, yticks=2, xlim=0.04):
+def BR_no_gage(input_xlsx_path, result_xlsx_path, cri_DE=0.01
+               , cri_MCE=0.025/1.2, yticks=2, xlim=0.04):
 
 #%% Input Sheets 정보 load
     
     story_info = pd.DataFrame()
     deformation_cap = pd.DataFrame()
     
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'Output_C.Beam Properties'], skiprows=3)
     input_data_raw.close()
     
@@ -927,16 +978,12 @@ def BR_no_gage(result_path, result_xlsx, input_path, input_xlsx\
     
 #%% Analysis Result 불러오기
     
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
     
     beam_rot_data = pd.DataFrame()
     
     for i in to_load_list:
-        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_raw = pd.ExcelFile(i)
         result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - Bending Deform', 'Node Coordinate Data',\
                                                          'Element Data - Frame Types'], skiprows=2)
         

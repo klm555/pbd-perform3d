@@ -65,7 +65,7 @@
 
 
 \title{성능기반 내진설계 업무절차서}
-\date{2023년 02월 15일}
+\date{2023년 03월 20일}
 \release{}
 \author{CNP Dongyang}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -592,13 +592,46 @@ Number of Divisions z(수평분할)에는 아래와 같이 적정한 값을 입�
 \end{footnote}
 그러나 경우에 따라 지하구조 측면의 구속효과를 고려하거나 지표면에서 고정조건을 사용하는 경우도 있으므로, 설계자와의 협의 이 후에 결정합니다.
 
+\sphinxAtStartPar
+본 성능기반 내진설계 업무절차서에서는 기초면 하부가 고정된 경우에 대해 모델링합니다.
+
 \begin{sphinxShadowBox}
 \sphinxstyletopictitle{What to do}
 \begin{enumerate}
 \sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
 \item {} 
 \sphinxAtStartPar
+기초면 하부에 지점을 설정하기에 앞서, 탄성설계 단계에서 설정된 지점과의 혼동을 피하기 위해 탄성설계 단계에서 설정된 지점을 삭제합니다.
+
+\sphinxAtStartPar
+\sphinxguilabel{Tree Menu}의 \sphinxguilabel{Works} 탭에서 \sphinxguilabel{Boundaries} \sphinxhyphen{} \sphinxguilabel{Supports}를 선택합니다.
+
+\item {} 
+\sphinxAtStartPar
+설정되어있는 Supports를 마우스 오른쪽 버튼으로 클릭한 후 \sphinxkeyboard{\sphinxupquote{Delete}}을 눌러 모두 삭제합니다.
+
+\item {} 
+\sphinxAtStartPar
 기초면 하부를 고정단으로 설정하기 위하여 Midas Gen에서 \sphinxguilabel{Boundary} \sphinxhyphen{} \sphinxguilabel{Define Supports}를 클릭합니다.
+
+\item {} 
+\sphinxAtStartPar
+모델의 가장 하단(기초면)을 선택합니다.
+
+\begin{center}
+\noindent\sphinxincludegraphics[scale=0.9]{{1_기초면_선택}.png}
+\end{center}
+
+\item {} 
+\sphinxAtStartPar
+Dx, Dy, Dz를 체크하고 \sphinxkeyboard{\sphinxupquote{Apply}}를 클릭합니다.
+
+\sphinxAtStartPar
+설정이 완료되면, 기초면에 생성한 지점이 표시됩니다.
+
+\begin{center}
+\noindent\sphinxincludegraphics[scale=0.9]{{1_supports_설정}.png}
+\end{center}
 
 \end{enumerate}
 \end{sphinxShadowBox}
@@ -606,6 +639,38 @@ Number of Divisions z(수평분할)에는 아래와 같이 적정한 값을 입�
 
 \subsection{다이어프램 설정}
 \label{\detokenize{1_support_setting:id4}}
+\sphinxAtStartPar
+비선형해석에서 슬래브의 모델링은 전체 층에 대하여 면내강체로 정의되어야합니다. %
+\begin{footnote}[2]\sphinxAtStartFootnote
+대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021), 4.5\sphinxhyphen{}(1)
+%
+\end{footnote}
+따라서 전체 층이 면내강체(Rigid Diaphragm)로 설정되어있는지 확인하고, 면내강체가 설정되어있지 않은 층에는 면내강체를 설정합니다.
+다만 지점조건이나 Ground Level에 따라 다이어프램의 설정 역시 달라질 수 있으므로, 설계자와 협의하여 결정합니다.
+
+\begin{sphinxShadowBox}
+\sphinxstyletopictitle{What to do}
+\begin{enumerate}
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
+\item {} 
+\sphinxAtStartPar
+Rigid Diaphragm 설정을 위하여 \sphinxguilabel{Structure}\sphinxhyphen{} \sphinxguilabel{Control Data…} \sphinxhyphen{} \sphinxguilabel{Story…}을 클릭합니다.
+
+\item {} 
+\sphinxAtStartPar
+생성된 창에서 가장 아래층(기초면)을 제외한 모든 층의 \sphinxcode{\sphinxupquote{Floor Diaphragm}}이 Consider로 설정되어있는지 확인합니다.
+
+\begin{center}
+\noindent\sphinxincludegraphics[scale=0.9]{{1_diaphragm_설정}.png}
+\end{center}
+
+\item {} 
+\sphinxAtStartPar
+Consider로 설정되어있지 않은 층(Do not Consider로 설정된 층)은 Consider로 변경합니다. 설정 완료 후 \sphinxkeyboard{\sphinxupquote{Close}}를 클릭합니다.
+
+\end{enumerate}
+\end{sphinxShadowBox}
+
 \sphinxstepscope
 
 
@@ -1288,9 +1353,16 @@ Midas Gen에서 레퍼런스 모델을 열고, \sphinxguilabel{Nodes Table}과 \
 \end{itemize}
 \end{sphinxShadowBox}
 
-\begin{sphinxadmonition}{warning}{경고:}
+\begin{sphinxadmonition}{warning}{경고:}\begin{itemize}
+\item {} 
 \sphinxAtStartPar
 기존에 사용하던 시트에 덮어씌우는 경우, 기존 데이터가 모두 지워졌는지 다시 한 번 확인합니다.
+
+\item {} 
+\sphinxAtStartPar
+Nodes 정보를 Import하지 않더라도, Elements, Nodal Loads, Gages 정보를 Import하려면 \sphinxstylestrong{Nodes 시트가 반드시 작성되어야 합니다.}
+
+\end{itemize}
 \end{sphinxadmonition}
 
 \sphinxstepscope
@@ -1404,18 +1476,40 @@ C.Beam Properties 시트에는 연결보(Coupling Beam)에 대한 정보를 입�
 
 \sphinxAtStartPar
 각 열마다 입력해야할 정보는 다음과 같습니다.
+
+\begin{sphinxadmonition}{note}{참고:}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+부재는 순서대로(층순, 부재명순 등등) 입력하지 않아도 무방합니다.
+사용자 편의에 따라 입력하면, Output\_C.Beam Properties 시트에 자동으로 정렬되어 출력됩니다.
+
+\item {} 
+\sphinxAtStartPar
+동일한 정보의 부재를 모두 입력할 필요가 없습니다. 아래의 예시와 같이, 해당 행의 정보가 위의 행 정보와 동일하다면, 빈 칸으로 두어도 됩니다.
+다만, \sphinxcode{\sphinxupquote{Dimensions}}와 \sphinxcode{\sphinxupquote{Arrangement}} 열은 반드시 모두 입력해야 합니다
+(\sphinxcode{\sphinxupquote{Dimensions}} 열은 빈 칸으로 두면 \sphinxcode{\sphinxupquote{Check}}, \sphinxcode{\sphinxupquote{Non\sphinxhyphen{}Check}} 열이 생성되지 않습니다. 또한 \sphinxcode{\sphinxupquote{Arrangement}} 열은 빈 칸으로 두면 0으로 입력됩니다).
+
+\begin{figure}[H]
+\centering
+
+\noindent\sphinxincludegraphics{{2_c_beam_예시}.png}
+\end{figure}
+
+\end{itemize}
+\end{sphinxadmonition}
 \begin{itemize}
 \item {} \begin{description}
 \sphinxlineitem{\sphinxcode{\sphinxupquote{Name}}}
 \sphinxAtStartPar
-연결보의 이름을 입력합니다. {\hyperref[\detokenize{2_naming_rules::doc}]{\sphinxcrossref{\DUrole{doc}{이름 표기법}}}} 장을 참조하여 입력합니다.
+연결보의 이름을 입력합니다.
 
 \end{description}
 
 \item {} \begin{description}
 \sphinxlineitem{\sphinxcode{\sphinxupquote{Story}}}
 \sphinxAtStartPar
-ETC 시트에서 콘크리트 강도를 입력했던 방식과 동일하게 해당 연결보가 위치하는 층의 범위를 입력합니다.
+{\hyperref[\detokenize{2_etc::doc}]{\sphinxcrossref{\DUrole{doc}{ETC}}}} 시트에서 콘크리트 강도를 입력했던 방식과 동일하게 해당 연결보가 위치하는 층의 범위를 입력합니다.
+해당하는 층이 단일 층인 경우, \sphinxcode{\sphinxupquote{Story(from)}}과 \sphinxcode{\sphinxupquote{Story(to)}}에 동일하게 해당층을 입력합니다.
 
 \begin{sphinxadmonition}{warning}{경고:}
 \sphinxAtStartPar
@@ -1496,7 +1590,306 @@ Midas Gen에서는 부재 길이의 부정확성(중심선 사이의 거리만 �
 
 \end{description}
 
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Check}} / \sphinxcode{\sphinxupquote{Non\sphinxhyphen{}Check}}}
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{Check}} / \sphinxcode{\sphinxupquote{Non\sphinxhyphen{}Check}} 열은 해당 연결보가 <철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021)> %
+\begin{footnote}[1]\sphinxAtStartFootnote
+대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021) 6.8.1\sphinxhyphen{}(3)
+%
+\end{footnote}에 따른 연결보의 범위에 포함되는지 확인합니다.
+\begin{itemize}
+\item {} \begin{description}
+\sphinxlineitem{연결보의 적용범위에 포함되는 경우 (\(1.5 \leq l/h < 4.0\))}
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{1.5 ≤ L/D < 4.0}} 열에 \sphinxstylestrong{Coupling Beam}으로 표시됩니다.
+6.8장의 연결보 모델링 방법을 문제없이 적용할 수 있습니다.
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{연결보의 적용범위에 포함되지 않는 경우 (\(l/h \geq 4.0\))}
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{1.5 ≤ L/D < 4.0}} 열에 \sphinxstylestrong{General Beam}으로 표시됩니다.
+6.4장의 보 모델링 방법에 따릅니다. %
+\begin{footnote}[2]\sphinxAtStartFootnote
+대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021) 6.8.1\sphinxhyphen{}(4)
+%
+\end{footnote}
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{연결보의 적용범위에 포함되지 않는 경우 (\(l/h <> 1.5\))}
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{Check}} / \sphinxcode{\sphinxupquote{Non\sphinxhyphen{}Check}} 열은 아래와 같이 항목을 선택하여 변경이 가능합니다.
+
+\begin{figure}[htbp]
+\centering
+
+\noindent\sphinxincludegraphics{{2_c_beam_properties_check_선택}.png}
+\end{figure}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+연결보의 형상비가 \(1.5\) 이상이 되도록 부재의 크기를 변경합니다. \sphinxcode{\sphinxupquote{Check}} 열을
+
 \end{itemize}
+
+\end{description}
+
+\end{itemize}
+
+\end{description}
+
+\end{itemize}
+
+\begin{sphinxShadowBox}
+\sphinxstyletopictitle{What to do}
+\begin{enumerate}
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
+\item {} 
+\sphinxAtStartPar
+위의 정보를 참조하여 연결보의 정보를 입력합니다.
+
+\item {} 
+\sphinxAtStartPar
+입력이 완료되면 \sphinxcode{\sphinxupquote{Check}}
+
+\end{enumerate}
+\end{sphinxShadowBox}
+
+\sphinxstepscope
+
+
+\section{G.Column Properties}
+\label{\detokenize{2_g_column_properties:g-column-properties}}\label{\detokenize{2_g_column_properties::doc}}
+\sphinxAtStartPar
+G.Column Properties 시트에는 일반기둥(General Column)에 대한 정보를 입력합니다.
+
+\sphinxAtStartPar
+각 열마다 입력해야할 정보는 다음과 같습니다.
+\begin{itemize}
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Name}}, \sphinxcode{\sphinxupquote{Story}}, \sphinxcode{\sphinxupquote{Dimensions}}, \sphinxcode{\sphinxupquote{Cover}}}
+\sphinxAtStartPar
+C.Beam Properties 시트와 동일한 방식으로 입력합니다.
+
+\begin{figure}[htbp]
+\centering
+
+\noindent\sphinxincludegraphics{{2_c_beam_예시}.png}
+\end{figure}
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Rebar}}}
+\sphinxAtStartPar
+철근 정보를 입력합니다.
+
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{내진상세 여부}} 열에는 해당 철근의 내진상세 여부를 입력 또는 선택합니다.
+
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{Main}}과 \sphinxcode{\sphinxupquote{Hoop}}의 첫번째 열에는 각각 주근과 후프근이 일반용 철근인지 내진용 철근인지 입력 또는 선택합니다.
+
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{Main}}과 \sphinxcode{\sphinxupquote{Hoop}}의 두번째 열에는 각각 주근과 후프근의 철근 종류를 입력 또는 선택합니다.
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Arrangement}}}
+\sphinxAtStartPar
+주근과 후프근의 개수와 간격을 입력합니다.
+\sphinxcode{\sphinxupquote{Layer1}} 열에는 아래의 그림을 참조하여 가장 바깥 레이어의 철근 개수와 행의 개수를 입력합니다.
+
+\sphinxAtStartPar
+일반기둥의 배근이 2단으로 되어있는 경우, 안쪽 레이어의 철근 개수와 행의 개수를 \sphinxcode{\sphinxupquote{Layer2}} 열에 입력합니다.
+
+\begin{figure}[htbp]
+\centering
+
+\noindent\sphinxincludegraphics[scale=0.6]{{2_g_column_properties_section}.png}
+\end{figure}
+
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{Hoop}}의 \sphinxcode{\sphinxupquote{X}}, \sphinxcode{\sphinxupquote{Y}} 열에는 각각  X\sphinxhyphen{}브레이싱의 개수와 각도를 각각 입력합니다.
+
+\begin{figure}[htbp]
+\centering
+
+\noindent\sphinxincludegraphics[scale=0.6]{{2_g_column_properties_section_2}.png}
+\end{figure}
+
+\end{description}
+
+\end{itemize}
+
+\begin{sphinxShadowBox}
+\sphinxstyletopictitle{What to do}
+
+\sphinxAtStartPar
+위의 정보를 참조하여 연결보의 정보를 입력합니다.
+\end{sphinxShadowBox}
+
+\sphinxstepscope
+
+
+\section{Output\_G.Beam Properties / Output\_E.Beam Properties}
+\label{\detokenize{2_output_e_g_beam_properties:output-g-beam-properties-output-e-beam-properties}}\label{\detokenize{2_output_e_g_beam_properties::doc}}
+\sphinxAtStartPar
+Output\_G.Beam Properties 시트에는 일반보(General Beam)에 대한 정보를 입력합니다.
+마찬가지로 Output\_E.Beam Properties 시트에는 탄성보(Elastic Beam)에 대한 정보를 입력합니다.
+일반보 또는 탄성보가 없을 시, 입력하지 않으셔도 됩니다.
+
+\sphinxAtStartPar
+해당 보를 일반보로 모델링할지, 탄성보로 모델링할지의 여부는 설계자와의 협의, 전문가의 자문을 통해 결정합니다. %
+\begin{footnote}[1]\sphinxAtStartFootnote
+대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021) 4.9\sphinxhyphen{}(4)
+%
+\end{footnote}
+
+\begin{sphinxadmonition}{note}{참고:}
+\sphinxAtStartPar
+전이구조의 경우, 힘지배거동으로 설계합니다. %
+\begin{footnote}[2]\sphinxAtStartFootnote
+대한건축학회, 철근콘크리트 건축구조물의 성능기반 내진설계 지침(2021) {[}해표 4\sphinxhyphen{}1{]}
+%
+\end{footnote}
+또한 힘지배거동으로 설계하는 부재는 선형탄성으로 모델링하여야 합니다. {\color{red}\bfseries{}{[}\#{]}\_}
+따라서 \sphinxstylestrong{전이보(전이구조)의 경우, 탄성보(선형탄성 부재)로 모델링}합니다.
+\end{sphinxadmonition}
+
+\sphinxAtStartPar
+입력 방식은 {\hyperref[\detokenize{2_c_beam_properties::doc}]{\sphinxcrossref{\DUrole{doc}{C. Beam Properties}}}}에 연결보를 입력한 방식과 동일합니다.
+
+\begin{sphinxadmonition}{warning}{경고:}
+\sphinxAtStartPar
+연결보 정보를 C.Beam Properties 시트에 입력할 때와 달리, 사용자가 입력한 순서에 따라
+순서를 자동으로 정렬하지 않습니다.
+\end{sphinxadmonition}
+
+\begin{sphinxShadowBox}
+\sphinxstyletopictitle{What to do}
+
+\sphinxAtStartPar
+위의 정보를 참조하여 일반보와 탄성보의 정보를 입력합니다.
+\end{sphinxShadowBox}
+
+\sphinxstepscope
+
+
+\section{Wall Properties}
+\label{\detokenize{2_wall_properties:wall-properties}}\label{\detokenize{2_wall_properties::doc}}
+\sphinxAtStartPar
+Wall Properties 시트에는 벽체에 대한 정보를 입력합니다.
+
+\sphinxAtStartPar
+각 열마다 입력해야할 정보는 다음과 같습니다.
+
+\begin{sphinxadmonition}{note}{참고:}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+부재는 순서대로(층순, 부재명순 등등) 입력하지 않아도 무방합니다.(???)
+사용자 편의에 따라 입력하면, Output\_C.Beam Properties 시트에 자동으로 정렬되어 출력됩니다.
+
+\item {} 
+\sphinxAtStartPar
+동일한 정보의 부재를 모두 입력할 필요가 없습니다. 아래의 예시와 같이, 해당 행의 정보가 위의 행 정보와 동일하다면, 빈 칸으로 두어도 됩니다.
+다만, \sphinxcode{\sphinxupquote{Arrangement}} 열은 반드시 모두 입력해야 합니다(빈 칸으로 두면 0으로 입력됩니다).
+
+\begin{figure}[H]
+\centering
+
+\noindent\sphinxincludegraphics{{2_c_beam_예시}.png}
+\end{figure}
+
+\end{itemize}
+\end{sphinxadmonition}
+\begin{itemize}
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Name}}}\begin{quote}
+
+\sphinxAtStartPar
+벽체의 이름을 입력합니다.
+\end{quote}
+
+\begin{sphinxadmonition}{warning}{경고:}
+\sphinxAtStartPar
+벽체의 이름을 입력할 때마다 1줄의 공백을 만들어 주어야 합니다.  부재를 입력할 시,
+\end{sphinxadmonition}
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Story}}}
+\sphinxAtStartPar
+ETC 시트에서 콘크리트 강도를 입력했던 방식과 동일하게 해당 벽체가 위치하는 층의 범위를 입력합니다.
+해당하는 층이 단일 층인 경우, \sphinxcode{\sphinxupquote{Story(from)}}과 \sphinxcode{\sphinxupquote{Story(to)}}에 동일하게 해당층을 입력합니다.
+
+\begin{sphinxadmonition}{note}{참고:}
+\sphinxAtStartPar
+철근콘크리트 전단벽식 건물을 포함해 많은 공동주택에서는 벽체의 양이 많아 Wall Properties 시트를 입력하는 시간이 많이 소요됩니다.
+따라서 본 업무절차서에서는 설계자가 제공한 벽체리스트 정보를 활용하여 입력 시간을 줄일 수 있도록 하였습니다.
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+불연속으로 설치된 층의 예시 : 1F, 2F, 4F, 5F (3F에는 설치되어있지 않음)
+\sphinxcode{\sphinxupquote{Story(from)}}에는 1F, \sphinxcode{\sphinxupquote{Story(to)}}에는 5F를 입력합니다.
+
+\end{itemize}
+\end{sphinxadmonition}
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Thickness}}}
+\sphinxAtStartPar
+벽체의 두께를 입력합니다.
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Rebar}}}
+\sphinxAtStartPar
+철근 정보를 입력합니다.
+
+\begin{sphinxadmonition}{note}{참고:}
+\sphinxAtStartPar
+사용자의 편의에 따라 아래와 같이 철근의 Type과 Spacing을 나누지 않고 입력하여도 무방합니다.
+\end{sphinxadmonition}
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Lo}}}
+\sphinxAtStartPar
+벽체의 전체 길이를 입력합니다.
+연결보와 마찬가지로 Midas Gen에서는 부재 길이의 부정확성(중심선 사이의 거리만 측정됨),
+모델링의 간소화(짧은 벽체의 부재 등)로 인해 길이가 부정확하므로,
+정확한 길이의 입력을 위해 도면을 참조하여 입력합니다.
+
+\end{description}
+
+\item {} \begin{description}
+\sphinxlineitem{\sphinxcode{\sphinxupquote{Le}}}
+\sphinxAtStartPar
+벽체의 분할된 길이를 입력합니다.
+연결보와 마찬가지로 Midas Gen에서는 부재 길이의 부정확성(중심선 사이의 거리만 측정됨),
+모델링의 간소화(짧은 벽체의 부재 등)로 인해 길이가 부정확하므로,
+정확한 길이의 입력을 위해 도면을 참조하여 입력합니다.
+
+\end{description}
+
+\end{itemize}
+
+\begin{sphinxadmonition}{note}{참고:}
+\sphinxAtStartPar
+탄성설계에서 작성된 Wall List를 활용하면 Wall Properties 시트를 더 빠르게 작성할 수 있습니다.
+따라서 설계자에게 Wall List를 엑셀 형태로 요청하는 것이 좋습니다.
+\end{sphinxadmonition}
 
 \begin{sphinxShadowBox}
 \sphinxstyletopictitle{What to do}
@@ -1567,7 +1960,14 @@ Import를 클릭합니다. Import가 완료되면 아래의 상태창에 \sphinx
 \subsection{Perform\sphinxhyphen{}3D 실행}
 \label{\detokenize{3_import:perform-3d}}
 \sphinxAtStartPar
-생성된 csv 파일을 Import하기 위하여 새로운 Perform\sphinxhyphen{}3D 파일을 생성합니다.
+Perform\sphinxhyphen{}3D로 새 성능설계 모델 파일을 만들고, 앞서 생성한 csv 파일을 Import합니다. \sphinxcode{\sphinxupquote{Materials}}
+새 성능설계 모델 파일은 새 파일을 생성하여 성능설계 모델의 모델링을 시작할 수도 있지만,
+
+\begin{sphinxadmonition}{note}{참고:}
+\sphinxAtStartPar
+Perform\sphinxhyphen{}3D는 Midas Gen과 같이 단일 파일( \sphinxcode{\sphinxupquote{.mgb}} )로 생성 또는 저장되는 것이 아니라, 폴더 형태로 생성 또는 저장됩니다.
+따라서 Perform\sphinxhyphen{}3D 파일을 Load하는 경우, 파일이 아닌 폴더를 선택하여 Load합니다.
+\end{sphinxadmonition}
 
 \begin{sphinxShadowBox}
 \sphinxstyletopictitle{What to do}

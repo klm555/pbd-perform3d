@@ -20,6 +20,7 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     import_plate = kwargs['import_plate'] if 'import_plate' in kwargs.keys() else False
     import_WR_gage = kwargs['import_WR_gage'] if 'import_WR_gage' in kwargs.keys() else True
     import_WAS_gage = kwargs['import_WAS_gage'] if 'import_WAS_gage' in kwargs.keys() else True
+    import_I_beam = kwargs['import_I_beam'] if 'import_I_beam' in kwargs.keys() else True
 
     '''    
     Midas GEN 모델을 Perform-3D로 import할 수 있는 파일 형식(.csv)으로 변환.
@@ -84,7 +85,11 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                    
     import_WAS_gage : bool, optional, default=True
                      True = Wall Axial Strain Gage의 csv파일을 생성함.
-                     False = Wall Axial Strain Gage의 csv파일을 생성 안 함.                   
+                     False = Wall Axial Strain Gage의 csv파일을 생성 안 함.
+
+    import_I_beam : bool, optional, default=True
+                     True = Imbedded Beam의 csv파일을 생성함.
+                     False = Imbedded Beam의 csv파일을 생성 안 함.                
     Raises
     -------
     
@@ -115,6 +120,7 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     plate_csv = 'Plate.csv'
     WR_gage_csv = 'Shear Wall Rotation Gage.csv'
     WAS_gage_csv = 'Axial Strain Gage.csv'
+    I_beam_csv = 'Imbedded Beam.csv'
     
     #%% Nodal Load 뽑기
     
@@ -317,9 +323,12 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                 
         ### 부재의 orientation 맞춘 후 csv로 출력
         # X 좌표가 더 작은 노드를 i-node로!
-        wall_node_coord_pos = wall_node_coord[wall_node_coord['X_2(mm)'] > wall_node_coord['X_1(mm)']]
-        wall_node_coord_neg = wall_node_coord[wall_node_coord['X_2(mm)'] < wall_node_coord['X_1(mm)']]
-        wall_node_coord_zero = wall_node_coord[wall_node_coord['X_2(mm)'] == wall_node_coord['X_1(mm)']]
+        # 허용 오차
+        tolerance = 5 # mm
+        wall_node_coord_pos = wall_node_coord[wall_node_coord['X_2(mm)'] - wall_node_coord['X_1(mm)'] > tolerance]
+        wall_node_coord_neg = wall_node_coord[wall_node_coord['X_2(mm)'] - wall_node_coord['X_1(mm)'] < -tolerance]
+        wall_node_coord_zero = wall_node_coord[(wall_node_coord['X_2(mm)'] - wall_node_coord['X_1(mm)'] >= -tolerance) 
+                                               & (wall_node_coord['X_2(mm)'] - wall_node_coord['X_1(mm)'] <= tolerance)]
         
         wall_node_coord_neg = wall_node_coord_neg.iloc[:,[3,4,5,0,1,2,9,10,11,6,7,8]]
         wall_node_coord_neg.columns = wall_node_coord_pos.columns.values
@@ -587,6 +596,128 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         # Gage Element 결과값을 csv로 변환
         gage_node_coord.to_csv(output_csv_dir+'\\'+WR_gage_csv, mode='w', index=False)
     
+    #%% Imbedded Beam 뽑기
+    
+    if import_I_beam == True:
+        
+        # Beam, Wall Element 추출(slicing)
+        frame = element[element['Type'] == 'BEAM']
+        wall = element[element['Type'] == 'WALL']
+
+        # 필요한 열만 추출(drop하기에는 drop할 열이 너무 많아서...)
+        frame_node_1 = frame.loc[:, 'Node1']
+        frame_node_2 = frame.loc[:, 'Node2']
+        wall_node_3 = wall.loc[:, 'Node3']
+        wall_node_4 = wall.loc[:, 'Node4']
+        
+        # Merge로 Node 번호에 맞는 좌표를 결합
+        frame_node_1_coord = pd.merge(frame_node_1, node, how='left', left_on='Node1', right_on='Node')  # how='left' : 두 데이터프레임 중 왼쪽 데이터프레임은 그냥 두고 오른쪽 데이터프레임값을 대응시킴
+        frame_node_2_coord = pd.merge(frame_node_2, node, how='left', left_on='Node2', right_on='Node')
+        wall_node_3_coord = pd.merge(wall_node_3, node, how='left', left_on='Node3', right_on='Node')
+        wall_node_4_coord = pd.merge(wall_node_4, node, how='left', left_on='Node4', right_on='Node')
+        
+        # Node1, Node2의 좌표를 모두 결합시켜 출력
+        frame_node_1_coord = frame_node_1_coord.drop('Node', axis=1)
+        frame_node_2_coord = frame_node_2_coord.drop('Node', axis=1)
+        wall_node_3_coord = wall_node_3_coord.drop('Node', axis=1)
+        wall_node_4_coord = wall_node_4_coord.drop('Node', axis=1)
+        
+        frame_node_1_coord.columns = ['Node1', 'X_1(mm)', 'Y_1(mm)', 'Z_1(mm)']  # 결합 때 이름이 중복되면 안되서 이름 바꿔줌
+        frame_node_2_coord.columns = ['Node2', 'X_2(mm)', 'Y_2(mm)', 'Z_2(mm)']
+        wall_node_3_coord.columns = ['Node3', 'X_3(mm)', 'Y_3(mm)', 'Z_3(mm)']
+        wall_node_4_coord.columns = ['Node4', 'X_4(mm)', 'Y_4(mm)', 'Z_4(mm)']
+        
+        frame_node_coord = pd.concat([frame_node_1_coord, frame_node_2_coord], axis=1)
+        wall_node_coord = pd.concat([wall_node_3_coord, wall_node_4_coord], axis=1)
+        
+        # Beam 추출 (Column 제외)
+        beam_node_coord = frame_node_coord[abs(frame_node_coord['Z_1(mm)'] - frame_node_coord['Z_2(mm)']) <= 10]   
+        
+        # node1-node2, node3-node4의 방향 vector 생성
+        beam_node_coord['X_1-X_2'] = beam_node_coord['X_1(mm)'] - beam_node_coord['X_2(mm)']
+        beam_node_coord['Y_1-Y_2'] = beam_node_coord['Y_1(mm)'] - beam_node_coord['Y_2(mm)']
+        wall_node_coord['X_3-X_4'] = wall_node_coord['X_3(mm)'] - wall_node_coord['X_4(mm)']
+        wall_node_coord['Y_3-Y_4'] = wall_node_coord['Y_3(mm)'] - wall_node_coord['Y_4(mm)']
+
+        # N1-N2, N3-N4 벡터의 Cosine Similarity 구하기
+        # (running time 단축을 위해 아래의 두 function은 np.array 데이터 형식으로 계산함)
+        beam_node_coord_np = beam_node_coord.to_numpy()
+        wall_node_coord_np = wall_node_coord.to_numpy()
+        
+        # 두 벡터(array)의 Cosine Similarity 구하는 함수
+        def cos_sim(vector1, vector2):
+            result = np.dot(vector1, vector2) / (np.linalg.norm(vector1)*np.linalg.norm(vector2))
+            return result
+        
+        # 두 개의 행렬(matrix)를 입력받아 i_beam 정보 찾기
+        def find_i_beam(matrix1, matrix2): # matrix 형태 : beam_node_coord_np, wall_node_coord_np
+            i_beam_list = []
+            for matrix1_row in matrix1:
+                for matrix2_row in matrix2:
+                    vector1 = np.array([matrix1_row[8], matrix1_row[9]])
+                    vector2 = np.array([matrix2_row[8], matrix2_row[9]])
+                    
+                    # N1=N3 or N1=N4 or N2=N3 or N2=N4인 경우
+                    if (matrix1_row[0] == matrix2_row[0]) | (matrix1_row[0] == matrix2_row[4])\
+                        | (matrix1_row[4] == matrix2_row[0]) | (matrix1_row[4] == matrix2_row[4]):
+                        # 방향 벡터가 같은 경우
+                        if abs(cos_sim(vector1, vector2)) >= 0.98:
+                            i_beam_list.append(matrix2_row)
+            # list of arrays -> array
+            i_beam_matrix = np.vstack(i_beam_list)
+            # Drop duplicates
+            i_beam_matrix = np.unique(i_beam_matrix, axis=0)
+            # print(beam_node_coord_np.shape[0]), print(wall_node_coord_np.shape[0]), print(i_beam_matrix.shape[0])
+            
+            return i_beam_matrix
+        
+        # 무한루프 돌리면서 Beam과 바로 만나는 Imbedded Beam부터 순서대로 찾기
+        # import time
+        # time_start = time.time()
+        
+        i_beam_matrix = beam_node_coord_np.copy()
+        while True:
+            # 
+            i_beam_matrix_updated = find_i_beam(i_beam_matrix, wall_node_coord_np)
+            print(i_beam_matrix_updated.shape[0])
+            
+            # if np.array_equal(matrix1, matrix3):
+            if i_beam_matrix.shape[0] == i_beam_matrix_updated.shape[0]:
+                break
+            
+            i_beam_matrix = i_beam_matrix_updated.copy()
+            
+        # time_end = time.time()
+        # time_run = (time_end-time_start)/60
+        # print('\n', 'total time = %0.7f min' %(time_run))
+        
+        # 기존에 있던 보와 동일한 위치에 생성된 Imbedded Beam 제거
+        def view1D(a, b): # a, b are arrays
+            a = np.ascontiguousarray(a)
+            b = np.ascontiguousarray(b)
+            void_dt = np.dtype((np.void, a.dtype.itemsize * a.shape[1]))
+            return a.view(void_dt).ravel(),  b.view(void_dt).ravel()
+
+        def setdiff_nd(a,b):
+            # a,b are the nD input arrays
+            A,B = view1D(a,b)    
+            return a[~np.isin(A,B)]
+        
+        beam_node_coord_np_rev = beam_node_coord_np[:,[4,5,6,7,0,1,2,3]]
+        i_beam_matrix_unique = setdiff_nd(i_beam_matrix[:,0:8], beam_node_coord_np[:,0:8])
+        i_beam_matrix_unique = setdiff_nd(i_beam_matrix_unique, beam_node_coord_np_rev)
+    
+        
+        # np.array -> pd.dataframe
+        I_beam_node_coord = pd.DataFrame(i_beam_matrix_unique)
+        I_beam_node_coord.columns = ['Node1', 'X_1(mm)', 'Y_1(mm)', 'Z_1(mm)'
+                                     , 'Node2', 'X_2(mm)', 'Y_2(mm)', 'Z_2(mm)']
+        
+        I_beam_node_coord = I_beam_node_coord.loc[:,['X_1(mm)', 'Y_1(mm)', 'Z_1(mm)', 'X_2(mm)', 'Y_2(mm)', 'Z_2(mm)']]
+            
+        # 출력
+        I_beam_node_coord.to_csv(output_csv_dir+'\\'+I_beam_csv, mode='w', index=False)         
+                
     #%% Plate Element 뽑기
     if (import_plate == True) or ('PLATE' in element['Type']):
         

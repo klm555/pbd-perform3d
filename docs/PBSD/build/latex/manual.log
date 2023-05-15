@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999992 (TeX Live 2020/W32TeX) (preloaded format=xelatex 2021.2.19)  15 FEB 2023 23:03
+This is XeTeX, Version 3.14159265-2.6-0.999992 (TeX Live 2020/W32TeX) (preloaded format=xelatex 2021.2.19)  20 MAR 2023 12:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1381,6 +1381,58 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
 [15]
+File: 1_기초면_선택.png Graphic file (type bmp)
+<1_기초면_선택.png>
+File: 1_supports_설정.png Graphic file (type bmp)
+<1_supports_설정.png>
+
+Underfull \vbox (badness 10000) detected at line 637
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[16]
+Underfull \vbox (badness 10000) detected at line 637
+ []
+
+
+Underfull \vbox (badness 10000) detected at line 637
+ []
+
+
+Overfull \vbox (5.49677pt too high) has occurred while \output is active []
+
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[17]
+File: 1_diaphragm_설정.png Graphic file (type bmp)
+<1_diaphragm_설정.png>
+
+Underfull \vbox (badness 10000) detected at line 672
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[18]
 File: 1_유효강성.png Graphic file (type bmp)
 <1_유효강성.png>
 File: 1_c_beam_bending_유효강성.png Graphic file (type bmp)
@@ -1396,7 +1448,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[16]
+[19]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1405,12 +1457,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[17]
-Underfull \vbox (badness 10000) detected at line 685
+[20]
+Underfull \vbox (badness 4036) detected at line 750
  []
 
 
-Underfull \vbox (badness 10000) detected at line 685
+Overfull \vbox (6.32182pt too high) detected at line 750
  []
 
 
@@ -1425,7 +1477,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[18]
+[21]
 File: 1_wall_유효강성.png Graphic file (type bmp)
 <1_wall_유효강성.png>
 
@@ -1437,7 +1489,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[19]
+[22]
 File: 1_유효강성_지하외벽.png Graphic file (type bmp)
 <1_유효강성_지하외벽.png>
 File: 2_질량_고정하중_설정.png Graphic file (type bmp)
@@ -1451,11 +1503,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[20]
+[23]
 File: 2_질량_지하층_설정.png Graphic file (type bmp)
 <2_질량_지하층_설정.png>
 
-Underfull \vbox (badness 10000) detected at line 812
+Underfull \vbox (badness 10000) detected at line 877
  []
 
 
@@ -1466,7 +1518,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[21]
+[24]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1475,7 +1527,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[22]
+[25]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1484,9 +1536,9 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[23]
+[26]
 장 3.
-[24
+[27
 
 ]
 
@@ -1497,7 +1549,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[25]
+[28]
 File: 2_DCS_셀_구분.png Graphic file (type bmp)
 <2_DCS_셀_구분.png>
 File: 2_층_이름_예시.png Graphic file (type bmp)
@@ -1511,7 +1563,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[26]
+[29]
 File: 2_부재_이름_구조.png Graphic file (type bmp)
 <2_부재_이름_구조.png>
 File: 2_부재_이름_예시.png Graphic file (type bmp)
@@ -1525,7 +1577,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[27]
+[30]
 File: 2_철근강도_구조계산서.png Graphic file (type bmp)
 <2_철근강도_구조계산서.png>
 File: 2_철근강도_기입.png Graphic file (type bmp)
@@ -1539,39 +1591,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[28]
+[31]
 File: 2_콘크리트강도_구조계산서.png Graphic file (type bmp)
 <2_콘크리트강도_구조계산서.png>
 File: 2_콘크리트강도_기입.png Graphic file (type bmp)
 <2_콘크리트강도_기입.png>
 
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
-
-[29]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
-
-[30]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 13.59999pt, for example:
-(fancyhdr)                \setlength{\headheight}{13.59999pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-
-(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
-
-[31]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1590,9 +1615,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
 [33]
-File: 2_c_beam_properties_section.png Graphic file (type bmp)
-<2_c_beam_properties_section.png>
-
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1611,16 +1633,107 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
 [35]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[36]
+File: 2_c_beam_예시.png Graphic file (type bmp)
+<2_c_beam_예시.png>
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[37]
+File: 2_c_beam_properties_section.png Graphic file (type bmp)
+<2_c_beam_properties_section.png>
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[38]
+File: 2_c_beam_properties_check_선택.png Graphic file (type bmp)
+<2_c_beam_properties_check_선택.png>
+File: 2_c_beam_예시.png Graphic file (type bmp)
+<2_c_beam_예시.png>
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[39]
+File: 2_g_column_properties_section.png Graphic file (type bmp)
+<2_g_column_properties_section.png>
+File: 2_g_column_properties_section_2.png Graphic file (type bmp)
+<2_g_column_properties_section_2.png>
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[40]
+File: 2_c_beam_예시.png Graphic file (type bmp)
+<2_c_beam_예시.png>
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[41]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[42]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.59999pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.59999pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
+
+[43]
 장 4.
 File: 3_import_csv_설정.png Graphic file (type bmp)
 <3_import_csv_설정.png>
 File: 3_import_csv_생성.png Graphic file (type bmp)
 <3_import_csv_생성.png>
 
-Underfull \vbox (badness 10000) detected at line 1564
+Underfull \vbox (badness 10000) detected at line 1957
  []
 
-[36
+[44
 
 ]
 
@@ -1631,7 +1744,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[37]
+[45]
 File: 3_p3d_실행.png Graphic file (type bmp)
 <3_p3d_실행.png>
 File: 3_p3d_실행_2.png Graphic file (type bmp)
@@ -1645,7 +1758,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[38]
+[46]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1654,7 +1767,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[39]
+[47]
 File: 3_import_nodes_설정.png Graphic file (type bmp)
 <3_import_nodes_설정.png>
 File: 3_import_nodes_완료.png Graphic file (type bmp)
@@ -1668,7 +1781,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[40]
+[48]
 File: 3_import_masses_패턴생성.png Graphic file (type bmp)
 <3_import_masses_패턴생성.png>
 File: 3_import_masses_설정.png Graphic file (type bmp)
@@ -1676,7 +1789,7 @@ File: 3_import_masses_설정.png Graphic file (type bmp)
 File: 3_import_masses_완료.png Graphic file (type bmp)
 <3_import_masses_완료.png>
 
-Underfull \vbox (badness 1038) detected at line 1693
+Underfull \vbox (badness 1038) detected at line 2093
  []
 
 
@@ -1687,7 +1800,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[41]
+[49]
 Overfull \vbox (5.49677pt too high) has occurred while \output is active []
 
 
@@ -1699,7 +1812,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[42]
+[50]
 Overfull \vbox (5.49677pt too high) has occurred while \output is active []
 
 
@@ -1711,7 +1824,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[43]
+[51]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1720,7 +1833,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[44]
+[52]
 File: 3_import_elements_그룹생성.png Graphic file (type bmp)
 <3_import_elements_그룹생성.png>
 File: 3_import_masses_설정.png Graphic file (type bmp)
@@ -1736,7 +1849,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[45]
+[53]
 Overfull \vbox (5.49677pt too high) has occurred while \output is active []
 
 
@@ -1748,7 +1861,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[46]
+[54]
 Overfull \vbox (5.49677pt too high) has occurred while \output is active []
 
 
@@ -1760,7 +1873,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[47]
+[55]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1769,7 +1882,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[48]
+[56]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 13.59999pt, for example:
@@ -1778,13 +1891,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-1.59999pt}.
 
-[49]
+[57]
 장 5.
-[50
+[58
 
 ]
 장 6.
-[51
+[59
 
 ]
 장 7.
@@ -1823,7 +1936,7 @@ braces):
 >  {korean/babelname}  =>  {korean}
 >  {korean/localnumeral}  =>  {polyglossia@C@localnumeral}
 >  {korean/Localnumeral}  =>  {polyglossia@C@localnumeral}.
- [52
+ [60
 
 ] (./manual.aux
 LaTeX Info: Redefining \rmfamily on input line 19.
@@ -1838,15 +1951,15 @@ Package polyglossia Warning: Failed to patch part for Korean on input line 19.
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `manual.out' has not changed.
-(rerunfilecheck)             Checksum: C9C4D4641EC795F77927080EAEE0B06A;9278.
+(rerunfilecheck)             Checksum: 91037FD7E789BCBABFAE5977B7539D42;9894.
  ) 
 Here is how much of TeX's memory you used:
- 21795 strings out of 477218
- 376072 string characters out of 5833986
- 766741 words of memory out of 5000000
- 40977 multiletter control sequences out of 15000+600000
- 414839 words of font info for 158 fonts, out of 8000000 for 9000
+ 21850 strings out of 477218
+ 377519 string characters out of 5833986
+ 770949 words of memory out of 5000000
+ 41024 multiletter control sequences out of 15000+600000
+ 414847 words of font info for 159 fonts, out of 8000000 for 9000
  1349 hyphenation exceptions out of 8191
  83i,19n,99p,1195b,2585s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on manual.pdf (55 pages).
+Output written on manual.pdf (63 pages).

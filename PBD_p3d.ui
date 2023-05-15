@@ -6,27 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
-    <height>729</height>
+    <width>1093</width>
+    <height>784</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>PBD with PERFORM-3D</string>
   </property>
-  <widget class="QTabWidget" name="tabs">
+  <widget class="QTabWidget" name="tab">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>60</y>
-     <width>611</width>
-     <height>591</height>
+     <x>10</x>
+     <y>210</y>
+     <width>601</width>
+     <height>491</height>
     </rect>
    </property>
    <property name="tabShape">
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="documentMode">
     <bool>false</bool>
@@ -41,87 +41,13 @@
     <attribute name="title">
      <string>Pre-processing</string>
     </attribute>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>581</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>File Paths</string>
-     </property>
-     <widget class="QLabel" name="label_2">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>30</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Data Conversion</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="data_conv_path_editbox">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>30</y>
-        <width>351</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>C:\</string>
-      </property>
-      <property name="clearButtonEnabled">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_4">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>50</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(Excel Sheets)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="find_file_btn">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>28</y>
-        <width>71</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>파일 선택</string>
-      </property>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
+       <y>20</y>
        <width>251</width>
-       <height>411</height>
+       <height>441</height>
       </rect>
      </property>
      <property name="title">
@@ -131,7 +57,7 @@
       <property name="geometry">
        <rect>
         <x>90</x>
-        <y>370</y>
+        <y>410</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -237,7 +163,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>260</y>
+        <y>300</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -253,13 +179,13 @@
       <property name="geometry">
        <rect>
         <x>130</x>
-        <y>260</y>
+        <y>300</y>
         <width>91</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>DL</string>
+       <string>D_</string>
       </property>
       <property name="clearButtonEnabled">
        <bool>true</bool>
@@ -269,7 +195,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>290</y>
+        <y>330</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -285,7 +211,7 @@
       <property name="geometry">
        <rect>
         <x>130</x>
-        <y>290</y>
+        <y>330</y>
         <width>91</width>
         <height>20</height>
        </rect>
@@ -301,7 +227,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>310</y>
+        <y>350</y>
         <width>221</width>
         <height>41</height>
        </rect>
@@ -343,7 +269,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>230</y>
+        <y>270</y>
         <width>151</width>
         <height>16</height>
        </rect>
@@ -359,7 +285,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>210</y>
+        <y>250</y>
         <width>151</width>
         <height>16</height>
        </rect>
@@ -388,6 +314,19 @@
       <property name="geometry">
        <rect>
         <x>20</x>
+        <y>230</y>
+        <width>211</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_7">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
         <y>190</y>
         <width>211</width>
         <height>16</height>
@@ -397,12 +336,28 @@
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
+     <widget class="QCheckBox" name="import_I_beam_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>210</y>
+        <width>151</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Imbedded Beams</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox">
      <property name="geometry">
       <rect>
        <x>270</x>
-       <y>110</y>
+       <y>20</y>
        <width>321</width>
        <height>221</height>
       </rect>
@@ -491,7 +446,7 @@
      <property name="geometry">
       <rect>
        <x>270</x>
-       <y>340</y>
+       <y>250</y>
        <width>321</width>
        <height>211</height>
       </rect>
@@ -589,125 +544,16 @@
       </property>
      </widget>
     </widget>
-    <widget class="QCheckBox" name="rmb_setting_checkbox">
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>530</y>
-       <width>151</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Remember the setting</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
    </widget>
    <widget class="QWidget" name="tab2">
     <attribute name="title">
      <string>Macro</string>
     </attribute>
-    <widget class="QGroupBox" name="groupBox_5">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>581</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>File Paths</string>
-     </property>
-     <widget class="QLabel" name="label_21">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>30</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Data Conversion</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="data_conv_path_editbox_5">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>30</y>
-        <width>351</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>C:\</string>
-      </property>
-      <property name="clearButtonEnabled">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_22">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>50</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(Excel Sheets)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="find_file_btn_5">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>28</y>
-        <width>71</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>파일 선택</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QTextBrowser" name="status_browser_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>600</y>
-       <width>581</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOn</enum>
-     </property>
-    </widget>
     <widget class="QSlider" name="horizontalSlider">
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>460</y>
+       <y>240</y>
        <width>160</width>
        <height>22</height>
       </rect>
@@ -720,7 +566,7 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>500</y>
+       <y>280</y>
        <width>160</width>
        <height>22</height>
       </rect>
@@ -733,7 +579,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>460</y>
+       <y>240</y>
        <width>56</width>
        <height>12</height>
       </rect>
@@ -746,7 +592,7 @@
      <property name="geometry">
       <rect>
        <x>150</x>
-       <y>500</y>
+       <y>280</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -758,164 +604,13 @@
    </widget>
    <widget class="QWidget" name="tab3">
     <attribute name="title">
-     <string>Post-processing</string>
+     <string>Results</string>
     </attribute>
-    <widget class="QGroupBox" name="groupBox_4">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>581</width>
-       <height>131</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>File Paths</string>
-     </property>
-     <widget class="QLabel" name="label_11">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>30</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Data Conversion</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="data_conv_path_editbox_3">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>30</y>
-        <width>351</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>C:\</string>
-      </property>
-      <property name="clearButtonEnabled">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_12">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>50</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(Excel Sheets)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="find_file_btn_3">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>28</y>
-        <width>71</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>파일 선택</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="result_path_editbox">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>70</y>
-        <width>351</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>C:\</string>
-      </property>
-      <property name="clearButtonEnabled">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="find_file_btn_4">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>68</y>
-        <width>71</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>파일 선택</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_18">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>90</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(Excel Sheets)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_19">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>70</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Analysis Results</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="display_selected_result_path">
-      <property name="geometry">
-       <rect>
-        <x>280</x>
-        <y>100</y>
-        <width>201</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </widget>
     <widget class="QPushButton" name="print_result_btn">
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>510</y>
+       <x>170</x>
+       <y>310</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -927,8 +622,8 @@
     <widget class="QPushButton" name="show_result_btn">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>510</y>
+       <x>80</x>
+       <y>310</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -941,54 +636,41 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>160</y>
-       <width>321</width>
+       <y>20</y>
+       <width>271</width>
        <height>221</height>
       </rect>
      </property>
      <property name="title">
       <string>Settings</string>
      </property>
-     <widget class="QPushButton" name="print_name_btn_2">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>70</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Print</string>
-      </property>
-     </widget>
      <widget class="QLabel" name="label_10">
       <property name="geometry">
        <rect>
-        <x>40</x>
+        <x>20</x>
         <y>30</y>
         <width>101</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Drift Positions</string>
+       <string>Building Name</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLineEdit" name="drift_pos_editbox_2">
+     <widget class="QLineEdit" name="bldg_name_editbox">
       <property name="geometry">
        <rect>
-        <x>140</x>
+        <x>130</x>
         <y>30</y>
-        <width>131</width>
+        <width>121</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>2,5,7,11</string>
+       <string>101동</string>
       </property>
       <property name="clearButtonEnabled">
        <bool>true</bool>
@@ -997,71 +679,393 @@
      <widget class="QLabel" name="label_15">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>100</y>
-        <width>271</width>
-        <height>101</height>
+        <x>20</x>
+        <y>90</y>
+        <width>101</width>
+        <height>16</height>
        </rect>
       </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>8</pointsize>
-       </font>
-      </property>
       <property name="text">
-       <string>* ex) (2,5,7,11), (2,5,7,11,total), (NE,NW,SE,SW)
-* 반드시 쉼표(,)로 구분할 것
-* 띄어쓰기, 밑줄(_) 사용 금지
-* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것
-* Data Conversion 시트에서 해당하는 기존 입력값을
-  지우고 실행하는 것을 권장함 (입력할 부재의 개수가
-  입력되어있는 부재의 개수보다 적을 시)</string>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
+       <string>Max. Shear</string>
       </property>
       <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="max_shear_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>90</y>
+        <width>121</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>60000</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="story_gap_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>60</y>
+        <width>121</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>2</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_16">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Story Gap</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_17">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>160</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Output File Name</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="output_docx_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>160</y>
+        <width>121</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>해석 결과</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox_8">
      <property name="geometry">
       <rect>
-       <x>340</x>
-       <y>160</y>
-       <width>251</width>
-       <height>221</height>
+       <x>290</x>
+       <y>20</y>
+       <width>311</width>
+       <height>391</height>
       </rect>
      </property>
      <property name="title">
-      <string>Results</string>
+      <string>Performance</string>
      </property>
-     <widget class="QPushButton" name="print_name_btn_3">
+     <widget class="QCheckBox" name="BR_checkbox">
       <property name="geometry">
        <rect>
-        <x>50</x>
-        <y>30</y>
-        <width>141</width>
-        <height>23</height>
+        <x>30</x>
+        <y>110</y>
+        <width>161</width>
+        <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Beam Rotation (DCR)</string>
+       <string>C.Beam Rotation (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
-     <widget class="QPushButton" name="print_name_btn_4">
+     <widget class="QCheckBox" name="E_BSF_checkbox">
       <property name="geometry">
        <rect>
-        <x>50</x>
-        <y>60</y>
-        <width>141</width>
-        <height>23</height>
+        <x>30</x>
+        <y>130</y>
+        <width>181</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>E.Beam Shear Force (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="WAS_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>210</y>
+        <width>111</width>
+        <height>16</height>
        </rect>
       </property>
       <property name="text">
        <string>Wall Axial Strain</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="WR_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>230</y>
+        <width>141</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wall Rotation (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="WSF_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>250</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wall Shear Force (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="base_SF_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>30</y>
+        <width>141</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Base Shear Force</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="Line" name="line_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>90</y>
+        <width>221</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_4">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>270</y>
+        <width>221</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="story_SF_checkbox">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>50</y>
+        <width>131</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Story Shear Force</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="IDR_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>70</y>
+        <width>131</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Interstory Drift Ratio</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="select_elem_WSF_btn">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>250</y>
+        <width>21</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="Line" name="line_5">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>150</y>
+        <width>221</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_6">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>190</y>
+        <width>221</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="E_CSF_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>170</y>
+        <width>191</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>E.Column Shear Force (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="select_elem_WR_btn">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>230</y>
+        <width>21</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="select_elem_WAS_btn">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>210</y>
+        <width>21</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="select_elem_BR_btn">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>110</y>
+        <width>21</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_23">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>290</y>
+        <width>51</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>부재별</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="WSF_each_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>320</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wall Shear Force (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -1071,7 +1075,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>670</y>
+     <y>720</y>
      <width>581</width>
      <height>20</height>
     </rect>
@@ -1092,7 +1096,7 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_16">
+  <widget class="QLabel" name="P3D_img">
    <property name="geometry">
     <rect>
      <x>340</x>
@@ -1152,11 +1156,11 @@
     <string>Performance-Based Design with</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_17">
+  <widget class="QLabel" name="CNP_img">
    <property name="geometry">
     <rect>
      <x>520</x>
-     <y>670</y>
+     <y>720</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -1189,9 +1193,9 @@
    <property name="geometry">
     <rect>
      <x>620</x>
-     <y>550</y>
-     <width>391</width>
-     <height>101</height>
+     <y>580</y>
+     <width>461</width>
+     <height>91</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -1219,8 +1223,8 @@
     <rect>
      <x>620</x>
      <y>80</y>
-     <width>391</width>
-     <height>461</height>
+     <width>461</width>
+     <height>491</height>
     </rect>
    </property>
    <property name="widgetResizable">
@@ -1231,17 +1235,182 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>389</width>
-      <height>459</height>
+      <width>459</width>
+      <height>489</height>
      </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QCheckBox" name="rmb_setting_checkbox">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>710</y>
+     <width>151</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Remember the setting</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_4">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>70</y>
+     <width>581</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>File Paths</string>
+   </property>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>30</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Data Conversion</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="data_conv_path_editbox">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>30</y>
+      <width>351</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>C:\</string>
+    </property>
+    <property name="clearButtonEnabled">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>50</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>(Excel Sheets)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="find_file_btn">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>28</y>
+      <width>71</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>파일 선택</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="result_path_editbox">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>70</y>
+      <width>351</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>C:\</string>
+    </property>
+    <property name="clearButtonEnabled">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="find_file_btn_2">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>68</y>
+      <width>71</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>파일 선택</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_18">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>90</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>(Excel Sheets)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_19">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>70</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Analysis Results</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="display_selected_result_path">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>100</y>
+      <width>201</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
   </widget>
  </widget>
  <tabstops>
-  <tabstop>tabs</tabstop>
-  <tabstop>data_conv_path_editbox</tabstop>
-  <tabstop>find_file_btn</tabstop>
+  <tabstop>tab</tabstop>
   <tabstop>import_node_checkbox</tabstop>
   <tabstop>import_beam_checkbox</tabstop>
   <tabstop>import_col_checkbox</tabstop>

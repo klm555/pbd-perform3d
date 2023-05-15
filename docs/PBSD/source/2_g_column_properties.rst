@@ -37,6 +37,8 @@ G.Column Properties 시트에는 일반기둥(General Column)에 대한 정보�
        :align: center
        :scale: 60%
 
+   부재일람표에 기둥의 Hoop(Mid)와 Hoop(End) 정보가 모두 있는 경우, Hoop(End)의 정보를 입력합니다.
+
 .. topic:: What to do
     
    위의 정보를 참조하여 연결보의 정보를 입력합니다.

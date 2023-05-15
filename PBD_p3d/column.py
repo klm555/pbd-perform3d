@@ -8,8 +8,8 @@ import pythoncom
 from PyPDF2 import PdfMerger, PdfFileReader
 
 #%% Transfer Column SF (DCR)
-def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xlsx\
-                    , export_to_pdf=True, pdf_name='Transfer Column Results'):
+def E_CSF(input_xlsx_path, result_xlsx_path, column_xlsx_path\
+          , export_to_pdf=True, pdf_name='E.Column Results'):
     ''' 
 
     Perform-3D 해석 결과에서 기둥의 축력, 전단력, 모멘트를 불러와 Results_E.Column 엑셀파일을 작성. \n
@@ -27,7 +27,7 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     transfer_element_name = pd.DataFrame()
 
     input_xlsx_sheet = 'Output_E.Column Properties'
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'ETC', input_xlsx_sheet], skiprows=3)
 
     story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
@@ -79,17 +79,14 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     transfer_element_name = input_data_sheets[input_xlsx_sheet].iloc[:,0]
 
 #%% Analysis Result 불러오기
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
 
     # 전단력 Data
     SF_info_data = pd.DataFrame()
     for i in to_load_list:
-        SF_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Frame Results - End Forces', skiprows=[0, 2], header=0, usecols=[0,2,5,7,8,10,12,15,16,17,18]) # usecols로 원하는 열만 불러오기
+        SF_info_data_temp = pd.read_excel(i, sheet_name='Frame Results - End Forces'
+                                          , skiprows=[0, 2], header=0
+                                          , usecols=[0,2,5,7,8,10,12,15,16,17,18]) # usecols로 원하는 열만 불러오기
         SF_info_data = pd.concat([SF_info_data, SF_info_data_temp])
 
     SF_info_data = SF_info_data.sort_values(by=['Load Case', 'Element Name', 'Step Type']) # 지진파 순서가 섞여있을 때 sort
@@ -97,8 +94,8 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     # 부재 이름 Matching을 위한 Element 정보
     element_info_data = pd.DataFrame()
     for i in to_load_list:
-        element_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Element Data - Frame Types', skiprows=[0, 2], header=0, usecols=[0, 2, 5, 7]) # usecols로 원하는 열만 불러오기
+        element_info_data_temp = pd.read_excel(i, sheet_name='Element Data - Frame Types'
+                                               , skiprows=[0, 2], header=0, usecols=[0, 2, 5, 7]) # usecols로 원하는 열만 불러오기
         element_info_data = pd.concat([element_info_data, element_info_data_temp])
 
     # 필요한 부재만 선별
@@ -107,8 +104,8 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     # 층 정보 Matching을 위한 Node 정보
     height_info_data = pd.DataFrame()    
     for i in to_load_list:
-        height_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Node Coordinate Data', skiprows=[0, 2], header=0, usecols=[1, 4]) # usecols로 원하는 열만 불러오기
+        height_info_data_temp = pd.read_excel(i, sheet_name='Node Coordinate Data'
+                                              , skiprows=[0, 2], header=0, usecols=[1, 4]) # usecols로 원하는 열만 불러오기
         height_info_data = pd.concat([height_info_data, height_info_data_temp])
 
     element_info_data = pd.merge(element_info_data, height_info_data, how='left', left_on='I-Node ID', right_on='Node ID')
@@ -217,7 +214,7 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     #     wb['Results'].cell(column=22, row=idx+5, value=row[4]) # V3
     #     wb['Results'].cell(column=23, row=idx+5, value=row[3]) # V2
         
-    # wb.save(input_path + '\\' + column_xlsx)
+    # wb.save(column_xlsx_path)
     # wb.close()
     
     # 기존 시트에 V, M 값 넣기(alt2)
@@ -234,7 +231,7 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + column_xlsx)
+    wb = excel.Workbooks.Open(os.path.dirname(input_xlsx_path) + '\\' + column_xlsx_path)
     ws = wb.Sheets('Results')
     
     startrow, startcol = 5, 2
@@ -248,9 +245,13 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
         # pdf Merge를 위한 PdfMerger 클래스 생성
         merger = PdfMerger()
 
+        result_path = os.path.dirname(result_xlsx_path[0])
+        print(os.getcwd() + '\\template\\Results_E.Column_Ver.1.3.xlsx')
+        print(result_path)
+
         for i in range(SF_output.shape[0]):
 
-            pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
+            pdf_file_path = os.path.join(result_path, pdf_name+'({}).pdf'.format(i+1))
             
             wb.Worksheets(2).Select()            
             wb.Worksheets(2).Name = '({})'.format(i+1)
@@ -262,18 +263,20 @@ def trans_column_SF(result_path, result_xlsx, input_path, input_xlsx, column_xls
                                                , xlQualityStandard, True, False)    
             merger.append(pdf_file_path)
             
-        merger.write(input_path+'\\'+'{}.pdf'.format(pdf_name))
+        merger.write(result_path+'\\'+'{}.pdf'.format(pdf_name))
         merger.close()
     # Merge한 후 개별 파일들 지우기    
     for i in range(SF_output.shape[0]):
-        pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
+        pdf_file_path = os.path.join(result_path, pdf_name+'({}).pdf'.format(i+1))
         os.remove(pdf_file_path)
 
-    wb.Close(SaveChanges=1) # Closing the workbook
+    wb.SaveAs(Filename= column_xlsx_path)
+    wb.Close()
+    # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application
     
 #%% Transfer Column SF (DCR) PDF export
-def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Results'):
+def E_CSF_pdf(column_xlsx_path, pdf_name='E.Column Results'):
     ''' 
 
     Perform-3D 해석 결과에서 기둥의 축력, 전단력, 모멘트를 불러와 Results_E.Column 엑셀파일을 작성. \n
@@ -288,7 +291,7 @@ def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Resul
     '''
 
 #%% Column 엑셀시트 불러오기
-    SF_output = pd.read_excel(input_path + '\\' + column_xlsx, sheet_name='Results', usecols=[0], skiprows=3)
+    SF_output = pd.read_excel(column_xlsx_path, sheet_name='Results', usecols=[0], skiprows=3)
     SF_output = SF_output.iloc[:,0]
     SF_output = SF_output[SF_output.str.contains('\(', na=False)]
 
@@ -299,12 +302,14 @@ def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Resul
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + column_xlsx)
+    wb = excel.Workbooks.Open(column_xlsx_path)
     ws = wb.Sheets('Results')
     
     # pdf Merge를 위한 PdfMerger 클래스 생성
     merger = PdfMerger()
     
+    input_path = os.path.dirname(column_xlsx_path)
+
     for i in range(SF_output.shape[0]):
         
         pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
@@ -332,10 +337,10 @@ def trans_column_SF_pdf(input_path, column_xlsx, pdf_name='Transfer Column Resul
     # excel.Quit() # Closing the application
     
 #%% General Column (DCR)
-def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
+def CSF(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3):
     ''' 
 
-    Perform-3D 해석 결과에서 기둥의 축력, 전단력, 모멘트를 불러와 Results_E.Column 엑셀파일을 작성. \n
+    Perform-3D 해석 결과에서 일반기둥의 축력, 전단력을 불러와 Results_G.Column 엑셀파일을 작성. \n
     result_path : Perform-3D에서 나온 해석 파일의 경로. \n
     result_xlsx : Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다. \n
     input_path : Data Conversion 엑셀 파일의 경로 \n
@@ -348,106 +353,45 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
 #%% Input Sheet 정보 load
         
     story_info = pd.DataFrame()
-    general_element_name = pd.DataFrame()
+    element_name = pd.DataFrame()
 
     input_xlsx_sheet = 'Output_G.Column Properties'
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
-    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'ETC', input_xlsx_sheet], skiprows=3)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
+    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
     input_data_raw.close()
 
     story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    general_element_info = input_data_sheets[input_xlsx_sheet].iloc[:,np.r_[0:16,17,18]]
-    rebar_info = input_data_sheets['ETC'].iloc[:,[0,3,4]]
-    
-    story_info = story_info[::-1]
-    story_info.reset_index(inplace=True, drop=True)
+    element_name = input_data_sheets[input_xlsx_sheet].iloc[:,0]
 
     story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    rebar_info.columns = ['Type', '일반용', '내진용']
-
-#%% Result_G.Column에 입력될 Input sheets의 내용들 정리하기
-    
-    # 콘크리트 강도 작성 안되어있을 경우, ffill로 채우기
-    general_element_info.iloc[:,3] = general_element_info.iloc[:,3].fillna(method='ffill')
-
-    general_element_info.columns = ['Name', 'b(mm)', 'h(mm)', 'Concrete Grade', 'Seismic Detail',  'Main Bar Type', 'Main Bar Diameter',\
-                                     'Hoop Bar Type', 'Hoop Bar Diameter', 'Layer 1 EA', 'Layer 1 Row', 'Layer 2 EA',\
-                                     'Layer 2 Row', 'Hoop X', 'Hoop Y', 'Hoop Spacing(mm)', 'Nu(kN)', 'Direction']
-    
-    # 철근 강도 불러오기
-    main_bar_info = general_element_info.iloc[:,[5,6]]
-    hoop_bar_info = general_element_info.iloc[:,[7,8]]
-    
-    main_bar_info = pd.merge(main_bar_info, rebar_info,\
-                                           how='left', left_on='Main Bar Diameter', right_on='Type')
-    hoop_bar_info = pd.merge(hoop_bar_info, rebar_info,\
-                                           how='left', left_on='Hoop Bar Diameter', right_on='Type')
-    
-    # Main Bar 강도 리스트 만들기
-    main_bar_strength = []
-    for idx, row in main_bar_info.iterrows():
-        if row[0] == '일반용':
-            main_bar_strength.append(row[3])
-        elif row[0] == '내진용':
-            main_bar_strength.append(row[4])
-    
-    # Hoop Bar 강도 리스트 만들기
-    hoop_bar_strength = []
-    for idx, row in hoop_bar_info.iterrows():
-        if row[0] == '일반용':
-            hoop_bar_strength.append(row[3])
-        elif row[0] == '내진용':
-            hoop_bar_strength.append(row[4])
-    
-    general_element_info['Main Bar Strength'] = main_bar_strength
-    general_element_info['Hoop Bar Strength'] = hoop_bar_strength  
-    
-    # 부재 이름 리스트    
-    general_element_name = input_data_sheets[input_xlsx_sheet].iloc[:,0]
+    element_name.name = 'Property Name'
 
 #%% Analysis Result 불러오기
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
 
     # 전단력 Data
     SF_info_data = pd.DataFrame()
     for i in to_load_list:
-        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
-        SF_info_data_temp = pd.read_excel(result_data_raw, sheet_name='Frame Results - End Forces'
-                                          , skiprows=[0, 2], header=0, usecols=[0,2,5,7,8,10,12]) # usecols로 원하는 열만 불러오기
+        result_data_raw = pd.ExcelFile(i)
+        result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - End Forces'
+                                           , 'Node Coordinate Data', 'Element Data - Frame Types']
+                                          , skiprows=[0, 2]) # usecols로 원하는 열만 불러오기
+        
+        SF_info_data_temp = result_data_sheets['Frame Results - End Forces'].iloc[:,[0,2,5,7,10,12]]
         SF_info_data = pd.concat([SF_info_data, SF_info_data_temp])
 
-    SF_info_data = SF_info_data.sort_values(by=['Load Case', 'Element Name', 'Step Type']) # 지진파 순서가 섞여있을 때 sort
-
-    # 부재 이름 Matching을 위한 Element 정보
-    element_info_data = pd.DataFrame()
-    for i in to_load_list:
-        element_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Element Data - Frame Types', skiprows=[0, 2], header=0, usecols=[0,2,5,7]) # usecols로 원하는 열만 불러오기
-        element_info_data = pd.concat([element_info_data, element_info_data_temp])
+    node_data = result_data_sheets['Node Coordinate Data'].iloc[:,[1,4]]
+    element_data = result_data_sheets['Element Data - Frame Types'].iloc[:,[0,2,5,7]] # beam의 양 nodes중 한 node에서의 rotation * 2
 
     # 필요한 부재만 선별
-    element_info_data = element_info_data[element_info_data['Property Name'].isin(general_element_name)]
+    element_data = element_data[element_data['Property Name'].isin(element_name)]
+
+#%% Analysis Result에 Element, Node 정보 매칭
+
+    element_data = element_data.drop_duplicates()
     
-    # 층 정보 Matching을 위한 Node 정보
-    height_info_data = pd.DataFrame()    
-    for i in to_load_list:
-        height_info_data_temp = pd.read_excel(result_path + '\\' + i,
-                                   sheet_name='Node Coordinate Data', skiprows=[0, 2], header=0, usecols=[1, 4]) # usecols로 원하는 열만 불러오기
-        height_info_data = pd.concat([height_info_data, height_info_data_temp])
-
-    element_info_data = pd.merge(element_info_data, height_info_data, how='left', left_on='I-Node ID', right_on='Node ID')
-
-    element_info_data = element_info_data.drop_duplicates()
-
-    # 전단력, 부재 이름 Matching (by Element Name)
-    SF_ongoing = pd.merge(element_info_data.iloc[:, [1,2,5]], SF_info_data.iloc[:, 1:], how='left')
-
-    SF_ongoing = SF_ongoing.sort_values(by=['Element Name', 'Load Case', 'Step Type'])
-
+    element_data = pd.merge(element_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
+    SF_ongoing = pd.merge(element_data.iloc[:, [1,2,5]], SF_info_data.iloc[:, 1:], how='left')
     SF_ongoing.reset_index(inplace=True, drop=True)
 
 #%% 지진파 이름 list 만들기
@@ -469,10 +413,13 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
 #%% V, M값에 절대값, 최대값, 평균값 뽑기
 
     # 절대값
-    SF_ongoing.iloc[:,[5,6,7]] = SF_ongoing.iloc[:,[5,6,7]].abs()
+    SF_ongoing.iloc[:,[5,6]] = SF_ongoing.iloc[:,[5,6]].abs()
 
-    # max, min 중 최대값 뽑기
-    SF_ongoing_max = SF_ongoing.loc[SF_ongoing.groupby(SF_ongoing.index // 2)['P I-End'].idxmax()]
+    # V2, V3의 최대값을 저장하기 위해 필요한 데이터 slice
+    SF_ongoing_max = SF_ongoing.iloc[[2*x for x in range(int(SF_ongoing.shape[0]/2))],[0,1,2,3]] 
+    # [2*x for x in range(int(SF_ongoing.shape[0]/2] -> [짝수 index]
+    
+    # V2, V3의 최대값을 저장
     SF_ongoing_max['V2 max'] = SF_ongoing.groupby(SF_ongoing.index // 2)['V2 I-End'].max().tolist()
     SF_ongoing_max['V3 max'] = SF_ongoing.groupby(SF_ongoing.index // 2)['V3 I-End'].max().tolist()
 
@@ -480,22 +427,25 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
     SF_ongoing_max_MCE = SF_ongoing_max[SF_ongoing_max['Load Case']\
                                         .str.contains('|'.join(MCE_load_name_list))]
     SF_ongoing_max_G = SF_ongoing_max[SF_ongoing_max['Load Case']\
-                                      .str.contains('|'.join(MCE_load_name_list))]
+                                      .str.contains('|'.join(gravity_load_name))]
     # function equivalent of a combination of df.isin() and df.str.contains()
     
-    # 부재별 평균값 뽑기
+    # 부재별(Element Name) 평균값을 저장하기 위해 필요한 데이터프레임 생성
     SF_ongoing_max_avg = SF_ongoing_max_MCE.iloc[:,[0,1,2]]
     SF_ongoing_max_avg = SF_ongoing_max_avg.drop_duplicates()
-    SF_ongoing_max_avg.set_index('Element Name', inplace=True)
-    
-    SF_ongoing_max_avg['P'] = SF_ongoing_max_MCE.groupby(['Element Name'])['P I-End'].mean()
+    SF_ongoing_max_avg.set_index('Element Name', inplace=True)    
+    # 부재별(Element Name) 평균값 뽑기
     SF_ongoing_max_avg['V2 max(MCE)'] = SF_ongoing_max_MCE.groupby(['Element Name'])['V2 max'].mean()
     SF_ongoing_max_avg['V2 max(G)'] = SF_ongoing_max_G.groupby(['Element Name'])['V2 max'].mean()
     SF_ongoing_max_avg['V3 max(MCE)'] = SF_ongoing_max_MCE.groupby(['Element Name'])['V3 max'].mean()
     SF_ongoing_max_avg['V3 max(G)'] = SF_ongoing_max_G.groupby(['Element Name'])['V3 max'].mean()
  
-    # 같은 부재(그러나 잘려있는) 경우 최대값 뽑기
-    SF_ongoing_max_avg_max = SF_ongoing_max_avg.loc[SF_ongoing_max_avg.groupby(['Property Name'])['P'].idxmax()]
+    
+    # 이름별(Property Name) 최대값을 저장하기 위해 필요한 데이터프레임 생성
+    SF_ongoing_max_avg_max = SF_ongoing_max_avg.copy()
+    SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.drop_duplicates(subset=['Property Name'], ignore_index=True)
+    SF_ongoing_max_avg_max.set_index('Property Name', inplace=True) 
+    # 같은 부재(그러나 잘려있는) 경우(Property Name) 최대값 뽑기
     SF_ongoing_max_avg_max['V2 max(MCE)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(MCE)'].max().tolist()
     SF_ongoing_max_avg_max['V2 max(G)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(G)'].max().tolist()
     SF_ongoing_max_avg_max['V3 max(MCE)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V3 max(MCE)'].max().tolist()
@@ -507,28 +457,21 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
     SF_ongoing_max_avg_max['V3 max(MCE)'] = SF_ongoing_max_avg_max['V3 max(MCE)'] * 1.2
     SF_ongoing_max_avg_max['V3 max(G)'] = SF_ongoing_max_avg_max['V3 max(G)'] * 0.2
     
-    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=True)
+    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=False)
 
 #%% 결과값 정리
     
-    SF_ongoing_max_avg_max = pd.merge(general_element_name.rename('Property Name'),\
-                                      SF_ongoing_max_avg_max, how='left')
+    SF_output = pd.merge(element_name, SF_ongoing_max_avg_max, how='left')
         
-    SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.dropna()
-    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=True)
-    
-    SF_output = pd.merge(SF_ongoing_max_avg_max, general_element_info,\
-                         how='left', left_on='Property Name', right_on='Name')
-    
-    # 기존 시트에 V, M 값 넣기(alt2)
-    SF_output = SF_output.iloc[:,[0,3,4,5,6]] # SF_output 재정렬
-    
+    SF_output = SF_output.dropna()
+    SF_output.reset_index(inplace=True, drop=True)
+        
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-
     SF_output = SF_output.replace(np.nan, '', regex=True)
     
+    # 기존 시트에 V값 넣기
     SF_output1 = SF_output.iloc[:,0]
-    SF_output2 = SF_output.iloc[:,[1,2,3,4]]
+    SF_output2 = SF_output.iloc[:,[2,3,4,5]]
 
 #%% 출력 (Using win32com...)
     
@@ -537,7 +480,7 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_path + '\\' + input_xlsx)
+    wb = excel.Workbooks.Open(input_xlsx_path)
     ws = wb.Sheets('Results_G.Column')
     
     startrow, startcol = 5, 1    
@@ -555,9 +498,91 @@ def general_column_SF(result_path, result_xlsx, input_path, input_xlsx):
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application
     
+
+#%% Column Shear Force 결과(DCR) 불러오기
+
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
+    input_data_sheets = pd.read_excel(input_data_raw, ['Results_G.Column'], skiprows=3)
+    input_data_raw.close()
+    
+    SF_DCR = input_data_sheets['Results_G.Column'].iloc[:,[0,31,33]]
+    
+    SF_DCR.columns = ['Property Name', 'DCR_MCE(X)', 'DCR_MCE(Y)']
+
+    # SF_output에 DCR값 merge(그래프 그릴 때 height(mm) 정보가 필요함)
+    SF_output = pd.merge(SF_output, SF_DCR, how='left') 
+
+#%% 그래프
+    count = 1
+    
+    # ### DE 그래프
+    # if len(DE_load_name_list) != 0:
+        
+    #     fig1 = plt.figure(count, dpi=150, figsize=(5,6))
+    #     plt.xlim(0, xlim)
+        
+    #     plt.scatter(SWR_avg_total['DCR_DE_min'], SWR_avg_total['Height'], color='k', s=1)
+    #     plt.scatter(SWR_avg_total['DCR_DE_max'], SWR_avg_total['Height'], color='k', s=1)
+    #     plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
+    #     plt.axvline(x = DCR_criteria, color='r', linestyle='--')
+        
+    #     # 기타
+    #     plt.grid(linestyle='-.')
+    #     plt.xlabel('D/C Ratios')
+    #     plt.ylabel('Story')
+    #     plt.title('Wall Rotation (DE)')
+        
+    #     plt.close()
+    #     count += 1
+                            
+    #     yield fig1
+    #     yield 'DE' # Marker 출력
+        
+    ### MCE 그래프
+    if len(MCE_load_name_list) != 0:
+        
+        ### H1 MCE 그래프 ###
+        fig3 = plt.figure(count, dpi=150, figsize=(5,6))
+        plt.xlim(0, xlim)
+        
+        plt.scatter(SF_output['DCR_MCE(X)'], SF_output['V'], color='k', s=1)
+        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
+        plt.axvline(x = DCR_criteria, color='r', linestyle='--')
+        
+        # 기타
+        plt.grid(linestyle='-.')
+        plt.xlabel('D/C Ratios')
+        plt.ylabel('Story')
+        plt.title('Shear Strength (X MCE)')
+        
+        plt.close()
+        count += 1
+        
+        yield fig3
+        
+        ### H2 MCE 그래프 ###
+        fig4 = plt.figure(count, dpi=150, figsize=(5,6))
+        plt.xlim(0, xlim)
+        
+        plt.scatter(SF_output['DCR_MCE(Y)'], SF_output['V'], color='k', s=1)
+        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
+        plt.axvline(x = DCR_criteria, color='r', linestyle='--')
+        
+        # 기타
+        plt.grid(linestyle='-.')
+        plt.xlabel('D/C Ratios')
+        plt.ylabel('Story')
+        plt.title('Shear Strength (Y MCE)')
+        
+        plt.close()
+        count += 1
+        
+        yield fig4
+        yield 'MCE' # Marker 출력
+    
 #%% Column Rotation
-def CR(result_path, result_xlsx, input_path, input_xlsx
-       , g_col_group_name='G.Column', **kwargs):
+def CR(input_xlsx_path, result_xlsx_path
+       , col_group_name='G.Column', **kwargs):
 
 #%% 변수 정리
     m_cri_DE = kwargs['shear_cri_DE'] if 'shear_cri_DE' in kwargs.keys() else 0.003
@@ -568,7 +593,7 @@ def CR(result_path, result_xlsx, input_path, input_xlsx
 #%% Input Sheets 정보 load
     story_info = pd.DataFrame()
     
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'Output_G.Column Properties'], skiprows=3)
     input_data_raw.close()
     
@@ -577,16 +602,12 @@ def CR(result_path, result_xlsx, input_path, input_xlsx
     story_info.columns = ['Index', 'Story Name', 'Height(mm)']
     
 #%% Analysis Result 불러오기   
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
     
     beam_rot_data = pd.DataFrame()
     
     for i in to_load_list:
-        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_raw = pd.ExcelFile(i)
         result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - Bending Deform', 'Node Coordinate Data',\
                                                          'Element Data - Frame Types'], skiprows=2)
         
@@ -606,7 +627,7 @@ def CR(result_path, result_xlsx, input_path, input_xlsx
     element_data.loc[:, 'Property Name'] = element_data.loc[:, 'Property Name'].str.split('(').str[0]
     
     #%% 필요없는 부재 빼기, 필요한 부재만 추출
-    beam_rot_data = beam_rot_data[beam_rot_data['Group Name'] == g_col_group_name]
+    beam_rot_data = beam_rot_data[beam_rot_data['Group Name'] == col_group_name]
     beam_rot_data = beam_rot_data[beam_rot_data['Distance from I-End'] == 0]
     
 #%% Analysis Result에 Element, Node 정보 매칭    
@@ -879,14 +900,14 @@ def CR(result_path, result_xlsx, input_path, input_xlsx
         yield error_beam_MCE_Y
         
 #%% Column Rotation (DCR)
-def CR_DCR(result_path, result_xlsx, input_path, input_xlsx
-           , g_col_group_name='G.Column', DCR_criteria=1, yticks=3, xlim=3):
+def CR_DCR(input_xlsx_path, result_xlsx_path
+           , col_group='G.Column', DCR_criteria=1, yticks=3, xlim=3):
 
 #%% Input Sheets 정보 load
     story_info = pd.DataFrame()
     deformation_cap = pd.DataFrame()
     
-    input_data_raw = pd.ExcelFile(input_path + '\\' + input_xlsx)
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
     input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'Output_G.Column Properties'], skiprows=3)
     input_data_raw.close()
     
@@ -897,16 +918,12 @@ def CR_DCR(result_path, result_xlsx, input_path, input_xlsx
     deformation_cap.columns = ['Name', 'LS(X)', 'LS(Y)', 'CP(X)', 'CP(Y)']
     
 #%% Analysis Result 불러오기   
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
+    to_load_list = result_xlsx_path
     
     beam_rot_data = pd.DataFrame()
     
     for i in to_load_list:
-        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
+        result_data_raw = pd.ExcelFile(i)
         result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - Bending Deform', 'Node Coordinate Data',\
                                                          'Element Data - Frame Types'], skiprows=2)
         
@@ -926,7 +943,7 @@ def CR_DCR(result_path, result_xlsx, input_path, input_xlsx
     element_data.loc[:, 'Property Name'] = element_data.loc[:, 'Property Name'].str.split('(').str[0]
     
     #%% 필요없는 부재 빼기, 필요한 부재만 추출
-    beam_rot_data = beam_rot_data[beam_rot_data['Group Name'] == g_col_group_name]
+    beam_rot_data = beam_rot_data[beam_rot_data['Group Name'] == col_group]
     beam_rot_data = beam_rot_data[beam_rot_data['Distance from I-End'] == 0]
     
 #%% Analysis Result에 Element, Node 정보 매칭
@@ -938,20 +955,11 @@ def CR_DCR(result_path, result_xlsx, input_path, input_xlsx
     beam_rot_data = pd.merge(beam_rot_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
     
     beam_rot_data = beam_rot_data[beam_rot_data['Property Name'].notna()]
-    
-    beam_rot_data.reset_index(inplace=True, drop=True)
-    
-#%% beam_rot_data의 값 수정 (H1, H2 방향 중 major한 방향의 rotation값만 추출, 그리고 2배)
-    major_rot = []
-    for i, j in zip(beam_rot_data['H2 Rotation(rad)'], beam_rot_data['H3 Rotation(rad)']):
-        if abs(i) >= abs(j):
-            major_rot.append(i)
-        else: major_rot.append(j)
-    
-    beam_rot_data['Major Rotation(rad)'] = major_rot
      
     # 필요한 정보들만 다시 모아서 new dataframe
     beam_rot_data = beam_rot_data.iloc[:, [0,1,7,10,2,3,5,6]]
+    
+    beam_rot_data.reset_index(inplace=True, drop=True)
     
 #%% 지진파 이름 list 만들기
     load_name_list = []
@@ -1095,6 +1103,7 @@ def CR_DCR(result_path, result_xlsx, input_path, input_xlsx
         
         yield fig2
         yield error_beam_DE_Y
+        yield 'DE' # Marker 출력
         
 #%% MCE 결과 Plot
     
@@ -1206,3 +1215,4 @@ def CR_DCR(result_path, result_xlsx, input_path, input_xlsx
         
         yield fig4
         yield error_beam_MCE_Y
+        yield 'MCE' # Marker 출력
