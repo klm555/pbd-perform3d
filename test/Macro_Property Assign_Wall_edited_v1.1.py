@@ -3,8 +3,8 @@ import pandas as pd
 
 ########################################### 처음에 입력해야 할 부분 ############################################
 ### 초기 경로 설정
-data_path = r'D:\이형우\성능기반 내진설계\김해신문1지구 A17-1BL 내진성능설계 자료 공유\Data_Conversion_Sheets' # Input Sheets 및 Output Sheets 가 있는 폴더 경로
-Input_sheet_name = 'KHSM_106_Data Conversion_Ver.1.3M.xlsx' # Input Sheets 이름
+data_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\108' # Input Sheets 및 Output Sheets 가 있는 폴더 경로
+Input_sheet_name = 'KHSM_108_Data Conversion_Ver.1.3M.xlsx' # Input Sheets 이름
 
 ### 초기 좌표 획득(해당 위치에 마우스 올려놓고 ctrl+Enter 로 실행하면 순서대로 좌표 획득 가능)
 # 반드시 H1 view 에서 좌표 획득하기

@@ -10,11 +10,11 @@ import pythoncom
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\107\KHSM_107_Data Conversion_Ver.1.3M.xlsx'
+input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\105\KHSM_105_Data Conversion_Ver.1.3M_내진상세_변경.xlsx'
 # input_xlsx_path = r'K:\2105-이형우\KHSM_106_Data Conversion_Ver.1.3M.xlsx'
-# input_xlsx_path = r'D:\이형우\성능기반 내진설계\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\101\101D_N3_Data Conversion_Ver.1.2.xlsx'
-input_xlsx_sheet = 'Output_G.Column Properties (2)'
-result_xlsx_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\107\KHSM_107_1_Pre-Analysis.xlsx'
+# input_xlsx_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\105\KHSM_105_Data Conversion_Ver.1.3M_내진상세_변경.xlsx'
+input_xlsx_sheet = 'Output_G.Column Properties'
+result_xlsx_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\105\KHSM_105_3_Pre-Analysis.xlsx'
 
 ###############################################################################
 ###############################################################################
@@ -128,17 +128,17 @@ while True:
     for j in h_space_changed_idx:
         ws.Range('P%s' %str(startrow+int(j))).Font.ColorIndex = 3
 
-element_name = ws.Range('A%s:A%s' %(startrow, startrow+SF_ongoing_max_max.shape[0]-1)).Value
-element_name = pd.DataFrame(element_name)
-element_name_splitted = pd.DataFrame(element_name.iloc[:,0].str.split('_', expand=True))
+# element_name = ws.Range('A%s:A%s' %(startrow, startrow+SF_ongoing_max_max.shape[0]-1)).Value
+# element_name = pd.DataFrame(element_name)
+# element_name_splitted = pd.DataFrame(element_name.iloc[:,0].str.split('_', expand=True))
 
-element_info = pd.concat([element_name, pd.Series(h_space_array)], axis=1)
-element_info['Name'] = element_name_splitted.iloc[:,0]
-element_info['Story'] = element_name_splitted.iloc[:,2]
+# element_info = pd.concat([element_name, pd.Series(h_space_array)], axis=1)
+# element_info['Name'] = element_name_splitted.iloc[:,0]
+# element_info['Story'] = element_name_splitted.iloc[:,2]
 
 #%%
-wb.Save()            
-# wb.Close(SaveChanges=1) # Closing the workbook
+# wb.Save()            
+wb.Close(SaveChanges=1) # Closing the workbook
 # excel.Quit() # Closing the application
 
 

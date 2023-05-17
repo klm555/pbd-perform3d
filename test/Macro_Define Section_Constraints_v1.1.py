@@ -3,8 +3,8 @@ import pandas as pd
 
 ########################################### 처음에 입력해야 할 부분 ############################################
 ### 초기 경로 설정
-data_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\107' # Input Sheets 및 Output Sheets 가 있는 폴더 경로
-Input_sheet_name = 'KHSM_107_Data Conversion_Ver.1.3M.xlsx' # Input Sheets 이름
+data_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\108' # Input Sheets 및 Output Sheets 가 있는 폴더 경로
+Input_sheet_name = 'KHSM_108_Data Conversion_Ver.1.3M.xlsx' # Input Sheets 이름
 
 ### 초기 좌표 획득(해당 위치에 마우스 올려놓고 ctrl+Enter 로 실행하면 순서대로 좌표 획득 가능)
 # 반드시 H1 view 에서 좌표 획득하기
@@ -60,7 +60,7 @@ section_info = pd.merge(section_info, story_info[['Story Name', 'index']], how='
 
 
 ###################################### Section 입력 매크로 ##########################################
-wall_index = 116 # 처음부터 입력할 때는 0, 특정 wall 부터 시작하고 싶으면 section_info 에서 해당 벽체의 index 값을
+wall_index = 0 # 처음부터 입력할 때는 0, 특정 wall 부터 시작하고 싶으면 section_info 에서 해당 벽체의 index 값을
 drag_duration = 0.3 # drag 속도 조정(너무 짧게 하면 팅길 수 있음)
 offset = 3  ### 중요 ###  0.1씩 조절해가면서 적정값 찾기, 벽체 분할된 곳이 동시에 잡힐 경우는 크게!! 분할되지 않은 층이 안잡힐 경우는 작게!! 이 두 가지의 적정선 찾기....
 
@@ -149,6 +149,7 @@ position_constmissingdata = pag.position() # 아무것도 안잡혔을 때 뜨�
 
 ########################################## 매크로 실행 부분 #########################################
 # 순서는 아랫층에서 윗층으로, 이미 constraint name 은 입력된 상태(층 분할된 경우 아래부터 1F-1, 1F-2, 1F-3, ...)
+drag_duration = 0.3 # drag 속도 조정(너무 짧게 하면 팅길 수 있음)
 story_index = 1 # Constraint는 Base 빼고 잡기 때문에 1부터 시작!!
 for i in range(story_index, len(story_info)-1):
     for j in range(story_info.iloc[i, 3]): # 층 분할 고려하기 위해 추가

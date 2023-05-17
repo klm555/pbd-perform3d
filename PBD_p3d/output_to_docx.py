@@ -71,7 +71,7 @@ class OutputDocx():
                 base_SF_plots.append(i)
             elif isinstance(i, str):
                 base_SF_markers.append(i)
-        print('base_SF 분류 완료!')
+
         # Avg. Base Shear 표 작성
         # template의 1,2번 표 불러오기
         base_SF_values_table = self.document.tables[0]
@@ -770,7 +770,7 @@ class OutputDocx():
             SF_plots.popleft().savefig(memfile2)
             
             plots_row_x = SF_plots_table.rows[0]
-            plots_row_y = SF_plots_table.rows[2]
+            plots_row_y = SF_plots_table.rows[3]
             plots_cell_x = plots_row_x.cells[0]
             plots_cell_y = plots_row_x.cells[0]
             plots_para_x = plots_cell_x.paragraphs[0]  
@@ -792,7 +792,7 @@ class OutputDocx():
             SF_plots.popleft().savefig(memfile2)
             
             plots_row_x = SF_plots_table.rows[0]
-            plots_row_y = SF_plots_table.rows[2]
+            plots_row_y = SF_plots_table.rows[3]
             plots_cell_x = plots_row_x.cells[1]
             plots_cell_y = plots_row_x.cells[1]
             plots_para_x = plots_cell_x.paragraphs[0]  
@@ -1004,7 +1004,11 @@ class OutputDocx():
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-
+#%% C.Beam, G.Column의 Plastic Hinge 찾기 (Rotation값 엑셀에 자동입력)
+        
+    def plastic_hinge_docx(self, plastic_hinge):
+        
+        pass
 
 #%% 배근 Wall Shear Force (DCR)
                     

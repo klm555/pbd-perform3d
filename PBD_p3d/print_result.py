@@ -1496,13 +1496,13 @@ class PrintResult(QObject):
         
         # 이름 열 입력
         ws.Range(ws.Cells(startrow, startcol),\
-                ws.Cells(startrow + SF_output.shape[0]-1,\
+                 ws.Cells(startrow + SF_output.shape[0]-1,\
                         startcol)).Value\
         = [[i] for i in SF_output.iloc[:,0]] # series -> list 형식만 입력가능
         
         # 축력, 전단력 열 입력
         ws.Range(ws.Cells(startrow, startcol+10),\
-                ws.Cells(startrow + SF_output.shape[0]-1,\
+                 ws.Cells(startrow + SF_output.shape[0]-1,\
                         startcol + 10 + 9 - 1)).Value\
         = list(SF_output.iloc[:,[1,2,3,4,5,6,7,8,9]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
         

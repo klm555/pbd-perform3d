@@ -336,206 +336,6 @@ def AS(input_xlsx_path, result_xlsx_path, max_criteria=0.04
         yield error_coord_MCE
         yield 'MCE' # Marker 출력
 
-
-#%% Shear Wall Rotation
-
-def SWR(input_xlsx_path, result_xlsx_path, DE_criteria=0.002
-        , MCE_criteria=0.004/1.2, yticks=2, xlim=0.005):
-    ''' 
-
-    각각의 벽체의 회전각을 산포도 그래프 형식으로 출력.
-    
-    Parameters
-    ----------
-    input_path : str
-                 Data Conversion 엑셀 파일의 경로.
-                 
-    input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
-                 
-    result_path : str
-                  Perform-3D에서 나온 해석 파일의 경로.
-                  
-    result_xlsx : str, optional, default='Analysis Result'
-                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
-                 
-    DE_criteria : float, optional, default=0.002/1.2
-                  LS(인명안전)에 대한 벽체 회전각 허용기준. default=가장 보수적인 값
-    
-    MCE_criteria : float, optional, default=-0.004/1.2
-                   CP(붕괴방지)에 대한 벽체 회전각 허용기준. default=가장 보수적인 값
-                   
-    yticks : int, optional, default=2
-             그래프의 y축 눈금 간격(층간격). 층이 너무 높으면 y축에 너무 많은 층이 표기되기 때문에, 층간격을 조절해서 정돈된 그래프를 표기할 수 있다.
-
-    xlim : int, optional, default=0.005
-           그래프의 x축 limit 값. x축 limit 안의 값만 표기되므로, limit를 넘어가는 값을 확인하고 싶을 시에는 더 큰 xlim 값을 사용하면 된다.
-
-    Yields
-    -------
-    Min, Max값 모두 출력됨. 
-    
-    fig1 : matplotlib.pyplot.figure or None
-           DE(설계지진) 발생 시 벽체 회전각 그래프
-    
-    fig2 : matplotlib.pyplot.figure or None
-           MCE(최대고려지진) 발생 시 벽체 회전각 그래프
-    
-    error_coord_DE : pandas.core.frame.DataFrame or None
-                     DE(설계지진) 발생 시 기준값을 초과하는 벽체의 좌표
-                     
-    error_coord_MCE : pandas.core.frame.DataFrame or None
-                     MCE(최대고려지진) 발생 시 기준값을 초과하는 벽체의 좌표                                          
-    
-    Raises
-    -------
-    
-    References
-    -------
-    .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021    
-    
-    '''
-    #%% Analysis Result 불러오기
-    to_load_list = result_xlsx_path
-
-    # Gage data
-    gage_data = pd.read_excel(to_load_list[0], sheet_name='Gage Data - Wall Type'
-                              , skiprows=[0, 2], header=0, usecols=[0, 2, 7, 9, 11, 13]) # usecols로 원하는 열만 불러오기
-
-    # Gage result data
-    wall_rot_data = pd.DataFrame()
-    for i in to_load_list:
-        wall_rot_data_temp = pd.read_excel(i, sheet_name='Gage Results - Wall Type', skiprows=[0,2])
-        
-        column_name_to_choose = ['Group Name', 'Element Name', 'Load Case'
-                                  , 'Step Type', 'Rotation', 'Performance Level']
-        wall_rot_data_temp = wall_rot_data_temp.loc[:,column_name_to_choose]
-        wall_rot_data = pd.concat([wall_rot_data, wall_rot_data_temp])
-
-    wall_rot_data.sort_values(['Load Case', 'Element Name'] , inplace=True)
-
-    # Node Coord data
-    node_data = pd.read_excel(to_load_list[0], sheet_name='Node Coordinate Data'
-                              , skiprows=[0, 2], header=0, usecols=[1, 2, 3, 4])
-
-    # Story Info data
-    story_info_xlsx_sheet = 'Story Data'
-    story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet, skiprows=3, usecols=[0, 1, 2], keep_default_na=False)
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    story_name = story_info.loc[:, 'Story Name']
-
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in wall_rot_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-
-    #%% 데이터 매칭 후 결과뽑기
-    
-    wall_rot_data = wall_rot_data[wall_rot_data['Load Case']\
-                                      .str.contains('|'.join(seismic_load_name_list))]
-    
-    ### Gage data에서 Element Name, I-Node ID 불러와서 v좌표 match하기
-    gage_data = gage_data[['Element Name', 'I-Node ID']]; gage_num = len(gage_data) # gage 개수 얻기
-    node_data_V = node_data[['Node ID', 'V']]
-
-    # I-Node의 v좌표 match해서 추가
-    gage_data = gage_data.join(node_data.set_index('Node ID')[['H1', 'H2', 'V']], on='I-Node ID')
-
-    ### SWR_total data 만들기
-
-    SWR_max = wall_rot_data[(wall_rot_data['Step Type'] == 'Max') & (wall_rot_data['Performance Level'] == 1)][['Rotation']].values # dataframe을 array로
-    SWR_max = SWR_max.reshape(gage_num, len(seismic_load_name_list), order='F') # order = 'C' 인 경우 row 우선 변경, order = 'F'인 경우 column 우선 변경
-    SWR_max = pd.DataFrame(SWR_max) # array를 다시 dataframe으로
-    SWR_min = wall_rot_data[(wall_rot_data['Step Type'] == 'Min') & (wall_rot_data['Performance Level'] == 1)][['Rotation']].values
-    SWR_min = SWR_min.reshape(gage_num, len(seismic_load_name_list), order='F')
-    SWR_min = pd.DataFrame(SWR_min)
-    SWR_total = pd.concat([SWR_max, SWR_min], axis=1) # DE11_max~MCE72_max, DE11_min~MCE72_min 각각 28개씩
-
-    ### SWR_avg_data 만들기
-    DE_max_avg = SWR_total.iloc[:, 0:len(DE_load_name_list)].mean(axis=1)
-    MCE_max_avg = SWR_total.iloc[:, len(DE_load_name_list) : len(DE_load_name_list)+ len(MCE_load_name_list)].mean(axis=1)
-    DE_min_avg = SWR_total.iloc[:, len(DE_load_name_list)+len(MCE_load_name_list) : 2*len(DE_load_name_list)+len(MCE_load_name_list)].mean(axis=1)
-    MCE_min_avg = SWR_total.iloc[:, 2*len(DE_load_name_list)+len(MCE_load_name_list) : 2*len(DE_load_name_list) + 2*len(MCE_load_name_list)].mean(axis=1)
-    SWR_avg_total = pd.concat([gage_data.loc[:,['H1', 'H2', 'V']], DE_max_avg, DE_min_avg, MCE_max_avg, MCE_min_avg], axis=1)
-    SWR_avg_total.columns = ['X(mm)', 'Y(mm)', 'Height(mm)', 'DE_max_avg', 'DE_min_avg', 'MCE_max_avg', 'MCE_min_avg']
-
-    #%% ***조작용 코드
-    # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total.iloc[:,2] < -0.0038) | (SWR_avg_total.iloc[:,1] > 0.0038)].index) # DE
-    # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total.iloc[:,4] < -0.0035) | (SWR_avg_total.iloc[:,3] > 0.0035)].index) # MCE
-
-    #%% 그래프
-    count = 1
-    
-    # DE 그래프
-    if len(DE_load_name_list) != 0:
-    
-        fig1 = plt.figure(count, dpi=150, figsize=(5,6))
-        plt.xlim(-xlim, xlim)
-        plt.scatter(SWR_avg_total['DE_min_avg'], SWR_avg_total['Height(mm)'], color = 'k', s=1) # s=1 : point size
-        plt.scatter(SWR_avg_total['DE_max_avg'], SWR_avg_total['Height(mm)'], color = 'k', s=1)
-    
-        # height값에 대응되는 층 이름으로 y축 눈금 작성
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_name[::-yticks])
-    
-        # reference line 그려서 허용치 나타내기
-        # plt.axvline(x= -DE_criteria, color='r', linestyle='--')
-        # plt.axvline(x= DE_criteria, color='r', linestyle='--')
-    
-        plt.grid(linestyle='-.')
-        plt.xlabel('Rotation(rad)')
-        plt.ylabel('Story')
-        plt.title('Wall Rotation (DE)')
-    
-        plt.tight_layout()
-        plt.close()
-        count += 1
-        
-        error_coord_DE = SWR_avg_total[(SWR_avg_total['DE_max_avg'] >= DE_criteria)\
-                                       | (SWR_avg_total['DE_min_avg'] <= -DE_criteria)]          
-        
-        yield fig1
-        yield error_coord_DE
-        yield 'DE' # Marker 출력
-
-    # MCE 그래프
-    if len(MCE_load_name_list) != 0:
-        
-        fig2 = plt.figure(count, dpi=150, figsize=(5,6))
-        plt.xlim(-xlim, xlim)
-        plt.scatter(SWR_avg_total['MCE_min_avg'], SWR_avg_total['Height(mm)'], color = 'k', s=1)
-        plt.scatter(SWR_avg_total['MCE_max_avg'], SWR_avg_total['Height(mm)'], color = 'k', s=1)
-    
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_name[::-yticks])
-    
-        # plt.axvline(x= -MCE_criteria, color='r', linestyle='--')
-        # plt.axvline(x= MCE_criteria, color='r', linestyle='--')
-    
-        plt.grid(linestyle='-.')
-        plt.xlabel('Rotation(rad)')
-        plt.ylabel('Story')
-        plt.title('Wall Rotation (MCE)')
-    
-        plt.tight_layout()
-        plt.close()
-        count += 1
-        
-        error_coord_MCE = SWR_avg_total[(SWR_avg_total['MCE_max_avg'] >= MCE_criteria)\
-                                        | (SWR_avg_total['MCE_min_avg'] <= -MCE_criteria)]  
-        
-        yield fig2
-        yield error_coord_MCE
-        yield 'MCE' # Marker 출력
-
 #%% Shear Wall Rotation (DCR)
 
 def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3):
@@ -807,10 +607,17 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
     
     startrow, startcol = 5, 1
     
+    # 이름 열 입력
     ws.Range(ws.Cells(startrow, startcol),\
-              ws.Cells(startrow + SF_output.shape[0]-1,\
-                      startcol + SF_output.shape[1]-1)).Value\
-    = list(SF_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+             ws.Cells(startrow + SF_output.shape[0]-1,\
+                    startcol)).Value\
+    = [[i] for i in SF_output.iloc[:,0]] # series -> list 형식만 입력가능
+    
+    # 축력, 전단력 열 입력
+    ws.Range(ws.Cells(startrow, startcol+10),\
+             ws.Cells(startrow + SF_output.shape[0]-1,\
+                    startcol + 10 + 9 - 1)).Value\
+    = list(SF_output.iloc[:,[10,11,12,13,14,15,16,17,18]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
@@ -1378,10 +1185,17 @@ def wall_SF(input_xlsx_path, result_xlsx_path, graph=True, DCR_criteria=1, ytick
     
     startrow, startcol = 5, 1
     
+    # 이름 열 입력
     ws.Range(ws.Cells(startrow, startcol),\
-              ws.Cells(startrow + SF_output.shape[0]-1,\
-                      startcol + SF_output.shape[1]-1)).Value\
-    = list(SF_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+             ws.Cells(startrow + SF_output.shape[0]-1,\
+                    startcol)).Value\
+    = [[i] for i in SF_output.iloc[:,0]] # series -> list 형식만 입력가능
+    
+    # 축력, 전단력 열 입력
+    ws.Range(ws.Cells(startrow, startcol+10),\
+             ws.Cells(startrow + SF_output.shape[0]-1,\
+                    startcol + 10 + 9 - 1)).Value\
+    = list(SF_output.iloc[:,[10,11,12,13,14,15,16,17,18]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
