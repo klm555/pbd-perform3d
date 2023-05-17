@@ -832,9 +832,13 @@ def plastic_hinge(input_xlsx_path, result_xlsx_path
     
     startrow, startcol = 5, 1
     
-    # 축력, 전단력 열 입력
+    # C.Beam의 소성회전각(Performance Level 2), 회전각(Rotation) 입력
     ws1.Range('AE%s:AG%s' %(startrow, startrow+beam_plastic_hinge.shape[0]-1)).Value\
     = list(beam_plastic_hinge.iloc[:,[1,2,3]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+    
+    # G.Column의 소성회전각(Performance Level 2), 회전각(Rotation) 입력
+    ws2.Range('AI%s:AK%s' %(startrow, startrow+col_plastic_hinge.shape[0]-1)).Value\
+    = list(col_plastic_hinge.iloc[:,[1,2,3]].itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
