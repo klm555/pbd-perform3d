@@ -7,7 +7,7 @@ import win32com.client
 import pythoncom
 from PyPDF2 import PdfMerger, PdfFileReader
 
-#%% Transfer Column SF (DCR)
+#%% Elastic Column SF (DCR)
 def E_CSF(input_xlsx_path, result_xlsx_path, column_xlsx_path\
           , export_to_pdf=True, pdf_name='E.Column Results'):
     ''' 

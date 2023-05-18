@@ -264,7 +264,159 @@ def BR_DCR(input_xlsx_path, result_xlsx_path
     #     if 'fig2' in locals():
     #         return fig2, error_beam_MCE
 
+#%% C.Beam SF (DCR)
+def BSF(input_xlsx_path, result_xlsx_path):
+    ''' 
 
+    Perform-3D 해석 결과에서 일반기둥의 축력, 전단력을 불러와 Results_G.Column 엑셀파일을 작성. \n
+    result_path : Perform-3D에서 나온 해석 파일의 경로. \n
+    result_xlsx : Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다. \n
+    input_path : Data Conversion 엑셀 파일의 경로 \n
+    input_xlsx : Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다. \n
+    column_xlsx : Results_E.Column 엑셀 파일의 이름.확장자명(.xlsx)까지 기입해줘야한다. \n
+    export_to_pdf : 입력된 값에 따른 각 부재들의 결과 시트를 pdf로 출력. True = pdf 출력, False = pdf 미출력(Results_E.Column 엑셀파일만 작성됨).
+    pdf_name = 출력할 pdf 파일 이름.
+    
+    '''
+#%% Input Sheet 정보 load
+        
+    story_info = pd.DataFrame()
+    element_name = pd.DataFrame()
+
+    input_xlsx_sheet = 'Output_C.Beam Properties'
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
+    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
+    input_data_raw.close()
+
+    story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
+    element_name = input_data_sheets[input_xlsx_sheet].iloc[:,0]
+
+    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
+    element_name.name = 'Property Name'
+
+#%% Analysis Result 불러오기
+    to_load_list = result_xlsx_path
+
+    # 전단력 Data
+    SF_info_data = pd.DataFrame()
+    for i in to_load_list:
+        result_data_raw = pd.ExcelFile(i)
+        result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - End Forces'
+                                           , 'Node Coordinate Data', 'Element Data - Frame Types']
+                                          , skiprows=[0, 2]) # usecols로 원하는 열만 불러오기
+        
+        SF_info_data_temp = result_data_sheets['Frame Results - End Forces'].iloc[:,[0,2,5,7,10,12]]
+        SF_info_data = pd.concat([SF_info_data, SF_info_data_temp])
+
+    node_data = result_data_sheets['Node Coordinate Data'].iloc[:,[1,4]]
+    element_data = result_data_sheets['Element Data - Frame Types'].iloc[:,[0,2,5,7]] # beam의 양 nodes중 한 node에서의 rotation * 2
+
+    # 필요한 부재만 선별
+    element_data = element_data[element_data['Property Name'].isin(element_name)]
+
+#%% Analysis Result에 Element, Node 정보 매칭
+
+    element_data = element_data.drop_duplicates()
+    
+    element_data = pd.merge(element_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
+    SF_ongoing = pd.merge(element_data.iloc[:, [1,2,5]], SF_info_data.iloc[:, 1:], how='left')
+    SF_ongoing.reset_index(inplace=True, drop=True)
+
+#%% 지진파 이름 list 만들기
+
+    load_name_list = []
+    for i in SF_ongoing['Load Case'].drop_duplicates():
+        new_i = i.split('+')[1]
+        new_i = new_i.strip()
+        load_name_list.append(new_i)
+
+    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
+    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
+
+    seismic_load_name_list.sort()
+
+    DE_load_name_list = [x for x in load_name_list if 'DE' in x]
+    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
+
+#%% V, M값에 절대값, 최대값, 평균값 뽑기
+
+    # 절대값
+    SF_ongoing.iloc[:,5] = SF_ongoing.iloc[:,5].abs()
+
+    # V2의 최대값을 저장하기 위해 필요한 데이터 slice
+    SF_ongoing_max = SF_ongoing.iloc[[2*x for x in range(int(SF_ongoing.shape[0]/2))],[0,1,2,3]] 
+    # [2*x for x in range(int(SF_ongoing.shape[0]/2] -> [짝수 index]
+    
+    # V2, V3의 최대값을 저장
+    SF_ongoing_max['V2 max'] = SF_ongoing.groupby(SF_ongoing.index // 2)['V2 I-End'].max().tolist()
+
+    # 필요한 하중만 포함된 데이터 slice (MCE)
+    SF_ongoing_max_MCE = SF_ongoing_max[SF_ongoing_max['Load Case']\
+                                        .str.contains('|'.join(MCE_load_name_list))]
+    SF_ongoing_max_G = SF_ongoing_max[SF_ongoing_max['Load Case']\
+                                      .str.contains('|'.join(gravity_load_name))]
+    # function equivalent of a combination of df.isin() and df.str.contains()
+    
+    # 부재별(Element Name) 평균값을 저장하기 위해 필요한 데이터프레임 생성
+    SF_ongoing_max_avg = SF_ongoing_max_MCE.iloc[:,[0,1,2]]
+    SF_ongoing_max_avg = SF_ongoing_max_avg.drop_duplicates()
+    SF_ongoing_max_avg.set_index('Element Name', inplace=True)    
+    # 부재별(Element Name) 평균값 뽑기
+    SF_ongoing_max_avg['V2 max(MCE)'] = SF_ongoing_max_MCE.groupby(['Element Name'])['V2 max'].mean()
+    SF_ongoing_max_avg['V2 max(G)'] = SF_ongoing_max_G.groupby(['Element Name'])['V2 max'].mean()
+    
+    # 이름별(Property Name) 최대값을 저장하기 위해 필요한 데이터프레임 생성
+    SF_ongoing_max_avg_max = SF_ongoing_max_avg.copy()
+    SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.drop_duplicates(subset=['Property Name'], ignore_index=True)
+    SF_ongoing_max_avg_max.set_index('Property Name', inplace=True) 
+    # 같은 부재(그러나 잘려있는) 경우(Property Name) 최대값 뽑기
+    SF_ongoing_max_avg_max['V2 max(MCE)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(MCE)'].max().tolist()
+    SF_ongoing_max_avg_max['V2 max(G)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(G)'].max().tolist()
+    
+    # MCE에 대해 1.2배, G에 대해 0.2배
+    SF_ongoing_max_avg_max['V2 max(MCE)'] = SF_ongoing_max_avg_max['V2 max(MCE)'] * 1.2
+    SF_ongoing_max_avg_max['V2 max(G)'] = SF_ongoing_max_avg_max['V2 max(G)'] * 0.2
+    
+    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=False)
+
+#%% 결과값 정리
+    
+    SF_output = pd.merge(element_name, SF_ongoing_max_avg_max, how='left')
+        
+    SF_output = SF_output.dropna()
+    SF_output.reset_index(inplace=True, drop=True)
+        
+    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    SF_output = SF_output.replace(np.nan, '', regex=True)
+    
+    # 기존 시트에 V값 넣기
+    SF_output1 = SF_output.iloc[:,0]
+    SF_output2 = SF_output.iloc[:,[2,3]]
+
+#%% 출력 (Using win32com...)
+    
+    # Using win32com...
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
+
+    wb = excel.Workbooks.Open(input_xlsx_path)
+    ws = wb.Sheets('Results_C.Beam')
+    
+    startrow, startcol = 5, 1    
+    ws.Range(ws.Cells(startrow, startcol),\
+              ws.Cells(startrow+SF_output1.shape[0]-1, startcol)).Value\
+    = [[i] for i in SF_output1]
+    
+    startrow, startcol = 5, 20    
+    ws.Range(ws.Cells(startrow, startcol),\
+              ws.Cells(startrow+SF_output2.shape[0]-1,\
+                      startcol+SF_output2.shape[1]-1)).Value\
+    = list(SF_output2.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+    
+    wb.Save()            
+    # wb.Close(SaveChanges=1) # Closing the workbook
+    # excel.Quit() # Closing the application
 
 #%% Elastic Beam SF (DCR)
 

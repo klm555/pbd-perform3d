@@ -25,12 +25,12 @@ time_start = time.time()
 #%% User Input
 
 # Building Name
-bldg_name = '107동'
+bldg_name = '105동'
 
 # Analysis Result
-result_xlsx_1 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\107\KHSM_107_2_Analysis Result_1.xlsx'"
-result_xlsx_2 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\107\KHSM_107_2_Analysis Result_2.xlsx'"
-result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\107\KHSM_107_2_Analysis Result_3.xlsx'"
+result_xlsx_1 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\105\KHSM_105_3_Analysis Result_1.xlsx'"
+result_xlsx_2 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\105\KHSM_105_3_Analysis Result_2.xlsx'"
+result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\105\KHSM_105_3_Analysis Result_3.xlsx'"
 # result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\Results\105_3(no_DE_MCE6)\KHSM_105_3_Analysis Result(no_DE_MCE6).xlsx'"
 result_xlsx_path = result_xlsx_1 + ',' + result_xlsx_2 + ',' + result_xlsx_3
 result_xlsx_path = result_xlsx_path.split(',')
@@ -40,10 +40,10 @@ to_load_list = result_xlsx_path
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
 # input_xlsx_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\105\KHSM_105_Data Conversion_Ver.1.3M_수평배근_변경.xlsx'
-input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\107\KHSM_107_Data Conversion_Ver.1.3M_내진상세_변경.xlsx'
+input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\105\KHSM_105_Data Conversion_Ver.1.3M_내진상세_변경.xlsx'
 
 # Post-processed Result
-output_docx = '107_2_해석결과.docx'
+output_docx = '105_3_해석결과.docx'
 # column_xlsx_path = '101D_Results_E.Column_N1_Ver.1.3.xlsx'
 # column_pdf_name = '101D_N1_E.Column_결과' # 출력될 pdf 파일의 이름 (확장자X)
 appendix_docx = 'Appendix. Wall SF(elementwise).docx'
@@ -61,36 +61,38 @@ story_gap = 2
 #%% Post Processing
 
 # 밑면 전단력
-base_SF = pbd.base_SF(result_xlsx_path, ylim=max_shear)
+# base_SF = pbd.base_SF(result_xlsx_path, ylim=max_shear)
 # 층 전단력
-story_SF = pbd.story_SF(input_xlsx_path, result_xlsx_path
-                            , yticks=story_gap, xlim=max_shear)
+# story_SF = pbd.story_SF(input_xlsx_path, result_xlsx_path
+#                             , yticks=story_gap, xlim=max_shear)
 # 층간변위비
-IDR = pbd.IDR(input_xlsx_path, result_xlsx_path, yticks=story_gap)
+# IDR = pbd.IDR(input_xlsx_path, result_xlsx_path, yticks=story_gap)
 
 
 # 벽체 압축/인장 변형률
-AS = pbd.AS(input_xlsx_path, result_xlsx_path, yticks=story_gap, min_criteria=-0.002, AS_gage_group=AS_gage_group)
+# AS = pbd.AS(input_xlsx_path, result_xlsx_path, yticks=story_gap, min_criteria=-0.002, AS_gage_group=AS_gage_group)
 # 벽체 전단강도
-wall_SF = pbd.wall_SF(input_xlsx_path, result_xlsx_path, graph=True\
-                        , yticks=story_gap, xlim=3)
+# wall_SF = pbd.wall_SF(input_xlsx_path, result_xlsx_path, graph=True\
+#                         , yticks=story_gap, xlim=3)
 # 벽체 전단력(only graph)
 # wall_SF_graph = pbd.wall_SF_graph(input_xlsx_path, input_xlsx_sheet='Results_Wall_보강', yticks=story_gap)
 # 벽체 소성회전각(DCR)
-WR_DCR = pbd.SWR_DCR(input_xlsx_path, result_xlsx_path
-                        , yticks=story_gap, xlim=3)
+# WR_DCR = pbd.SWR_DCR(input_xlsx_path, result_xlsx_path
+#                         , yticks=story_gap, xlim=3)
 
 # 연결보 소성회전각(DCR)
-BR_DCR = pbd.BR_DCR(input_xlsx_path, result_xlsx_path
-                    , yticks=story_gap, xlim=3, c_beam_group=beam_group)
+# BR_DCR = pbd.BR_DCR(input_xlsx_path, result_xlsx_path
+#                     , yticks=story_gap, xlim=3, c_beam_group=beam_group)
+
+BSF = pbd.BSF(input_xlsx_path, result_xlsx_path)
 
 # 일반기둥 소성회전각(DCR)
-CR_DCR = pbd.CR_DCR(input_xlsx_path, result_xlsx_path
-                    , yticks=story_gap, xlim=3, col_group=col_group)      
+# CR_DCR = pbd.CR_DCR(input_xlsx_path, result_xlsx_path
+#                     , yticks=story_gap, xlim=3, col_group=col_group)      
 # 일반기둥 전단강도                                                  
-CSF = pbd.CSF(input_xlsx_path, result_xlsx_path)
+# CSF = pbd.CSF(input_xlsx_path, result_xlsx_path)
 
-plastic_hinge = pbd.plastic_hinge(input_xlsx_path, result_xlsx_path)
+# plastic_hinge = pbd.plastic_hinge(input_xlsx_path, result_xlsx_path)
 
 # 탄성보 전단력
 # E_BSF = pbd.E_BSF(input_xlsx_path, result_xlsx_path, beam_xlsx, contour=True)
@@ -134,15 +136,16 @@ plastic_hinge = pbd.plastic_hinge(input_xlsx_path, result_xlsx_path)
 # 객체 생성
 result = otd.OutputDocx(bldg_name)
 
-result.base_SF_docx(base_SF)
-result.story_SF_docx(story_SF)
-result.IDR_docx(IDR)
-result.WAS_docx(AS)
-result.WR_docx(WR_DCR)
-result.BR_docx(BR_DCR)
-result.WSF_docx(wall_SF)
-result.CR_docx(CR_DCR)
-result.CSF_docx(CSF)
+# result.base_SF_docx(base_SF)
+# result.story_SF_docx(story_SF)
+# result.IDR_docx(IDR)
+# result.WAS_docx(AS)
+# result.WR_docx(WR_DCR)
+# result.BR_docx(BR_DCR)
+result.BSF_docx(BSF)
+# result.WSF_docx(wall_SF)
+# result.CR_docx(CR_DCR)
+# result.CSF_docx(CSF)
 
 # 반드시 Results_C.Beam, Results_G.Column 시트를 완성하고 실행할 것
 # result.plastic_hinge_docx(plastic_hinge) 
