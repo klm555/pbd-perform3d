@@ -848,7 +848,6 @@ def plastic_hinge(input_xlsx_path, result_xlsx_path
         # Input sheet의 Performance Level 2 정보에 Rotation 값 match
         beam_plastic_hinge = pd.merge(deformation_cap_beam
                                       , beam_rot_data_DE[['Property Name', 'DE avg']], how='left')
-        beam_plastic_hinge = beam_plastic_hinge[beam_plastic_hinge['Property Name'].notna()]
        
     # MCE
     if len(MCE_load_name_list) != 0:
@@ -882,6 +881,10 @@ def plastic_hinge(input_xlsx_path, result_xlsx_path
         # Input sheet의 Performance Level 2 정보에 Rotation 값 match
         beam_plastic_hinge = pd.merge(beam_plastic_hinge
                                       , beam_rot_data_MCE[['Property Name', 'MCE avg']], how='left')
+        
+        beam_plastic_hinge = beam_plastic_hinge[beam_plastic_hinge['Property Name'].notna()]
+        beam_plastic_hinge = beam_plastic_hinge[beam_plastic_hinge['DE avg'].notna()]
+        beam_plastic_hinge = beam_plastic_hinge[beam_plastic_hinge['MCE avg'].notna()]
 
 #%% DE, MCE 각각의 load case에 대해 max, min 값 추출 / 지진파별 avg 값 계산
     # DE
@@ -926,7 +929,6 @@ def plastic_hinge(input_xlsx_path, result_xlsx_path
         # Input sheet의 Performance Level 2 정보에 Rotation 값 match
         col_plastic_hinge = pd.merge(deformation_cap_col
                                       , col_rot_data_DE[['Property Name', 'DE avg']], how='left')
-        col_plastic_hinge = col_plastic_hinge[col_plastic_hinge['Property Name'].notna()]
        
     # MCE
     if len(MCE_load_name_list) != 0:
@@ -970,6 +972,10 @@ def plastic_hinge(input_xlsx_path, result_xlsx_path
         # Input sheet의 Performance Level 2 정보에 Rotation 값 match
         col_plastic_hinge = pd.merge(col_plastic_hinge
                                       , col_rot_data_MCE[['Property Name', 'MCE avg']], how='left')
+        
+        col_plastic_hinge = col_plastic_hinge[col_plastic_hinge['Property Name'].notna()]
+        col_plastic_hinge = col_plastic_hinge[col_plastic_hinge['DE avg'].notna()]
+        col_plastic_hinge = col_plastic_hinge[col_plastic_hinge['MCE avg'].notna()]
     
 #%% 엑셀로 출력(Using win32com)
     

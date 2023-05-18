@@ -1994,3 +1994,78 @@ def wall_SF_redesign(input_xlsx_path):
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
 
+
+#%% Wall SF (elementwise)
+
+def WSF_each(input_xlsx_path, modified_sheet=None): 
+    ''' 
+
+    완성된 Results_Wall 시트에서 보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n
+    
+       
+    세로 생성되는 Results_Wall_보강 시트에 보강 결과 출력 (철근 type 변경, 해결 안될 시 spacing은 10mm 간격으로 down)
+    
+    Parameters
+    ----------
+    input_path : str
+                 Data Conversion 엑셀 파일의 경로.
+                 
+    input_xlsx : str
+                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+
+    Yields
+    -------
+    Min, Max값 모두 출력됨. 
+    
+    fig1 : matplotlib.pyplot.figure or None
+           DE(설계지진) 발생 시 벽체 회전각 DCR 그래프                                      
+    
+    Raises
+    -------
+    
+    References
+    -------
+    .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
+    
+    '''
+#%% Input Sheet
+        
+    # Input Sheets 불러오기
+    story_info = pd.DataFrame()
+    transfer_element_info = pd.DataFrame()
+
+    input_xlsx_sheet = 'Results_Wall'
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
+    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, modified_sheet], skiprows=3
+                                 , usecols=[0,8,9,29,31,33,35,36])
+    input_data_raw.close()
+    
+    wall_before = input_data_sheets[input_xlsx_sheet]
+    wall_after = input_data_sheets[modified_sheet]
+
+    wall_before.columns = ['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)', 'Results(before)']
+    wall_after.columns = ['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)', 'Results(after)']
+    
+#%% 보강 전,후 Wall dataframe 정리
+
+    # 4개의 DCR 열에서 max값을 추출한 열 만들기
+    wall_before['DCR_max(before)'] = wall_before[['DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)']].max(axis=1)
+    wall_after['DCR_max(after)'] = wall_after[['DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)']].max(axis=1)
+
+    # DCR 열 반올림하기(소수점 5자리까지)
+    wall_before['DCR_max(before)'] = wall_before['DCR_max(before)'].round(5)
+    wall_after['DCR_max(after)'] = wall_after['DCR_max(after)'].round(5)
+
+    # 필요한 열만 추출
+    wall_output = pd.merge(wall_before[['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'DCR_max(before)']]
+                           , wall_after[['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'DCR_max(after)']], how='left')
+
+    # 이름 분리(벽체 이름, 번호, 층)
+    wall_output['Property Name'] = wall_output['Name'].str.split('_', expand=True)[0]
+    wall_output['Number'] = wall_output['Name'].str.split('_', expand=True)[1]
+    wall_output['Story'] = wall_output['Name'].str.split('_', expand=True)[2]
+
+    # 벽체 이름과 번호(W1_1)이 같은 부재들끼리 groupby로 묶고, list of dataframes 생성
+    wall_output_list = list(wall_output.groupby(['Property Name', 'Number'], sort=False))
+    
+    yield wall_output_list
