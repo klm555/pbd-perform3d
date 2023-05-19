@@ -934,14 +934,22 @@ class OutputDocx():
         # Wall SF(DCR) 표 작성
         # template의 1번 표 불러오기
         WSF_plots_table = self.document.tables[0]
+        # Page Break
+        break_para_0 = self.document.add_paragraph()
+        break_run_0 = break_para_0.add_run()
+        break_run_0.add_break(WD_BREAK.PAGE)
         
         # 벽체 개수만큼 template table copy        
         for i in range(len(WSF_list)-1):
             tbl = WSF_plots_table._tbl
             new_tbl = copy.deepcopy(tbl)
             para = self.document.add_paragraph()
-            para._p.addnext(new_tbl)         
-
+            para._p.addnext(new_tbl)
+            # Page Break
+            break_para = self.document.add_paragraph()
+            break_run = break_para.add_run()
+            break_run.add_break(WD_BREAK.PAGE)
+        
         # 벽체별로 표 채우기   
         table_count = 0
         for wall in WSF_list:
@@ -965,7 +973,8 @@ class OutputDocx():
             name_run = name_para.add_run()
             name_run.text = wall_name        
             name_run.font.name = '맑은 고딕'
-            name_run.font.size = Pt(9)
+            name_run.font.size = Pt(10)
+            name_run.bold = True
             name_para.alignment = WD_ALIGN_PARAGRAPH.CENTER # 입력된 값 center alignment
 
             # (층별)벽체가 2개 이상인 경우, table row 늘리기
@@ -1033,10 +1042,6 @@ class OutputDocx():
                 if row['DCR_max(after)'] >= 1.0:
                     DCR_after_run.bold = True
                     DCR_after_run.font.color.rgb = RGBColor(255, 0, 0)
-
-
-                
-
 
         # output_path = os.path.dirname('template')
         # # 결과 저장
