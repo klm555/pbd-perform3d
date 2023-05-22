@@ -313,6 +313,8 @@ def BSF(input_xlsx_path, result_xlsx_path):
 
     # 필요한 부재만 선별
     element_data = element_data[element_data['Property Name'].isin(element_name)]
+    
+    test = SF_info_data[SF_info_data['Element Name'] == 'E1387']
 
 #%% Analysis Result에 Element, Node 정보 매칭
 
@@ -370,12 +372,16 @@ def BSF(input_xlsx_path, result_xlsx_path):
     SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.drop_duplicates(subset=['Property Name'], ignore_index=True)
     SF_ongoing_max_avg_max.set_index('Property Name', inplace=True) 
     # 같은 부재(그러나 잘려있는) 경우(Property Name) 최대값 뽑기
-    SF_ongoing_max_avg_max['V2 max(MCE)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(MCE)'].max().tolist()
-    SF_ongoing_max_avg_max['V2 max(G)'] = SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(G)'].max().tolist()
+    SF_ongoing_max_avg_max = pd.merge(SF_ongoing_max_avg_max
+                                      , SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(MCE)'].max()
+                                      , left_on='Property Name', right_index=True, suffixes=('_before', '_after'))
+    SF_ongoing_max_avg_max = pd.merge(SF_ongoing_max_avg_max
+                                      , SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(G)'].max()
+                                      , left_on='Property Name', right_index=True, suffixes=('_before', '_after'))
     
     # MCE에 대해 1.2배, G에 대해 0.2배
-    SF_ongoing_max_avg_max['V2 max(MCE)'] = SF_ongoing_max_avg_max['V2 max(MCE)'] * 1.2
-    SF_ongoing_max_avg_max['V2 max(G)'] = SF_ongoing_max_avg_max['V2 max(G)'] * 0.2
+    SF_ongoing_max_avg_max['V2 max(MCE)_after'] = SF_ongoing_max_avg_max['V2 max(MCE)_after'] * 1.2
+    SF_ongoing_max_avg_max['V2 max(G)_after'] = SF_ongoing_max_avg_max['V2 max(G)_after'] * 0.2
     
     SF_ongoing_max_avg_max.reset_index(inplace=True, drop=False)
 
@@ -391,7 +397,7 @@ def BSF(input_xlsx_path, result_xlsx_path):
     
     # 기존 시트에 V값 넣기
     SF_output1 = SF_output.iloc[:,0]
-    SF_output2 = SF_output.iloc[:,[2,3]]
+    SF_output2 = SF_output.iloc[:,[4,5]]
 
 #%% 출력 (Using win32com...)
     

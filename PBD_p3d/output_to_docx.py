@@ -1172,19 +1172,12 @@ class OutputDocx():
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 #%% C.Beam SF (엑셀에 자동입력)
-        
     def BSF_docx(self, BSF):
-        
         pass
-
 
 #%% C.Beam, G.Column의 Plastic Hinge 찾기 (Rotation값 엑셀에 자동입력)
-        
-    def plastic_hinge_docx(self, plastic_hinge):
-        
-        pass
-
-
+    # def plastic_hinge_docx(self, plastic_hinge):
+    #     pass
                     
 #%% 전체 결과 그래프 그리기
 '''
