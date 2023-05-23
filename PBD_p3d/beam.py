@@ -726,6 +726,73 @@ def E_BSF(input_xlsx_path, result_xlsx_path, contour=True):
         count += 1
         yield fig2
 
+#%% C.Beam SF (elementwise)
+
+def BSF_each(input_xlsx_path, retrofit_sheet=None): 
+    ''' 
+
+    완성된 Results_Wall 시트에서 보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n
+    
+       
+    세로 생성되는 Results_Wall_보강 시트에 보강 결과 출력 (철근 type 변경, 해결 안될 시 spacing은 10mm 간격으로 down)
+    
+    Parameters
+    ----------
+    input_path : str
+                 Data Conversion 엑셀 파일의 경로.
+                 
+    input_xlsx : str
+                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+
+    Yields
+    -------
+    Min, Max값 모두 출력됨. 
+    
+    fig1 : matplotlib.pyplot.figure or None
+           DE(설계지진) 발생 시 벽체 회전각 DCR 그래프                                      
+    
+    Raises
+    -------
+    
+    References
+    -------
+    .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
+    
+    '''
+#%% Input Sheet
+        
+    # Input Sheets 불러오기
+    input_xlsx_sheet = 'Results_C.Beam'
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
+    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, retrofit_sheet], skiprows=3
+                                 , usecols=[0,10,15,16,29])
+    input_data_raw.close()
+    
+    beam_before = input_data_sheets[input_xlsx_sheet]
+    beam_after = input_data_sheets[retrofit_sheet]
+
+    beam_before.columns = ['Name', 'Rebar Type(before)', 'Rebar EA(before)', 'Rebar Spacing(before)', 'Results(before)']
+    beam_after.columns = ['Name', 'Rebar Type(after)', 'Rebar EA(after)', 'Rebar Spacing(after)', 'Results(after)']
+    
+#%% 보강 전,후 Wall dataframe 정리
+    
+    # DCR 열 반올림하기(소수점 5자리까지)
+    beam_before['Results(before)'] = beam_before['Results(before)'].round(5)
+    beam_after['Results(after)'] = beam_after['Results(after)'].round(5)
+
+    # 필요한 열만 추출
+    beam_output = pd.merge(beam_before, beam_after, how='left')
+
+    # 이름 분리(벽체 이름, 번호, 층)
+    beam_output['Property Name'] = beam_output['Name'].str.split('_', expand=True)[0]
+    beam_output['Number'] = beam_output['Name'].str.split('_', expand=True)[1]
+    beam_output['Story'] = beam_output['Name'].str.split('_', expand=True)[2]
+
+    # 벽체 이름과 번호(W1_1)이 같은 부재들끼리 groupby로 묶고, list of dataframes 생성
+    beam_output_list = list(beam_output.groupby(['Property Name', 'Number'], sort=False))
+    
+    yield beam_output_list
+
 #%% Plastic Hinge Detector(Beam, Column)
 
 def plastic_hinge(input_xlsx_path, result_xlsx_path

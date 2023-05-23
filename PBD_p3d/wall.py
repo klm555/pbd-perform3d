@@ -2019,40 +2019,39 @@ def WSF_retrofit(input_xlsx_path, rebar_limit=[None,None]):
 
 #%% NG인 부재의 Horizontal Rebar Diameter 늘리기 (<ETC>시트의 철근직경 순서에 따라)
 
-    # while True:
-    #     # 엑셀 읽기
-    #     # H. Rebar 정보 읽기
-    #     h_rebar_type = ws_retrofit.Range('I%s:I%s' %(startrow, startrow+element_info.shape[0]-1)).Value # list of tuples
-    #     h_rebar_type_df = pd.DataFrame(h_rebar_type) # list of tupels -> dataframe        
-    #     h_rebar_info_idx = pd.Index(h_rebar_info) # <ETC> 시트의 철근직경 순서를 list of index로 만들기
-    #     # 철근직경 순서 index를 매칭시켜, 각 부재의 철근직경에 대한 index list 만들기
-    #     h_rebar_type_idx = h_rebar_info_idx.get_indexer(h_rebar_type_df.iloc[:,0]) 
-    #                                       # get_indexer(list) : list의 값들의 h_rebar_idx에서의 인덱스찾기
-    #     # 전단보강 가능여부 읽기
-    #     avail = ws_retrofit.Range('W%s:W%s' %(startrow, startrow+element_info.shape[0]-1)).Value
-    #     # DCR 읽기
-    #     dcr = ws_retrofit.Range('AK%s:AK%s' %(startrow, startrow+element_info.shape[0]-1)).Value
-    #     # DCR 값에 따른 np,array 생성 (NG가 있는 경우 = 1, NG가 없는 경우 = 0)
-    #     dcr_array = np.array([1 if 'N.G' in row else 0 for row in dcr])
+    while True:
+        # 엑셀 읽기
+        # H. Rebar 정보 읽기
+        h_rebar_type = ws_retrofit.Range('I%s:I%s' %(startrow, startrow+element_info.shape[0]-1)).Value # list of tuples
+        h_rebar_type_df = pd.DataFrame(h_rebar_type) # list of tupels -> dataframe        
+        h_rebar_info_idx = pd.Index(h_rebar_info) # <ETC> 시트의 철근직경 순서를 list of index로 만들기
+        # 철근직경 순서 index를 매칭시켜, 각 부재의 철근직경에 대한 index list 만들기
+        h_rebar_type_idx = h_rebar_info_idx.get_indexer(h_rebar_type_df.iloc[:,0]) 
+                                          # get_indexer(list) : list의 값들의 h_rebar_idx에서의 인덱스찾기
+        # 전단보강 가능여부 읽기
+        avail = ws_retrofit.Range('W%s:W%s' %(startrow, startrow+element_info.shape[0]-1)).Value
+        # DCR 읽기
+        dcr = ws_retrofit.Range('AK%s:AK%s' %(startrow, startrow+element_info.shape[0]-1)).Value
+        # DCR 값에 따른 np,array 생성 (NG가 있는 경우 = 1, NG가 없는 경우 = 0)
+        dcr_array = np.array([1 if 'N.G' in row else 0 for row in dcr])
         
-    #     # (NG) & (수평철근직경이 최대철근직경에 도달하지 않은) 부재들의 철근 직경 up
-    #     h_rebar_type_idx_updated = np.where(((dcr_array == 1) 
-    #                                          & (h_rebar_type_idx+1 >= h_rebar_info_idx.get_loc(rebar_limit[0])))
-    #                                          , h_rebar_type_idx+1, h_rebar_type_idx)  
+        # (NG) & (수평철근직경이 최대철근직경에 도달하지 않은) 부재들의 철근 직경 up
+        h_rebar_type_idx_updated = np.where(((dcr_array == 1) 
+                                              & (h_rebar_type_idx+1 <= h_rebar_info_idx.get_loc(rebar_limit[0])))
+                                              , h_rebar_type_idx+1, h_rebar_type_idx)  
 
-    #     # 수평철근직경 before & updated가 동일한 경우(철근직경이 update되지 않는 경우) break
-    #     if np.array_equal(h_rebar_type_idx, h_rebar_type_idx_updated):
-    #         break 
-    
-    #     # Horizontal Rebar Diameter의 변경된 값을 Excel에 다시 입력
-    #     ws_retrofit.Range('I%s:I%s' %(startrow, startrow+element_info.shape[0]-1)).Value\
-    #     = [h_rebar_info.iloc[i] for i in h_rebar_type_idx_updated]
+        # 수평철근직경 before & updated가 동일한 경우(철근직경이 update되지 않는 경우) break
+        if np.array_equal(h_rebar_type_idx, h_rebar_type_idx_updated):
+            break 
+
+        # Horizontal Rebar Diameter의 변경된 값을 Excel에 다시 입력
+        ws_retrofit.Range('I%s:I%s' %(startrow, startrow+element_info.shape[0]-1)).Value\
+        = [[h_rebar_info.iloc[i]] for i in h_rebar_type_idx_updated]
         
-    #     # Horizontal Diameter 직경/간격이 변경된(DCR == NG) 경우, 색 변경하기
-    #     h_rebar_type_diff_idx = np.where(h_rebar_type_idx != h_rebar_type_idx_updated)
-    #     for j in h_rebar_type_diff_idx:
-    #         ws_retrofit.Range('I%s' %str(startrow+int(j))).Font.ColorIndex = 3 # 3 : 빨간색
-
+        # Horizontal Diameter 직경/간격이 변경된(DCR == NG) 경우, 색 변경하기
+        h_rebar_type_diff_idx = np.where(h_rebar_type_idx != h_rebar_type_idx_updated)
+        for j in h_rebar_type_diff_idx[0]:
+            ws_retrofit.Range('I%s' %str(startrow+int(j))).Font.ColorIndex = 3 # 3 : 빨간색
 
     #%%
     wb.Save()            
@@ -2062,7 +2061,7 @@ def WSF_retrofit(input_xlsx_path, rebar_limit=[None,None]):
 
 #%% Wall SF (elementwise)
 
-def WSF_each(input_xlsx_path, modified_sheet=None): 
+def WSF_each(input_xlsx_path, retrofit_sheet=None): 
     ''' 
 
     완성된 Results_Wall 시트에서 보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n
@@ -2096,17 +2095,14 @@ def WSF_each(input_xlsx_path, modified_sheet=None):
 #%% Input Sheet
         
     # Input Sheets 불러오기
-    story_info = pd.DataFrame()
-    transfer_element_info = pd.DataFrame()
-
     input_xlsx_sheet = 'Results_Wall'
     input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, modified_sheet], skiprows=3
+    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, retrofit_sheet], skiprows=3
                                  , usecols=[0,8,9,29,31,33,35,36])
     input_data_raw.close()
     
     wall_before = input_data_sheets[input_xlsx_sheet]
-    wall_after = input_data_sheets[modified_sheet]
+    wall_after = input_data_sheets[retrofit_sheet]
 
     wall_before.columns = ['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)', 'Results(before)']
     wall_after.columns = ['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)', 'Results(after)']
@@ -2136,4 +2132,5 @@ def WSF_each(input_xlsx_path, modified_sheet=None):
     yield wall_output_list
 
 #%% 벽체별 Shear Force Plot
-# wall_output_list
+
+    # wall_output_list

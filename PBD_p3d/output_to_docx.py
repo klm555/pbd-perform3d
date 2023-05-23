@@ -932,6 +932,11 @@ class OutputDocx():
         #         WSF_markers.append(i)
 
         # Wall SF(DCR) 표 작성
+        # template의 사용하지 않는 표 지우기
+        self.document.tables[1]._element.getparent().remove(self.document.tables[1]._element)
+        self.document.tables[1]._element.getparent().remove(self.document.tables[1]._element)
+        self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        # self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
         # template의 1번 표 불러오기
         WSF_plots_table = self.document.tables[0]
         # Page Break
@@ -1068,9 +1073,327 @@ class OutputDocx():
         # plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
         # plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
+#%% C.Beam SF (each)
+        
+    def BSF_each_docx(self, BSF_each):
+        
+        # generator -> list       
+        BSF_list = list(BSF_each)
+        # list에서 list of tuples 꺼내기
+        BSF_list = BSF_list[0]
 
+        # 결과를 값과 그래프로 나누기(by data type)
+        # WSF_markers = []
+        # WSF_values = deque()
+        # WSF_plots = deque()
+        # for i in WSF_list:
+        #     if isinstance(i, pd.DataFrame):
+        #         WSF_values.append(i)
+        #     elif isinstance(i, plt.Figure):
+        #         WSF_plots.append(i)
+        #     elif isinstance(i, str):
+        #         WSF_markers.append(i)
+
+        # C.Beam SF(DCR) 표 작성        
+        # template의 사용하지 않는 표 지우기
+        self.document.tables[0]._element.getparent().remove(self.document.tables[0]._element)
+        self.document.tables[1]._element.getparent().remove(self.document.tables[1]._element)
+        self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        # self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        # template의 1번 표 불러오기
+        BSF_plots_table = self.document.tables[0]
+        
+        # 연결보 개수만큼 template table copy        
+        for i in range(len(BSF_list)-1):
+            # Page Break
+            break_para = self.document.add_paragraph()
+            break_run = break_para.add_run()
+            break_run.add_break(WD_BREAK.PAGE)
+            # table 생성
+            tbl = BSF_plots_table._tbl
+            new_tbl = copy.deepcopy(tbl)
+            para = self.document.add_paragraph()
+            para._p.addnext(new_tbl)
+        
+        # 벽체별로 표 채우기
+        table_count = 0
+        for beam in BSF_list:
+            # 연결보 이름, 데이터 불러오기
+            beam_name = beam[0][0]
+            beam_data = beam[1]
+            # 연결보 데이터 열 재정렬
+            beam_data.reset_index(inplace=True, drop=True)
+            beam_data = beam_data.loc[:,['Story', 'Rebar EA(before)', 'Rebar Type(before)'
+                                         , 'Rebar Spacing(before)', 'Results(before)'
+                                         , 'Rebar EA(after)', 'Rebar Type(after)'
+                                         , 'Rebar Spacing(after)', 'Results(after)']]
+            
+            # 표 지정
+            beam_table = self.document.tables[table_count]
+            table_count += 1
+            
+            # 부재 이름 채우기
+            name_row = beam_table.rows[0]
+            name_cell = name_row.cells[0]
+            name_para = name_cell.paragraphs[0]
+            name_run = name_para.add_run()
+            name_run.text = beam_name        
+            name_run.font.name = '맑은 고딕'
+            name_run.font.size = Pt(10)
+            name_run.bold = True
+            name_para.alignment = WD_ALIGN_PARAGRAPH.CENTER # 입력된 값 center alignment
+
+            # (층별)부재가 2개 이상인 경우, table row 늘리기
+            if beam_data.shape[0] > 1:
+                for i in range(int(beam_data.shape[0] - 1)):
+                    beam_table.add_row().cells
+
+            # 벽체 데이터 채우기
+            for idx, row in beam_data.iterrows():
+                data_row = beam_table.rows[3 + idx]
+                # 층이름 채우기
+                story_cell = data_row.cells[0]
+                story_para = story_cell.paragraphs[0]
+                story_run = story_para.add_run()
+                story_run.text = str(row['Story'])        
+                story_run.font.name = '맑은 고딕'
+                story_run.font.size = Pt(9)
+                story_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # # Rebar Type(before) 채우기
+                # type_cell = data_row.cells[1]
+                # type_para = type_cell.paragraphs[0]
+                # type_run = type_para.add_run()
+                # type_run.text = str(row['Rebar Type(before)'])
+                # type_run.font.name = '맑은 고딕'
+                # type_run.font.size = Pt(9)
+                # type_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Rebar(before) 채우기
+                for i in range(1, 4): # 1,2,3번 셀에 차례대로 채우기
+                    before_cell = data_row.cells[i]
+                    before_para = before_cell.paragraphs[0]
+                    before_run = before_para.add_run()
+                    before_run.text = str(row[i])
+                    before_run.font.name = '맑은 고딕'
+                    before_run.font.size = Pt(9)
+                    before_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Rebar Type(after) 채우기
+                    after_cell = data_row.cells[i+4]
+                    after_para = after_cell.paragraphs[0]
+                    after_run = after_para.add_run()
+                    after_run.text = str(row[i+4])
+                    after_run.font.name = '맑은 고딕'
+                    after_run.font.size = Pt(9)
+                    after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    # 보강전과 다른 경우, bold에 빨간색으로 변경
+                    if row[i] != row[i+4]:
+                        after_run.bold = True
+                        after_run.font.color.rgb = RGBColor(255, 0, 0)
+                # DCR(before) 채우기
+                DCR_before_cell = data_row.cells[4]
+                DCR_before_para = DCR_before_cell.paragraphs[0]
+                DCR_before_run = DCR_before_para.add_run()
+                DCR_before_run.text = str(row['Results(before)'])
+                DCR_before_run.font.name = '맑은 고딕'
+                DCR_before_run.font.size = Pt(9)
+                DCR_before_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # DCR(after) 채우기
+                DCR_after_cell = data_row.cells[8]
+                DCR_after_para = DCR_after_cell.paragraphs[0]
+                DCR_after_run = DCR_after_para.add_run()
+                DCR_after_run.text = str(row['Results(after)'])
+                DCR_after_run.font.name = '맑은 고딕'
+                DCR_after_run.font.size = Pt(9)
+                DCR_after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # 보강 후에도 DCR이 1.0 이상인 경우, bold에 빨간색으로 변경
+                if row['Results(after)'] >= 1.0:
+                    DCR_after_run.bold = True
+                    DCR_after_run.font.color.rgb = RGBColor(255, 0, 0)
+
+        # output_path = os.path.dirname('template')
+        # # 결과 저장
+        # document.save(os.path.join(output_path, output_docx))
+
+        # 값,그래프 채우기        
+            
+        # 1번 표에 그래프 넣기
+        # memfile = BytesIO()
+        # memfile2 = BytesIO()
+        # CR_plots.popleft().savefig(memfile)
+        # CR_plots.popleft().savefig(memfile2)
+        
+        # plots_row_x = CR_plots_table.rows[0]
+        # plots_row_y = CR_plots_table.rows[3]
+        # plots_cell_x = plots_row_x.cells[0]
+        # plots_cell_y = plots_row_y.cells[0]
+        # plots_para_x = plots_cell_x.paragraphs[0]
+        # plots_para_y = plots_cell_y.paragraphs[0]
+        # plots_run_x = plots_para_x.add_run()
+        # plots_run_y = plots_para_y.add_run()
+        # plots_run_x.add_picture(memfile, width=Cm(8))
+        # plots_run_y.add_picture(memfile2, width=Cm(8))
+        # plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     
-                    
+#%% G.Column SF (each)
+        
+    def CSF_each_docx(self, CSF_each):
+        
+        # generator -> list       
+        CSF_list = list(CSF_each)
+        # list에서 list of tuples 꺼내기
+        CSF_list = CSF_list[0]
+
+        # 결과를 값과 그래프로 나누기(by data type)
+        # WSF_markers = []
+        # WSF_values = deque()
+        # WSF_plots = deque()
+        # for i in WSF_list:
+        #     if isinstance(i, pd.DataFrame):
+        #         WSF_values.append(i)
+        #     elif isinstance(i, plt.Figure):
+        #         WSF_plots.append(i)
+        #     elif isinstance(i, str):
+        #         WSF_markers.append(i)
+
+        # G.Column SF(DCR) 표 작성        
+        # template의 사용하지 않는 표 지우기
+        self.document.tables[0]._element.getparent().remove(self.document.tables[0]._element)
+        self.document.tables[0]._element.getparent().remove(self.document.tables[0]._element)
+        self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        
+        # template의 3번 표 불러오기
+        CSF_plots_table = self.document.tables[0]
+        
+        # 기둥 개수만큼 template table copy        
+        for i in range(len(CSF_list)-1):
+            # Page Break
+            break_para = self.document.add_paragraph()
+            break_run = break_para.add_run()
+            break_run.add_break(WD_BREAK.PAGE)
+            # table 생성
+            tbl = CSF_plots_table._tbl
+            new_tbl = copy.deepcopy(tbl)
+            para = self.document.add_paragraph()
+            para._p.addnext(new_tbl)
+        
+        # 기둥별로 표 채우기
+        table_count = 0
+        for col in CSF_list:
+            # 연결보 이름, 데이터 불러오기
+            col_name = col[0][0]
+            col_data = col[1]
+            # 연결보 데이터 열 재정렬
+            col_data.reset_index(inplace=True, drop=True)
+            col_data = col_data.loc[:,['Story', 'Rebar Type(before)', 'Rebar Spacing(before)'
+                                         , 'DCR_max(before)', 'Rebar Type(after)'
+                                         , 'Rebar Spacing(after)', 'DCR_max(after)']]
+            
+            # 표 지정
+            col_table = self.document.tables[table_count]
+            table_count += 1
+            
+            # 부재 이름 채우기
+            name_row = col_table.rows[0]
+            name_cell = name_row.cells[0]
+            name_para = name_cell.paragraphs[0]
+            name_run = name_para.add_run()
+            name_run.text = col_name        
+            name_run.font.name = '맑은 고딕'
+            name_run.font.size = Pt(10)
+            name_run.bold = True
+            name_para.alignment = WD_ALIGN_PARAGRAPH.CENTER # 입력된 값 center alignment
+
+            # (층별)부재가 2개 이상인 경우, table row 늘리기
+            if col_data.shape[0] > 1:
+                for i in range(int(col_data.shape[0] - 1)):
+                    col_table.add_row().cells
+
+            # 기둥 데이터 채우기
+            for idx, row in col_data.iterrows():
+                data_row = col_table.rows[3 + idx]
+                # 층이름 채우기
+                story_cell = data_row.cells[0]
+                story_para = story_cell.paragraphs[0]
+                story_run = story_para.add_run()
+                story_run.text = str(row['Story'])        
+                story_run.font.name = '맑은 고딕'
+                story_run.font.size = Pt(9)
+                story_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # # Rebar Type(before) 채우기
+                # type_cell = data_row.cells[1]
+                # type_para = type_cell.paragraphs[0]
+                # type_run = type_para.add_run()
+                # type_run.text = str(row['Rebar Type(before)'])
+                # type_run.font.name = '맑은 고딕'
+                # type_run.font.size = Pt(9)
+                # type_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Rebar(before) 채우기
+                for i in range(1, 3):
+                    before_cell = data_row.cells[i]
+                    before_para = before_cell.paragraphs[0]
+                    before_run = before_para.add_run()
+                    before_run.text = str(row[i])
+                    before_run.font.name = '맑은 고딕'
+                    before_run.font.size = Pt(9)
+                    before_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Rebar Type(after) 채우기
+                    after_cell = data_row.cells[i+3]
+                    after_para = after_cell.paragraphs[0]
+                    after_run = after_para.add_run()
+                    after_run.text = str(row[i+3])
+                    after_run.font.name = '맑은 고딕'
+                    after_run.font.size = Pt(9)
+                    after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    # 보강전과 다른 경우, bold에 빨간색으로 변경
+                    if row[i] != row[i+3]:
+                        after_run.bold = True
+                        after_run.font.color.rgb = RGBColor(255, 0, 0)
+                # DCR(before) 채우기
+                DCR_before_cell = data_row.cells[3]
+                DCR_before_para = DCR_before_cell.paragraphs[0]
+                DCR_before_run = DCR_before_para.add_run()
+                DCR_before_run.text = str(row['DCR_max(before)'])
+                DCR_before_run.font.name = '맑은 고딕'
+                DCR_before_run.font.size = Pt(9)
+                DCR_before_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # DCR(after) 채우기
+                DCR_after_cell = data_row.cells[6]
+                DCR_after_para = DCR_after_cell.paragraphs[0]
+                DCR_after_run = DCR_after_para.add_run()
+                DCR_after_run.text = str(row['DCR_max(after)'])
+                DCR_after_run.font.name = '맑은 고딕'
+                DCR_after_run.font.size = Pt(9)
+                DCR_after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # 보강 후에도 DCR이 1.0 이상인 경우, bold에 빨간색으로 변경
+                if row['DCR_max(after)'] >= 1.0:
+                    DCR_after_run.bold = True
+                    DCR_after_run.font.color.rgb = RGBColor(255, 0, 0)
+
+        # output_path = os.path.dirname('template')
+        # # 결과 저장
+        # document.save(os.path.join(output_path, output_docx))
+
+        # 값,그래프 채우기        
+            
+        # 1번 표에 그래프 넣기
+        # memfile = BytesIO()
+        # memfile2 = BytesIO()
+        # CR_plots.popleft().savefig(memfile)
+        # CR_plots.popleft().savefig(memfile2)
+        
+        # plots_row_x = CR_plots_table.rows[0]
+        # plots_row_y = CR_plots_table.rows[3]
+        # plots_cell_x = plots_row_x.cells[0]
+        # plots_cell_y = plots_row_y.cells[0]
+        # plots_para_x = plots_cell_x.paragraphs[0]
+        # plots_para_y = plots_cell_y.paragraphs[0]
+        # plots_run_x = plots_para_x.add_run()
+        # plots_run_y = plots_para_y.add_run()
+        # plots_run_x.add_picture(memfile, width=Cm(8))
+        # plots_run_y.add_picture(memfile2, width=Cm(8))
+        # plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
 #%% Base_SF
 
     def base_SF_docx_test(self, base_SF):
