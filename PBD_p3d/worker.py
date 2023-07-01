@@ -92,17 +92,22 @@ class ConvertWorker(QObject):
         super().__init__()
 
         self.input_xlsx_path = args[0]
-        self.get_beam = args[1]
-        self.get_column = args[2]
-        self.get_wall = args[3]
-        self.time_start = args[4]
+        self.get_cbeam = args[1]
+        self.get_gbeam = args[2]
+        self.get_ebeam = args[3]
+        self.get_gcol = args[4]
+        self.get_ecol = args[5]
+        self.get_wall = args[6]
+        self.time_start = args[7]
 
     # Properties 변환 function
     def convert_property_fn(self):   
         try:
             # 함수 실행
-            pbd.convert_property(self.input_xlsx_path, get_beam=self.get_beam
-                                 , get_column=self.get_column, get_wall=self.get_wall)      
+            pbd.convert_property(self.input_xlsx_path, get_cbeam=self.get_cbeam
+                                 , get_gbeam=self.get_gbeam, get_ebeam=self.get_ebeam
+                                 , get_gcol=self.get_gcol, get_ecol=self.get_ecol
+                                 , get_wall=self.get_wall)      
             # 실행 시간 계산
             time_end = time.time()
             time_run = (time_end-self.time_start)/60            
@@ -114,7 +119,38 @@ class ConvertWorker(QObject):
             self.finished.emit()
             self.msg.emit('%s' %e)
 
+# Insert Properties Worker 만들기   
+class InsertWorker(QObject):   
+    # Create signals
+    finished = pyqtSignal()
+    msg = pyqtSignal(str)   
+    def __init__(self, *args):
+        super().__init__()
 
+        self.input_xlsx_path = args[0]
+        self.result_xlsx_path = args[1]
+        self.get_gbeam = args[2]
+        self.get_gcol = args[3]
+        self.get_ecol = args[4]
+        self.time_start = args[5]
+
+    # Properties 변환 function
+    def insert_force_fn(self):   
+        try:
+            # 함수 실행
+            pbd.insert_force(self.input_xlsx_path, self.result_xlsx_path
+                             , get_gbeam=self.get_gbeam, get_gcol=self.get_gcol
+                             , get_ecol=self.get_ecol)      
+            # 실행 시간 계산
+            time_end = time.time()
+            time_run = (time_end-self.time_start)/60            
+            # Emit
+            self.finished.emit()
+            self.msg.emit('Completed!' + '  (total time = %0.3f min)' %(time_run))
+            
+        except Exception as e:
+            self.finished.emit()
+            self.msg.emit('%s' %e)
             
 # Print Results Worker 만들기
 class ExportWorker(QObject):               

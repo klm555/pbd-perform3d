@@ -3,14 +3,17 @@ import matplotlib.pyplot as plt
 
 
 # 설계밑면전단력 값 입력
-result_path = r'K:\2105-이형우\성능기반 내진설계\GM4R\Pushover_txt'
-x_result_txt = '105_PO_X.txt'
-y_result_txt = '105_PO_Y2.txt'
-base_SF_design = 14015*0.85 # kN (GEN값 * 0.85)
-pp_DE_x = [1.017e-4, 17390]
-pp_MCE_x = [1.907e-4, 21900]
-pp_DE_y = [.002068, 14130]
-pp_MCE_y = [.002847, 16370]
+# result_path = r'K:\2105-이형우\From Erfan\perform 3D'
+result_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\110'
+x_result_txt = '110D_X.txt'
+y_result_txt = '110D_Y.txt'
+base_SF_design = 10005*0.85 # kN (GEN값 * 0.85)
+# 10005
+
+pp_DE_x = [0.00127, 13720]
+pp_MCE_x = [0.001565, 16280]
+pp_DE_y = [8.979e-4, 18160]
+pp_MCE_y = [0.001109, 21210]
 ###############################################################################
 
 def pushover(result_path, x_result_txt, y_result_txt, base_SF_design=None

@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['PBD_p3d\\data_proc.py', 'modelling_GUI.py', 'post_processing_v1.1.0.py', 'PBD_p3d\\column.py', 'PBD_p3d\\wall.py', 'PBD_p3d\\beam.py', 'PBD_p3d\\output_to_docx.py', "..\\..\\Classes\\Computational Geometry\\Jarvis' March.py", '..\\도형 외곽 추출하기\\corner detection.py', 'PBD_p3d\\system_GUI.py', 'PBD_p3d\\worker.py', 'PBD_p3d\\print_result.py', 'test\\KHSM_Wall_List_Format_Converter.py', '..\\SRT_reservation\\SRT_reservation.py', 'test\\Macro_Define Section_Constraints_v1.1.py', 'test\\Macro_Property Assign_Beam_v1.1.py', 'test\\Macro_Property Assign_Column_v1.1.py', 'test\\Macro_Property Assign_Wall_edited_v1.1.py', 'test\\Column_축력_Input.py']
+recent_files = ['GUI_main.py', 'GUI_runs.py', 'GUI_workers.py', 'PBD_p3d\\data_proc.py', 'PBD_p3d\\worker.py', 'post_processing_v1.2.0.py', 'modelling_v1.0.0.py', 'test\\Column_축력_Input.py', 'PBD_p3d\\output_to_docx.py', 'PBD_p3d\\beam.py', "..\\..\\Classes\\Computational Geometry\\Jarvis' March.py", '..\\도형 외곽 추출하기\\corner detection.py', 'test\\KHSM_Wall_List_Format_Converter.py']
 
 [main]
 version = 0.2.0

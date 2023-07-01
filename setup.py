@@ -22,7 +22,7 @@ if sys.platform == "win32":
 if 'bdist_msi' in sys.argv:
     sys.argv += ['--initial-target-dir', 'C:\PBD with Perform-3D']
     
-exe = [Executable(script="modelling_GUI.py", base=base, icon='./images/icon_earthquake.ico')]
+exe = [Executable(script="GUI_main.py", base=base, icon='./images/icon_earthquake.ico')]
 
 setup(
     name='PBD-p3d',

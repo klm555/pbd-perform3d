@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1093</width>
-    <height>784</height>
+    <height>845</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,14 +19,14 @@
      <x>10</x>
      <y>210</y>
      <width>601</width>
-     <height>491</height>
+     <height>551</height>
     </rect>
    </property>
    <property name="tabShape">
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="documentMode">
     <bool>false</bool>
@@ -448,7 +448,7 @@
        <x>270</x>
        <y>250</y>
        <width>321</width>
-       <height>211</height>
+       <height>271</height>
       </rect>
      </property>
      <property name="title">
@@ -458,7 +458,7 @@
       <property name="geometry">
        <rect>
         <x>120</x>
-        <y>100</y>
+        <y>210</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -471,7 +471,7 @@
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>70</y>
+        <y>150</y>
         <width>121</width>
         <height>16</height>
        </rect>
@@ -480,14 +480,14 @@
        <string>General Columns</string>
       </property>
       <property name="checked">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
      </widget>
      <widget class="QCheckBox" name="convert_cbeam_checkbox">
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>50</y>
+        <y>70</y>
         <width>121</width>
         <height>16</height>
        </rect>
@@ -519,9 +519,9 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>130</y>
+        <y>240</y>
         <width>261</width>
-        <height>61</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="font">
@@ -531,10 +531,7 @@
        </font>
       </property>
       <property name="text">
-       <string>* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것
-* Data Conversion 시트에서 해당하는 기존 입력값을
-  지우고 실행하는 것을 권장함 (입력할 부재의 개수가
-  입력되어있는 부재의 개수보다 적을 시)</string>
+       <string>* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -543,74 +540,512 @@
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
+     <widget class="QCheckBox" name="convert_ecol_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>170</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Elastic Columns</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="convert_gbeam_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>90</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>General Beams</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="convert_ebeam_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>110</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Elastic Beams</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="Line" name="line_10">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>50</y>
+        <width>221</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_11">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>130</y>
+        <width>221</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="tab2">
     <attribute name="title">
-     <string>Macro</string>
+     <string>Modelling</string>
     </attribute>
-    <widget class="QSlider" name="horizontalSlider">
+    <widget class="QLabel" name="test">
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>240</y>
-       <width>160</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QSlider" name="horizontalSlider_2">
-     <property name="geometry">
-      <rect>
-       <x>240</x>
-       <y>280</y>
-       <width>160</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
+       <x>440</x>
        <y>240</y>
        <width>56</width>
        <height>12</height>
       </rect>
      </property>
      <property name="text">
-      <string>Offset</string>
+      <string/>
      </property>
     </widget>
-    <widget class="QLabel" name="label_24">
+    <widget class="QGroupBox" name="groupBox_9">
      <property name="geometry">
       <rect>
-       <x>150</x>
-       <y>280</y>
-       <width>81</width>
-       <height>16</height>
+       <x>10</x>
+       <y>20</y>
+       <width>251</width>
+       <height>401</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Drag Duration</string>
+     <property name="title">
+      <string>Insert Forces (to Data Conversion Sheets)</string>
      </property>
+     <widget class="QPushButton" name="insert_force_btn">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>130</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Insert</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_30">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>231</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>* Analysis Results에 중력하중 해석파일명 
+  입력 후 실행 가능 
+ - Input_G.Beam 
+ - Input_G.Column 
+ - Input_E.Column</string>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="insert_gbeam_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>30</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>General Beams</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="insert_ecol_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>90</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Elastic Columns</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="insert_gcol_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>70</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>General Columns</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="Line" name="line_14">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>50</y>
+        <width>211</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_10">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>20</y>
+       <width>311</width>
+       <height>411</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Macro</string>
+     </property>
+     <widget class="QLineEdit" name="up_right_coord_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>60</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="low_left_coord_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>90</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QSlider" name="offset_slider">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>210</y>
+        <width>160</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>49</number>
+      </property>
+      <property name="sliderPosition">
+       <number>15</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
+      <property name="invertedControls">
+       <bool>false</bool>
+      </property>
+      <property name="tickPosition">
+       <enum>QSlider::TicksBelow</enum>
+      </property>
+      <property name="tickInterval">
+       <number>1</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_34">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>120</y>
+        <width>111</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Lower Right Corner</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_35">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>111</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Upper Left Corner</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_36">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>270</y>
+        <width>31</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>from</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="show_result_btn">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>270</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Start (F2)</string>
+      </property>
+      <property name="shortcut">
+       <string>F2</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="low_right_coord_editbox_2">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>270</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_37">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>90</y>
+        <width>111</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Lower Left Corner</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QSlider" name="drag_duration_slider">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>170</y>
+        <width>160</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>10</number>
+      </property>
+      <property name="value">
+       <number>2</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="tickPosition">
+       <enum>QSlider::TicksBelow</enum>
+      </property>
+      <property name="tickInterval">
+       <number>1</number>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="up_left_coord_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>30</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_38">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>170</y>
+        <width>81</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Drag Duration</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>210</y>
+        <width>56</width>
+        <height>12</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Offset</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="low_right_coord_editbox">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>120</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="show_result_btn_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>310</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Stop (Esc)</string>
+      </property>
+      <property name="shortcut">
+       <string>Esc</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_39">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>111</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Upper Right Corner</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="tab3">
     <attribute name="title">
-     <string>Results</string>
+     <string>Post-processing</string>
     </attribute>
     <widget class="QPushButton" name="print_result_btn">
      <property name="geometry">
       <rect>
        <x>170</x>
-       <y>310</y>
+       <y>330</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -619,17 +1054,17 @@
       <string>Print</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="show_result_btn">
+    <widget class="QPushButton" name="load_result_btn">
      <property name="geometry">
       <rect>
-       <x>80</x>
-       <y>310</y>
+       <x>170</x>
+       <y>260</y>
        <width>75</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string>Show</string>
+      <string>Load Result</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_7">
@@ -779,7 +1214,7 @@
        <x>290</x>
        <y>20</y>
        <width>311</width>
-       <height>391</height>
+       <height>411</height>
       </rect>
      </property>
      <property name="title">
@@ -795,7 +1230,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>C.Beam Rotation (DCR)</string>
+       <string>C.Beam Rotation</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -805,13 +1240,13 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>130</y>
+        <y>150</y>
         <width>181</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>E.Beam Shear Force (DCR)</string>
+       <string>E.Beam Shear Force</string>
       </property>
       <property name="checked">
        <bool>false</bool>
@@ -821,7 +1256,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>210</y>
+        <y>270</y>
         <width>111</width>
         <height>16</height>
        </rect>
@@ -837,13 +1272,13 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>230</y>
+        <y>290</y>
         <width>141</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Wall Rotation (DCR)</string>
+       <string>Wall Rotation</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -853,13 +1288,13 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>250</y>
+        <y>310</y>
         <width>161</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Wall Shear Force (DCR)</string>
+       <string>Wall Shear Force</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -898,7 +1333,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>270</y>
+        <y>330</y>
         <width>221</width>
         <height>16</height>
        </rect>
@@ -946,7 +1381,7 @@
       <property name="geometry">
        <rect>
         <x>210</x>
-        <y>250</y>
+        <y>310</y>
         <width>21</width>
         <height>16</height>
        </rect>
@@ -959,7 +1394,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>150</y>
+        <y>170</y>
         <width>221</width>
         <height>16</height>
        </rect>
@@ -972,7 +1407,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>190</y>
+        <y>250</y>
         <width>221</width>
         <height>16</height>
        </rect>
@@ -985,13 +1420,13 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>170</y>
+        <y>230</y>
         <width>191</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>E.Column Shear Force (DCR)</string>
+       <string>E.Column Shear Force</string>
       </property>
       <property name="checked">
        <bool>false</bool>
@@ -1001,7 +1436,7 @@
       <property name="geometry">
        <rect>
         <x>210</x>
-        <y>230</y>
+        <y>290</y>
         <width>21</width>
         <height>16</height>
        </rect>
@@ -1014,7 +1449,7 @@
       <property name="geometry">
        <rect>
         <x>210</x>
-        <y>210</y>
+        <y>270</y>
         <width>21</width>
         <height>16</height>
        </rect>
@@ -1040,7 +1475,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>290</y>
+        <y>350</y>
         <width>51</width>
         <height>20</height>
        </rect>
@@ -1056,7 +1491,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>320</y>
+        <y>380</y>
         <width>161</width>
         <height>16</height>
        </rect>
@@ -1068,12 +1503,73 @@
        <bool>false</bool>
       </property>
      </widget>
+     <widget class="QCheckBox" name="BSF_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>130</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>C.Beam Shear Force</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="select_elem_BR_btn_2">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>130</y>
+        <width>21</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="CSF_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>210</y>
+        <width>191</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>G.Column Shear Force</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="CR_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>190</y>
+        <width>191</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>G.Column Rotation</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QPushButton" name="print_result_btn_2">
      <property name="geometry">
       <rect>
        <x>450</x>
-       <y>440</y>
+       <y>470</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -1086,7 +1582,7 @@
      <property name="geometry">
       <rect>
        <x>210</x>
-       <y>440</y>
+       <y>470</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -1102,7 +1598,7 @@
      <property name="geometry">
       <rect>
        <x>320</x>
-       <y>440</y>
+       <y>470</y>
        <width>121</width>
        <height>20</height>
       </rect>
@@ -1114,13 +1610,39 @@
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="Line" name="line_8">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>290</y>
+       <width>20</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="line_9">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>260</y>
+       <width>41</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QLabel" name="label_25">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>720</y>
+     <y>790</y>
      <width>581</width>
      <height>20</height>
     </rect>
@@ -1205,7 +1727,7 @@
    <property name="geometry">
     <rect>
      <x>520</x>
-     <y>720</y>
+     <y>790</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -1290,7 +1812,7 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>710</y>
+     <y>780</y>
      <width>151</width>
      <height>16</height>
     </rect>

@@ -9,8 +9,7 @@ import pythoncom
 
 #%% Wall Axial Strain
 
-def AS(input_xlsx_path, result_xlsx_path, max_criteria=0.04
-       , min_criteria=-0.002, yticks=2, AS_gage_group='AS'):
+def WAS(self, max_criteria=0.04, min_criteria=-0.002, yticks=2, WAS_gage_group='AS'):
     ''' 
 
     각각의 벽체의 압축, 인장변형률을 산포도 그래프 형식으로 출력.
@@ -68,53 +67,26 @@ def AS(input_xlsx_path, result_xlsx_path, max_criteria=0.04
     .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.44, 2021
     
     '''
-#%% Analysis Result 불러오기
+#%% Load Data
+    story_info = self.story_info
+    AS_gage_data = self.wall_as_gage_data
+    AS_result_data = self.wall_as_result_data
+    node_data = self.node_data
 
-    to_load_list = result_xlsx_path
-    
-    # Gage data
-    AS_gage_data = pd.read_excel(to_load_list[0], sheet_name='Gage Data - Bar Type'
-                                 , skiprows=[0,2], header=0, usecols=[0,2,7,9])
-    
-    # Gage result data
-    AS_result_data = pd.DataFrame()
-    for i in to_load_list:
-        AS_result_data_temp = pd.read_excel(i, sheet_name='Gage Results - Bar Type'
-                                            , skiprows=[0,2], header=0
-                                            , usecols=[0,2,5,7,8,9])
-        AS_result_data = pd.concat([AS_result_data, AS_result_data_temp])
-    
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
+
     AS_result_data = AS_result_data.sort_values(by= ['Load Case', 'Element Name', 'Step Type']) # 여러개로 나눠돌릴 경우 순서가 섞여있을 수 있어 DE11~MCE72 순으로 정렬
-    
-    # Node Coord data
-    node_data = pd.read_excel(to_load_list[0], sheet_name='Node Coordinate Data'
-                              , skiprows=[0,2], header=0, usecols=[1,2,3,4])
-    
-    # Story Info data
-    story_info_xlsx_sheet = 'Story Data'
-    story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet, skiprows=3, usecols=[0,1,2], keep_default_na=False)
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in AS_result_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
     
 #%% 데이터 매칭 후 결과뽑기
 
     # Group Name에 따라서 데이터 추출
-    AS_result_data = AS_result_data[AS_result_data['Group Name'] == AS_gage_group]
-    AS_gage_data = AS_gage_data[AS_gage_data['Group Name'] == AS_gage_group]
+    AS_result_data = AS_result_data[AS_result_data['Group Name'] == WAS_gage_group]
+    AS_gage_data = AS_gage_data[AS_gage_data['Group Name'] == WAS_gage_group]
 
     # 지진파 이름에 따라서 데이터 추출
     AS_result_data = AS_result_data[AS_result_data['Load Case']\
@@ -338,7 +310,7 @@ def AS(input_xlsx_path, result_xlsx_path, max_criteria=0.04
 
 #%% Shear Wall Rotation (DCR)
 
-def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3):
+def WR(self, input_xlsx_path, DCR_criteria=1, yticks=2, xlim=3):
     '''
     벽체 회전각과 기준에서 계산한 허용기준을 각각의 벽체에 대해 비교하여 DCR 방식으로 산포도 그래프를 출력.
     
@@ -389,77 +361,34 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
     .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
     
     '''    
-#%% Input Sheets 정보 load   
-    story_info = pd.DataFrame()
-    transfer_element_info = pd.DataFrame()
+#%% Load Data
+    # Data Conversion Sheets
+    story_info = self.story_info
+    wall_info = self.wall_info
 
-    input_xlsx_sheet = 'Output_Wall Properties'
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
-    input_data_raw.close()
-
-    story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    transfer_element_info = input_data_sheets[input_xlsx_sheet].iloc[:,0:10]
     story_info = story_info[::-1]
     story_info.reset_index(inplace=True, drop=True)
+    wall_info.reset_index(inplace=True, drop=True)
 
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    transfer_element_info.columns = ['Name', 'Length(mm)', 'Thickness(mm)', 'Concrete Grade', 'Rebar Type', 'V.Rebar Type',\
-                                     'V.Rebar Spacing(mm)', 'V.Rebar EA', 'H.Rebar Type', 'H.Rebar Spacing(mm)']
+    # Analysis Result Sheets
+    node_data = self.node_data
+    element_data = self.wall_data
+    wall_SF_data = self.shear_force_data
+    gage_data = self.wall_rot_gage_data
+    wall_rot_data = self.wall_rot_result_data
 
-    transfer_element_info.reset_index(inplace=True, drop=True)
-
-#%% Analysis Result 불러오기
-
-    to_load_list = result_xlsx_path
-
-    # 전단력 불러오기
-    wall_SF_data = pd.DataFrame()
-    wall_rot_data = pd.DataFrame()
-
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(i)
-        result_data_sheets = pd.read_excel(result_data_raw
-                                           , ['Structure Section Forces', 'Frame Results - End Forces'
-                                              , 'Gage Results - Wall Type', 'Node Coordinate Data'
-                                              , 'Gage Data - Wall Type', 'Element Data - Shear Wall'], skiprows=[0,2])
-        
-        column_name_to_slice_SF = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2', 'FV']
-        column_name_to_slice_rot = ['Group Name', 'Element Name', 'Load Case'
-                                  , 'Step Type', 'Rotation', 'Performance Level']
-        wall_SF_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice_SF]
-        wall_SF_data = pd.concat([wall_SF_data, wall_SF_data_temp])
-        
-        wall_rot_data_temp = result_data_sheets['Gage Results - Wall Type'].loc[:,column_name_to_slice_rot]
-        wall_rot_data = pd.concat([wall_rot_data, wall_rot_data_temp])
-        
-    node_data = result_data_sheets['Node Coordinate Data'].iloc[:,[1,2,3,4]]
-    gage_data = result_data_sheets['Gage Data - Wall Type'].iloc[:,[2,7,9,11,13]] # beam의 양 nodes중 한 node에서의 rotation * 2
-    element_data = result_data_sheets['Element Data - Shear Wall'].iloc[:,[2,5,7,9,11,13]] # beam의 양 nodes중 한 node에서의 rotation * 2
-
-    wall_SF_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)', 'V(kN)']
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
 
     # 필요없는 전단력 제거(층전단력)
-    wall_SF_data = wall_SF_data[wall_SF_data['Name'].str.count('_') == 2] # underbar가 두개 들어간 행만 선택
-        
+    wall_SF_data = wall_SF_data[wall_SF_data['Name'].str.count('_') == 2] # underbar가 두개 들어간 행만 선택        
     wall_SF_data.reset_index(inplace=True, drop=True)
 
 ########### wall_SF와 동일 #####################################################
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in wall_SF_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x]
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-
 #%% 중력하중에 대한 전단력 데이터 grouping
 
     shear_force_H1_G_data_grouped = pd.DataFrame()
@@ -587,7 +516,7 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
     SF_output['0.2_G_MCE_H1'] = shear_force_H1_G_max
     SF_output['0.2_G_MCE_H2'] = shear_force_H2_G_max
        
-    SF_output = pd.merge(SF_output, transfer_element_info, how='left')
+    SF_output = pd.merge(SF_output, wall_info, how='left')
 
     SF_output = SF_output.iloc[:,[0,10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9]] # SF_output 재정렬
     
@@ -639,63 +568,6 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
     
     gage_data = gage_data.drop_duplicates()
     node_data = node_data.drop_duplicates()
-    
-#     wall_rot_data = pd.merge(wall_rot_data, gage_data, how='left')
-#     wall_rot_data = pd.merge(wall_rot_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
-#     wall_rot_data = pd.merge(wall_rot_data, node_data, how='left', left_on='J-Node ID', right_on='Node ID')
-#     wall_rot_data = pd.merge(wall_rot_data, node_data, how='left', left_on='K-Node ID', right_on='Node ID')
-#     wall_rot_data = pd.merge(wall_rot_data, node_data, how='left', left_on='L-Node ID', right_on='Node ID')
-
-#     wall_rot_data = wall_rot_data.iloc[:, np.r_[0:9, 10:13, 14:17, 18:21, 22:25]]
-        
-#     wall_rot_data.columns.values[9] = 'X(I-node)'
-#     wall_rot_data.columns.values[10] = 'Y(I-node)'
-#     wall_rot_data.columns.values[11] = 'Z(I-node)'
-#     wall_rot_data.columns.values[12] = 'X(J-node)'
-#     wall_rot_data.columns.values[13] = 'Y(J-node)'
-#     wall_rot_data.columns.values[14] = 'Z(J-node)'
-#     wall_rot_data.columns.values[15] = 'X(K-node)'
-#     wall_rot_data.columns.values[16] = 'Y(K-node)'
-#     wall_rot_data.columns.values[17] = 'Z(K-node)'
-#     wall_rot_data.columns.values[18] = 'X(L-node)'
-#     wall_rot_data.columns.values[19] = 'Y(L-node)'
-#     wall_rot_data.columns.values[20] = 'Z(L-node)'
-
-#     wall_rot_data.reset_index(inplace=True, drop=True)
-    
-# #%% Element Data에 Node정보 매칭
-
-#     element_data = element_data.drop_duplicates()
-    
-#     element_data = pd.merge(element_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
-#     element_data = pd.merge(element_data, node_data, how='left', left_on='J-Node ID', right_on='Node ID')
-#     element_data = pd.merge(element_data, node_data, how='left', left_on='K-Node ID', right_on='Node ID')
-#     element_data = pd.merge(element_data, node_data, how='left', left_on='L-Node ID', right_on='Node ID')
-
-#     element_data = element_data.iloc[:, np.r_[0:6, 7:10, 11:14, 15:18, 19:22]]
-    
-#     element_data.columns = ['Element Name', 'Property Name', 'I-Node ID', 'J-Node ID'\
-#                             , 'K-Node ID', 'L-Node ID', 'X(I-node)', 'Y(I-node)', 'Z(I-node)'\
-#                             , 'X(J-node)', 'Y(J-node)', 'Z(J-node)', 'X(K-node)', 'Y(K-node)'\
-#                             , 'Z(K-node)', 'X(L-node)', 'Y(L-node)', 'Z(L-node)']
-
-#%% 지진파 이름 list 만들기
-
-    load_name_list = []
-    for i in wall_rot_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-    
-    #%% 데이터 매칭 후 결과뽑기
 
     ### Gage data에서 Element Name, I-Node ID 불러와서 v좌표 match하기
     gage_num = len(gage_data) # gage 개수 얻기
@@ -830,17 +702,6 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
     
     SWR_criteria = pd.concat([deformation_cap['Name'], deformation_cap_DE, deformation_cap_MCE], axis = 1, ignore_index=True)
     SWR_criteria.columns = ['Name', 'DE criteria', 'MCE criteria']
-        
-    #### OLD VERSION ####    
-    # 이전 버전의 네이밍에 맞게 merge하는 방법
-
-    # new_name = []
-    # for i in SWR_criteria['Name']:
-    #     if i.count('_') == 2:
-    #         new_name.append(i.split('_')[0] + '_' + i.split('_')[2])
-    
-    # SWR_criteria['Name'] = new_name    
-    # #####################
     
     ### SWR avg total에 SWR criteria join(wall name 기준)
     SWR_avg_total = pd.merge(SWR_avg_total, SWR_criteria, how='left'\
@@ -853,7 +714,8 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
     SWR_avg_total['DCR_MCE_max'] = SWR_avg_total['MCE_max_avg']/SWR_avg_total['MCE criteria']
     
     #%% ***조작용 코드
-    # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total.iloc[:,2] < -0.0038) | (SWR_avg_total.iloc[:,1] > 0.0038)].index) # DE
+    # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total['DCR_DE_min'] > 0.6) | (SWR_avg_total['DCR_DE_max'] > 0.6)].index) # DE
+    # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total['DCR_MCE_min'] > 0.6) | (SWR_avg_total['DCR_MCE_max'] > 0.6)].index) # DE
     # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total.iloc[:,4] < -0.0035) | (SWR_avg_total.iloc[:,3] > 0.0035)].index) # MCE
     
     #%% 그래프
@@ -921,7 +783,7 @@ def SWR_DCR(input_xlsx_path, result_xlsx_path, DCR_criteria=1, yticks=2, xlim=3)
 #%% Wall_SF
 # 오류없는 또는 정확한 결과를 위해서는 MCE11, MCE12와 같이 짝이되는 지진파가 함께 있어야 함.
 
-def wall_SF(input_xlsx_path, result_xlsx_path, graph=True, DCR_criteria=1, yticks=2, xlim=3): 
+def WSF(self, input_xlsx_path, graph=True, DCR_criteria=1, yticks=2, xlim=3): 
     ''' 
 
     Perform-3D 해석 결과에서 벽체의 축력, 전단력(DE, MCE)을 불러와 Data Conversion 엑셀파일의 Results_Wall 시트를 작성하고, 벽체 전단력 DCR 그래프를 출력(optional). \n
@@ -980,63 +842,32 @@ def wall_SF(input_xlsx_path, result_xlsx_path, graph=True, DCR_criteria=1, ytick
     .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
     
     '''
-#%% Input Sheet 정보 load
-        
-    story_info = pd.DataFrame()
-    transfer_element_info = pd.DataFrame()
+#%% Load Data
+    # Data Conversion Sheets
+    story_info = self.story_info
+    wall_info = self.wall_info
 
-    input_xlsx_sheet = 'Output_Wall Properties'
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
-    input_data_raw.close()
-
-    story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    transfer_element_info = input_data_sheets[input_xlsx_sheet].iloc[:,0:10]
     story_info = story_info[::-1]
     story_info.reset_index(inplace=True, drop=True)
+    wall_info.reset_index(inplace=True, drop=True)
 
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    transfer_element_info.columns = ['Name', 'Length(mm)', 'Thickness(mm)', 'Concrete Grade', 'Rebar Type', 'V.Rebar Type',\
-                                     'V.Rebar Spacing(mm)', 'V.Rebar EA', 'H.Rebar Type', 'H.Rebar Spacing(mm)']
+    # Analysis Result Sheets
+    node_data = self.node_data
+    element_data = self.wall_data
+    wall_SF_data = self.shear_force_data
+    gage_data = self.wall_rot_gage_data
+    wall_rot_data = self.wall_rot_result_data
 
-    transfer_element_info.reset_index(inplace=True, drop=True)
-
-#%% Analysis Result 불러오기
-
-    to_load_list = result_xlsx_path
-
-    # 전단력 불러오기
-    wall_SF_data = pd.DataFrame()
-
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(i)
-        result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces', 'Frame Results - End Forces'], skiprows=[0,2])
-        
-        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2', 'FV']
-        wall_SF_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
-        wall_SF_data = pd.concat([wall_SF_data, wall_SF_data_temp])
-
-    wall_SF_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)', 'V(kN)']
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
 
     # 필요없는 전단력 제거(층전단력)
-    wall_SF_data = wall_SF_data[wall_SF_data['Name'].str.count('_') == 2] # underbar가 두개 들어간 행만 선택
-        
+    wall_SF_data = wall_SF_data[wall_SF_data['Name'].str.count('_') == 2] # underbar가 두개 들어간 행만 선택        
     wall_SF_data.reset_index(inplace=True, drop=True)
-
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in wall_SF_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x]
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
 
 #%% 중력하중에 대한 전단력 데이터 grouping
 
@@ -1165,7 +996,7 @@ def wall_SF(input_xlsx_path, result_xlsx_path, graph=True, DCR_criteria=1, ytick
     SF_output['0.2_G_MCE_H1'] = shear_force_H1_G_max
     SF_output['0.2_G_MCE_H2'] = shear_force_H2_G_max
        
-    SF_output = pd.merge(SF_output, transfer_element_info, how='left')
+    SF_output = pd.merge(SF_output, wall_info, how='left')
 
     SF_output = SF_output.iloc[:,[0,10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9]] # SF_output 재정렬
     
@@ -1202,13 +1033,9 @@ def wall_SF(input_xlsx_path, result_xlsx_path, graph=True, DCR_criteria=1, ytick
     # excel.Quit() # Closing the application 
 
 #%% 그래프 process
-
     if graph == True:
-
         # Wall 정보 load
-        # wall_result_wb = openpyxl.load_workbook(input_xlsx_path)
-        wall_result = pd.read_excel(input_xlsx_path,
-                              sheet_name='Results_Wall', skiprows=3, header=0)
+        wall_result = pd.read_excel(input_xlsx_path, sheet_name='Results_Wall', skiprows=3)
         
         wall_result = wall_result.iloc[:, [0,29,31,33,35]]
         wall_result.columns = ['Name', 'DE_H1', 'DE_H2', 'MCE_H1', 'MCE_H2']
@@ -1235,8 +1062,7 @@ def wall_SF(input_xlsx_path, result_xlsx_path, graph=True, DCR_criteria=1, ytick
         wall_result_output = pd.merge(wall_result, story_info.iloc[:,[1,2]], how='left')
         
 #%% 그래프
-        count = 1
-        
+        count = 1        
         ### H1 DE 그래프 ###
         if len(DE_load_name_list) != 0:
         
@@ -2131,6 +1957,130 @@ def WSF_each(input_xlsx_path, retrofit_sheet=None):
     
     yield wall_output_list
 
-#%% 벽체별 Shear Force Plot
+#%% Wall SF (elementwise) - HMW
 
-    # wall_output_list
+def WSF_each_HMW(input_xlsx_path, retrofit_xlsx_path, retrofit_sheet=None): 
+    ''' 
+
+    완성된 Results_Wall 시트에서 보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n
+    
+       
+    세로 생성되는 Results_Wall_보강 시트에 보강 결과 출력 (철근 type 변경, 해결 안될 시 spacing은 10mm 간격으로 down)
+    
+    Parameters
+    ----------
+    input_path : str
+                 Data Conversion 엑셀 파일의 경로.
+                 
+    input_xlsx : str
+                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+
+    Yields
+    -------
+    Min, Max값 모두 출력됨. 
+    
+    fig1 : matplotlib.pyplot.figure or None
+           DE(설계지진) 발생 시 벽체 회전각 DCR 그래프                                      
+    
+    Raises
+    -------
+    
+    References
+    -------
+    .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
+    
+    '''
+#%% CREATE RETROFIT SHEETS
+    
+    retrofit_wall_data = pd.read_excel(retrofit_xlsx_path, sheet_name='BatchWall_BW_added', usecols=[0,2,3,4,6,7])
+    retrofit_wall_data.columns=['Story', 'Thickness', 'V.Bar', 'V.Space(mm)', 'H.Bar', 'H.Space(mm)']
+    
+    # Drop(delete) unnecessary rows
+    retrofit_wall_data = retrofit_wall_data.drop(retrofit_wall_data[(retrofit_wall_data['Story'].isnull()) # row which has 'nan' in [Story] column
+                                                 | (retrofit_wall_data['Story'] == 'Story')].index) # row which has 'Story' in [Story] column
+    retrofit_wall_data.reset_index(inplace=True, drop=True)
+    
+    # Create [Name] column(w/ empty cells)
+    retrofit_wall_data['Name'] = ''
+    
+    # Fill in [Name] column
+    retrofit_wall_name = deque() # create empty deque
+    
+    # Iterrate rows of wall_data
+    for idx, row in retrofit_wall_data.iterrows():
+        if pd.isnull(row['Thickness']):
+            retrofit_wall_name.append(row['Story'])
+            # 빈칸 열 만들기
+            row['Story'] = np.nan
+            row['Name'] = np.nan
+        else:
+            if len(retrofit_wall_name) == 1:
+                row['Name'] = retrofit_wall_name[0]
+                name_to_copy = retrofit_wall_name[0]
+                retrofit_wall_name.pop()
+                
+            else: row['Name'] = name_to_copy
+    
+    retrofit_wall_data = retrofit_wall_data.dropna(how='all', axis=0)
+    retrofit_wall_data['Name'] = retrofit_wall_data['Name'] + '_1_' + retrofit_wall_data['Story']
+    
+    # Change the order of columns
+    retrofit_wall_data = retrofit_wall_data.iloc[:,[6,4,5]]
+    
+    # (optional) Wall name list (Use wherever you want)
+    # wall_name = pd.Series([i for i in wall_data['Name'] if str(i) != 'nan' if i != ''])
+    
+    input_wall_name = pd.read_excel(input_xlsx_path, sheet_name='Results_Wall', skiprows=[0,2,3], usecols=[0])
+    input_wall_data = pd.merge(input_wall_name, retrofit_wall_data, how='left')
+    
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
+    
+    wb = excel.Workbooks.Open(input_xlsx_path)
+    ws = wb.Sheets(retrofit_sheet)
+    
+    startrow, startcol = 5, 9    
+    ws.Range(ws.Cells(startrow, startcol),\
+              ws.Cells(startrow+input_wall_data.shape[0]-1, startcol+1)).Value\
+    = list(input_wall_data.iloc[:,[1,2]].itertuples(index=False, name=None))
+    
+    wb.Save()
+
+#%% Input Sheet
+        
+    # Input Sheets 불러오기
+    input_xlsx_sheet = 'Results_Wall'
+    input_data_raw = pd.ExcelFile(input_xlsx_path)
+    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, retrofit_sheet], skiprows=3
+                                 , usecols=[0,8,9,29,31,33,35,36])
+    input_data_raw.close()
+    
+    wall_before = input_data_sheets[input_xlsx_sheet]
+    wall_after = input_data_sheets[retrofit_sheet]
+
+    wall_before.columns = ['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)', 'Results(before)']
+    wall_after.columns = ['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)', 'Results(after)']
+    
+#%% 보강 전,후 Wall dataframe 정리
+
+    # 4개의 DCR 열에서 max값을 추출한 열 만들기
+    wall_before['DCR_max(before)'] = wall_before[['DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)']].max(axis=1)
+    wall_after['DCR_max(after)'] = wall_after[['DE(H1)', 'DE(H2)', 'MCE(H1)', 'MCE(H2)']].max(axis=1)
+
+    # DCR 열 반올림하기(소수점 5자리까지)
+    wall_before['DCR_max(before)'] = wall_before['DCR_max(before)'].round(5)
+    wall_after['DCR_max(after)'] = wall_after['DCR_max(after)'].round(5)
+
+    # 필요한 열만 추출
+    wall_output = pd.merge(wall_before[['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'DCR_max(before)']]
+                           , wall_after[['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'DCR_max(after)']], how='left')
+
+    # 이름 분리(벽체 이름, 번호, 층)
+    wall_output['Property Name'] = wall_output['Name'].str.split('_', expand=True)[0]
+    wall_output['Number'] = wall_output['Name'].str.split('_', expand=True)[1]
+    wall_output['Story'] = wall_output['Name'].str.split('_', expand=True)[2]
+
+    # 벽체 이름과 번호(W1_1)이 같은 부재들끼리 groupby로 묶고, list of dataframes 생성
+    wall_output_list = list(wall_output.groupby(['Property Name', 'Number'], sort=False))
+    
+    yield wall_output_list

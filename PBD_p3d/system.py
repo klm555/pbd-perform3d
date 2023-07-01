@@ -9,7 +9,7 @@ from collections import deque
 
 #%% Base SF
 
-def base_SF(result_xlsx_path, ylim=70000):
+def base_SF(self, ylim=70000):
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)
@@ -28,41 +28,19 @@ def base_SF(result_xlsx_path, ylim=70000):
     Returns
     -------
     '''
-#%% Analysis Result 불러오기
-    to_load_list = result_xlsx_path
-    
-    # 전단력 불러오기
-    shear_force_data = pd.DataFrame()
-    
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(i)
-        result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces'], skiprows=[0,2])
-        
-        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2']
-        shear_force_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
-        shear_force_data = pd.concat([shear_force_data, shear_force_data_temp])
-        
-    shear_force_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)']
+#%% Load Data
+    # Shear Force
+    shear_force_data = self.shear_force_data
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
     
     # Base 전단력 추출
-    shear_force_data = shear_force_data[shear_force_data['Name'].str.contains('base', case=False)]
-      
+    shear_force_data = shear_force_data[shear_force_data['Name'].str.contains('base', case=False)]      
     shear_force_data.reset_index(inplace=True, drop=True)
-    
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in shear_force_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
     
 #%% 데이터 Grouping
     shear_force_H1_data_grouped = pd.DataFrame()
@@ -129,9 +107,7 @@ def base_SF(result_xlsx_path, ylim=70000):
         
         base_SF_avg_DE_x = Decimal(str(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()))\
               .quantize(Decimal('.01'), rounding=ROUND_UP)
-        yield base_SF_avg_DE_x
-        
-        
+        yield base_SF_avg_DE_x       
         
         # H2_DE
         fig2 = plt.figure(count, dpi=150)
@@ -220,7 +196,7 @@ def base_SF(result_xlsx_path, ylim=70000):
 
 #%% Story SF
 
-def story_SF(input_xlsx_path, result_xlsx_path, yticks=2, xlim=70000):
+def story_SF(self, yticks=2, xlim=70000):
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 각 층의 전단력을 그래프로 출력(kN).
@@ -248,44 +224,23 @@ def story_SF(input_xlsx_path, result_xlsx_path, yticks=2, xlim=70000):
     Returns
     -------
     '''    
-#%% Analysis Result 불러오기
+#%% Load Data
+    shear_force_data = self.shear_force_data
+    story_info = self.story_info
 
-    to_load_list = result_xlsx_path
-    
-    # 전단력 불러오기
-    shear_force_data = pd.DataFrame()
-    
-    for i in to_load_list:
-        shear_force_data_temp = pd.read_excel(i, sheet_name='Structure Section Forces'
-                                              , skiprows=2, usecols=[0,3,5,6,7])
-        shear_force_data = pd.concat([shear_force_data, shear_force_data_temp])
-        
-    shear_force_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)']
-    
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
+
+#%% Process Data   
     # 필요없는 전단력 제거(층전단력)
     shear_force_data = shear_force_data[shear_force_data['Name'].str.count('_') != 2] # underbar가 두개 들어간 행들은 제거
-      
-    shear_force_data.reset_index(inplace=True, drop=True)
-    
     # _shear 제거
-    shear_force_data['Name'] = shear_force_data['Name'].str.rstrip('_Shear')
-    
-#%% 부재명, H1, H2 값 뽑기
-    
-    # 지진파 이름 list 만들기
-    load_name_list = []
-    for i in shear_force_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
+    shear_force_data['Name'] = shear_force_data['Name'].str.replace('_Shear', '') 
+    shear_force_data.reset_index(inplace=True, drop=True)  
     
 #%% 데이터 Grouping
     shear_force_H1_data_grouped = pd.DataFrame()
@@ -318,14 +273,6 @@ def story_SF(input_xlsx_path, result_xlsx_path, yticks=2, xlim=70000):
     
     shear_force_H1_max.index = shear_force_data['Name'].drop_duplicates()
     shear_force_H2_max.index = shear_force_data['Name'].drop_duplicates()
-    
-#%% Story 정보 load
-    
-    # Story 정보에서 층이름만 뽑아내기
-    story_info_xlsx_sheet = 'Story Data'
-    story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet, skiprows=3, usecols=[0, 1, 2], keep_default_na=False)
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    story_name = story_info.loc[:, 'Story Name']
 
 #%% Story Shear 그래프 그리기
 
@@ -462,7 +409,7 @@ def story_SF(input_xlsx_path, result_xlsx_path, yticks=2, xlim=70000):
         yield 'MCE'
 
 #%% IDR
-def IDR(input_xlsx_path, result_xlsx_path, cri_DE=0.015, cri_MCE=0.02, yticks=2):   
+def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):   
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 층간변위비를 그래프로 출력.  
@@ -512,33 +459,25 @@ def IDR(input_xlsx_path, result_xlsx_path, cri_DE=0.015, cri_MCE=0.02, yticks=2)
     [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.103, 2021
     
     '''    
-#%% Analysis Result 불러오기
-    to_load_list = result_xlsx_path
+#%% Load Data
+    drift_data = self.drift_data
+    story_info = self.story_info
+
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
     
-    # Gage data
-    IDR_result_data = pd.DataFrame()
-    for i in to_load_list:
-        IDR_result_data_temp = pd.read_excel(i, sheet_name='Drift Output'
-                                             , skiprows=[0, 2], header=0
-                                             , usecols=[0, 1, 3, 5, 6]) # usecols로 원하는 열만 불러오기
-        IDR_result_data = pd.concat([IDR_result_data, IDR_result_data_temp])        
-    
-    IDR_result_data = IDR_result_data.sort_values(by=['Load Case', 'Drift ID', 'Step Type']) # 지진파 순서가 섞여있을 때 sort
-    
-    # Story Info data
-    story_info_xlsx_sheet = 'Story Data'
-    story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet, skiprows=3, usecols=[0, 1, 2], keep_default_na=False)
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    story_name = story_info.loc[:, 'Story Name']
-    
-#%% Drift Name에서 story, direction 뽑아내기
-    drift_name = IDR_result_data['Drift Name']
-    
+#%% Process Data
+
+    #  Drift Name에서 story, direction 뽑아내기    
     story = []
     direction = []
     position = []
-    for i in drift_name:
-        i = i.strip()  # drift_name 앞뒤에 있는 blank 제거
+    for i in drift_data['Drift Name']:
+        i = i.strip()  # drift name 앞뒤에 있는 blank 제거
     
         if i.count('_') == 2:
             story.append(i.split('_')[0])
@@ -547,53 +486,43 @@ def IDR(input_xlsx_path, result_xlsx_path, cri_DE=0.015, cri_MCE=0.02, yticks=2)
         else:
             story.append(None)
             direction.append(None)
-    
-    # Load Case에서 지진파 이름만 뽑아서 다시 naming
-    load_striped = []        
-    for i in IDR_result_data['Load Case']:
-        load_striped.append(i.strip().split(' ')[-1])
-        
-    IDR_result_data['Load Case'] = load_striped
-        
-    
-    IDR_result_data.reset_index(inplace=True, drop=True)
-    IDR_result_data = pd.concat([pd.Series(story, name='Name'),\
+            
+    # 지진파 순서가 섞여있을 때 sort
+    drift_data = drift_data.sort_values(by=['Load Case', 'Drift ID', 'Step Type']) 
+    drift_data.reset_index(inplace=True, drop=True)
+    drift_data = pd.concat([pd.Series(story, name='Name'),\
                                  pd.Series(direction, name='Direction'),\
-                                 pd.Series(position, name='Position'), IDR_result_data], axis=1)
+                                 pd.Series(position, name='Position'), drift_data], axis=1)
         
-#%% 지진파 이름 자동 생성
-
-    load_name_list = IDR_result_data['Load Case'].drop_duplicates()
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
+    # Load Case에서 지진파 이름만 뽑아서 다시 naming
+    load_striped = []      
+    for i in drift_data['Load Case']:
+        load_striped.append(i.strip().split(' ')[-1])        
+    drift_data['Load Case'] = load_striped
 
 #%% IDR값(방향에 따른)
     ### 지진파별 평균
     
     # 각 지진파들로 변수 생성 후, 값 대입
     for load_name in seismic_load_name_list:
-        globals()['IDR_x_max_{}_avg'.format(load_name)] = IDR_result_data[(IDR_result_data['Load Case'] == '{}'.format(load_name)) &\
-                                                                      (IDR_result_data['Direction'] == 'X') &\
-                                                                      (IDR_result_data['Step Type'] == 'Max')].groupby(['Name', 'Position'])['Drift']\
+        globals()['IDR_x_max_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
+                                                                      (drift_data['Direction'] == 'X') &\
+                                                                      (drift_data['Step Type'] == 'Max')].groupby(['Name', 'Position'])['Drift']\
                                                                       .agg(**{'X Max avg':'mean'}).groupby('Name').max()
         
-        globals()['IDR_x_min_{}_avg'.format(load_name)] = IDR_result_data[(IDR_result_data['Load Case'] == '{}'.format(load_name)) &\
-                                                                      (IDR_result_data['Direction'] == 'X') &\
-                                                                      (IDR_result_data['Step Type'] == 'Min')].groupby(['Name'])['Drift']\
+        globals()['IDR_x_min_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
+                                                                      (drift_data['Direction'] == 'X') &\
+                                                                      (drift_data['Step Type'] == 'Min')].groupby(['Name'])['Drift']\
                                                                       .agg(**{'X Min avg':'mean'}).groupby('Name').min()
             
-        globals()['IDR_y_max_{}_avg'.format(load_name)] = IDR_result_data[(IDR_result_data['Load Case'] == '{}'.format(load_name)) &\
-                                                                      (IDR_result_data['Direction'] == 'Y') &\
-                                                                      (IDR_result_data['Step Type'] == 'Max')].groupby(['Name'])['Drift']\
+        globals()['IDR_y_max_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
+                                                                      (drift_data['Direction'] == 'Y') &\
+                                                                      (drift_data['Step Type'] == 'Max')].groupby(['Name'])['Drift']\
                                                                       .agg(**{'Y Max avg':'mean'}).groupby('Name').max()
         
-        globals()['IDR_y_min_{}_avg'.format(load_name)] = IDR_result_data[(IDR_result_data['Load Case'] == '{}'.format(load_name)) &\
-                                                                      (IDR_result_data['Direction'] == 'Y') &\
-                                                                      (IDR_result_data['Step Type'] == 'Min')].groupby(['Name'])['Drift']\
+        globals()['IDR_y_min_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
+                                                                      (drift_data['Direction'] == 'Y') &\
+                                                                      (drift_data['Step Type'] == 'Min')].groupby(['Name'])['Drift']\
                                                                       .agg(**{'Y Min avg':'mean'}).groupby('Name').min()
             
         globals()['IDR_x_max_{}_avg'.format(load_name)].reset_index(inplace=True)
@@ -602,7 +531,8 @@ def IDR(input_xlsx_path, result_xlsx_path, cri_DE=0.015, cri_MCE=0.02, yticks=2)
         globals()['IDR_y_min_{}_avg'.format(load_name)].reset_index(inplace=True)
         
     # Story 정렬하기
-    story_name_window = IDR_result_data['Name'].drop_duplicates()
+    story_name = story_info.loc[:, 'Story Name']
+    story_name_window = drift_data['Name'].drop_duplicates()
     story_name_window_reordered = [x for x in story_name[::-1].tolist() \
                                     if x in story_name_window.tolist()]  # story name를 reference로 해서 정렬
     
@@ -899,9 +829,9 @@ def Pushover(result_xlsx_path, x_result_txt, y_result_txt, base_SF_design=None, 
     print(max(data_X['Base Shear']), design_base_shear_x, max(data_X['Base Shear'])/design_base_shear_x)
     print(max(data_Y['Base Shear']), design_base_shear_y, max(data_Y['Base Shear'])/design_base_shear_y)
     
-#%% Base SF
+#%% Base SF_test
 
-def base_SF_test(result_xlsx_path, ylim=70000):
+def base_SF_pkl_test(result_xlsx_path, ylim=70000):
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)

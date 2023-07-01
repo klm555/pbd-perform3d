@@ -38,6 +38,10 @@ class OutputDocx():
             self.document = docx.Document("template/report_template.docx")
         elif result_type == 'each':
             self.document = docx.Document("template/appendix_template.docx")
+        elif result_type == 'beam_plastic_hinge':
+            self.document = docx.Document("template/beam_plastic_hinge_template.docx")
+        elif result_type == 'column_plastic_hinge':
+            self.document = docx.Document("template/column_plastic_hinge_template.docx")
         
         # 동 이름 replace(paragraph level)
         for paragraph in self.document.paragraphs:
@@ -912,7 +916,7 @@ class OutputDocx():
 
 #%% Wall_SF (each)
         
-    def WSF_each_docx(self, WSF_each):
+    def WSF_each_docx(self, WSF_each, DCR=1.0):
         
         # generator -> list       
         WSF_list = list(WSF_each)
@@ -1044,7 +1048,7 @@ class OutputDocx():
                 DCR_after_run.font.size = Pt(9)
                 DCR_after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 # 보강 후에도 DCR이 1.0 이상인 경우, bold에 빨간색으로 변경
-                if row['DCR_max(after)'] >= 1.0:
+                if row['DCR_max(after)'] >= DCR:
                     DCR_after_run.bold = True
                     DCR_after_run.font.color.rgb = RGBColor(255, 0, 0)
 
@@ -1075,7 +1079,7 @@ class OutputDocx():
 
 #%% C.Beam SF (each)
         
-    def BSF_each_docx(self, BSF_each):
+    def BSF_each_docx(self, BSF_each, DCR=1.0):
         
         # generator -> list       
         BSF_list = list(BSF_each)
@@ -1205,7 +1209,7 @@ class OutputDocx():
                 DCR_after_run.font.size = Pt(9)
                 DCR_after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 # 보강 후에도 DCR이 1.0 이상인 경우, bold에 빨간색으로 변경
-                if row['Results(after)'] >= 1.0:
+                if row['Results(after)'] >= DCR:
                     DCR_after_run.bold = True
                     DCR_after_run.font.color.rgb = RGBColor(255, 0, 0)
 
@@ -1236,7 +1240,7 @@ class OutputDocx():
                     
 #%% G.Column SF (each)
         
-    def CSF_each_docx(self, CSF_each):
+    def CSF_each_docx(self, CSF_each, DCR=1.0):
         
         # generator -> list       
         CSF_list = list(CSF_each)
@@ -1366,7 +1370,7 @@ class OutputDocx():
                 DCR_after_run.font.size = Pt(9)
                 DCR_after_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 # 보강 후에도 DCR이 1.0 이상인 경우, bold에 빨간색으로 변경
-                if row['DCR_max(after)'] >= 1.0:
+                if row['DCR_max(after)'] >= DCR:
                     DCR_after_run.bold = True
                     DCR_after_run.font.color.rgb = RGBColor(255, 0, 0)
 
@@ -1394,6 +1398,162 @@ class OutputDocx():
         # plots_run_y.add_picture(memfile2, width=Cm(8))
         # plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
         # plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+#%% Plastic Hinge (each)
+        
+    def p_hinge_docx(self, p_hinge, element_type):
+        
+        # generator -> list       
+        # p_hinge_list = list(p_hinge)
+        # list에서 list of tuples 꺼내기
+        # if element_type == 'beam':
+        #     p_hinge_list = p_hinge[0]
+        # elif element_type == 'column':
+        #     p_hinge_list = p_hinge[1]
+        p_hinge_list = p_hinge
+
+        # 결과를 값과 그래프로 나누기(by data type)
+        # WSF_values = deque()
+        # WSF_plots = deque()
+        # for i in WSF_list:
+        #     if isinstance(i, pd.DataFrame):
+        #         WSF_values.append(i)
+        #     elif isinstance(i, plt.Figure):
+        #         WSF_plots.append(i)
+        #     elif isinstance(i, str):
+        #         WSF_markers.append(i)
+
+        # C.Beam SF(DCR) 표 작성        
+        # template의 사용하지 않는 표 지우기
+        # self.document.tables[0]._element.getparent().remove(self.document.tables[0]._element)
+        # self.document.tables[1]._element.getparent().remove(self.document.tables[1]._element)
+        # self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        # self.document.paragraphs[3]._element.getparent().remove(self.document.paragraphs[3]._element)
+        # template의 1번 표 불러오기
+        p_hinge_plots_table = self.document.tables[0]
+        
+        # 부재 개수만큼 template table copy        
+        for i in range(len(p_hinge_list)-1):
+            # Page Break
+            break_para = self.document.add_paragraph()
+            break_run = break_para.add_run()
+            break_run.add_break(WD_BREAK.PAGE)
+            # table 생성
+            tbl = p_hinge_plots_table._tbl
+            new_tbl = copy.deepcopy(tbl)
+            para = self.document.add_paragraph()
+            para._p.addnext(new_tbl)
+        
+        # 벽체별로 표 채우기
+        table_count = 0
+        for elem in p_hinge_list:
+            # 연결보 이름, 데이터 불러오기
+            elem_name = elem[0][0]
+            elem_data = elem[1]
+            # 연결보 데이터 열 재정렬
+            elem_data.reset_index(inplace=True, drop=True)
+            if element_type == 'beam':
+                # elem_data = elem_data.loc[:,['Story', 'Geometry', 'Top Bar', 'Bot Bar'
+                #                              , 'Stirrup', 'Plastic Rotational Capacity'
+                #                              , 'Rotation(DE)', 'Rotation(MCE)'
+                #                              , 'DCR(DE)', 'DCR(MCE)']]
+                elem_data = elem_data.loc[:,['Story', 'Geometry', 'Top Bar', 'Bot Bar'
+                                              , 'Stirrup', 'Plastic Rotational Capacity'
+                                              , 'Rotation(DE)', 'Rotation(MCE)'
+                                              , 'DCR(DE)', 'DCR(MCE)', 'Plastic Hinge']]
+            elif element_type == 'column':
+                elem_data = elem_data.loc[:,['Story', 'Geometry', 'Main Bar-1', 'Main Bar-2'
+                                             , 'Hoop', 'Plastic Rotational Capacity'
+                                             , 'Rotation(DE)', 'Rotation(MCE)'
+                                             , 'DCR(DE)', 'DCR(MCE)', 'Plastic Hinge']]
+            
+            # 표 지정
+            elem_table = self.document.tables[table_count]
+            table_count += 1
+            
+            # 부재 이름 채우기
+            name_row = elem_table.rows[0]
+            name_cell = name_row.cells[0]
+            name_para = name_cell.paragraphs[0]
+            name_run = name_para.add_run()
+            name_run.text = elem_name        
+            name_run.font.name = '맑은 고딕'
+            name_run.font.size = Pt(10)
+            name_run.bold = True
+            name_para.alignment = WD_ALIGN_PARAGRAPH.CENTER # 입력된 값 center alignment
+
+            # (층별)부재가 2개 이상인 경우, table row 늘리기
+            if elem_data.shape[0] > 1:
+                for i in range(int(elem_data.shape[0] - 1)):
+                    elem_table.add_row().cells
+
+            # 부재 데이터 채우기
+            for idx, row in elem_data.iterrows():
+                data_row = elem_table.rows[2 + idx]
+                # 층이름 채우기
+                story_cell = data_row.cells[0]
+                story_para = story_cell.paragraphs[0]
+                story_run = story_para.add_run()
+                story_run.text = str(row['Story'])        
+                story_run.font.name = '맑은 고딕'
+                story_run.font.size = Pt(8)
+                story_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Geometry 및 Rebar 채우기
+                for i in range(1, 5): # 1,2,3,4번 셀에 차례대로 채우기 (dtype=str)
+                    property_cell = data_row.cells[i]
+                    property_para = property_cell.paragraphs[0]
+                    property_run = property_para.add_run()
+                    property_run.text = row[i]
+                    property_run.font.name = '맑은 고딕'
+                    property_run.font.size = Pt(8)
+                    property_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Rotation,DCR 채우기
+                for i in range(5, 10): # 5,6,7,8,9번 셀에 차례대로 채우기 (dtype=float)
+                    rotation_cell = data_row.cells[i]
+                    rotation_para = rotation_cell.paragraphs[0]
+                    rotation_run = rotation_para.add_run()
+                    rotation_run.text = str(row[i])
+                    rotation_run.font.name = '맑은 고딕'
+                    rotation_run.font.size = Pt(8)
+                    rotation_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # 소성힌지 판정 결과 채우기                
+                p_hinge_result_cell = data_row.cells[10]
+                p_hinge_result_para = p_hinge_result_cell.paragraphs[0]
+                p_hinge_result_run = p_hinge_result_para.add_run()
+                p_hinge_result_run.text = row['Plastic Hinge']
+                p_hinge_result_run.font.name = '맑은 고딕'
+                p_hinge_result_run.font.size = Pt(8)
+                p_hinge_result_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # 소성 힌지인 경우, bold에 빨간색으로 변경
+                if row['Plastic Hinge'] == '소성힌지':
+                    p_hinge_result_run.bold = True
+                    p_hinge_result_run.font.color.rgb = RGBColor(255, 0, 0)
+
+        # output_path = os.path.dirname('template')
+        # # 결과 저장
+        # document.save(os.path.join(output_path, output_docx))
+
+        # 값,그래프 채우기        
+            
+        # 1번 표에 그래프 넣기
+        # memfile = BytesIO()
+        # memfile2 = BytesIO()
+        # CR_plots.popleft().savefig(memfile)
+        # CR_plots.popleft().savefig(memfile2)
+        
+        # plots_row_x = CR_plots_table.rows[0]
+        # plots_row_y = CR_plots_table.rows[3]
+        # plots_cell_x = plots_row_x.cells[0]
+        # plots_cell_y = plots_row_y.cells[0]
+        # plots_para_x = plots_cell_x.paragraphs[0]
+        # plots_para_y = plots_cell_y.paragraphs[0]
+        # plots_run_x = plots_para_x.add_run()
+        # plots_run_y = plots_para_y.add_run()
+        # plots_run_x.add_picture(memfile, width=Cm(8))
+        # plots_run_y.add_picture(memfile2, width=Cm(8))
+        # plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
 #%% Base_SF
 
     def base_SF_docx_test(self, base_SF):
@@ -1497,10 +1657,6 @@ class OutputDocx():
 #%% C.Beam SF (엑셀에 자동입력)
     def BSF_docx(self, BSF):
         pass
-
-#%% C.Beam, G.Column의 Plastic Hinge 찾기 (Rotation값 엑셀에 자동입력)
-    # def plastic_hinge_docx(self, plastic_hinge):
-    #     pass
                     
 #%% 전체 결과 그래프 그리기
 '''

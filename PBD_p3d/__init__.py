@@ -9,7 +9,7 @@ from PBD_p3d.beam import *
 from PBD_p3d.column import *
 from PBD_p3d.data_proc import *
 from PBD_p3d.print_result import *
-# from PBD_p3d.post_proc import *
+from PBD_p3d.post_proc import *
 from PBD_p3d.system import *
 from PBD_p3d.wall import *
 # from PBD_p3d.output_to_docx import *

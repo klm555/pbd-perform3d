@@ -6,6 +6,9 @@ import pythoncom
 import re
 import warnings
 from collections import deque
+from io import StringIO
+from xlsx2csv import Xlsx2csv
+from joblib import Parallel, delayed
 
 #%% Node, Element, Mass, Load Import
 
@@ -679,7 +682,7 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         while True:
             # 
             i_beam_matrix_updated = find_i_beam(i_beam_matrix, wall_node_coord_np)
-            print(i_beam_matrix_updated.shape[0])
+            # print(i_beam_matrix_updated.shape[0])
             
             # if np.array_equal(matrix1, matrix3):
             if i_beam_matrix.shape[0] == i_beam_matrix_updated.shape[0]:
@@ -922,7 +925,7 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)
-    ws = wb.Sheets('Output_Naming')
+    ws = wb.Sheets('Input_Naming')
     
     startrow, startcol = 5, 1
 
@@ -938,7 +941,8 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
 
 #%% Convert C.Beam, G.Beam, Wall
 
-def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=True):
+def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
+                     , get_gbeam=True, get_ebeam=True, get_gcol=True, get_ecol=True):
     '''
     
     User가 입력한 부재 정보들을 Perform-3D에 입력할 수 있는 형식으로 변환하여 Data Conversion 엑셀파일의 Output_Properties 시트에 작성.
@@ -951,11 +955,11 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     input_xlsx : str
                  Data Conversion 엑셀 파일의 이름. 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
 
-    get_beam : bool, optional, default=True
+    get_cbeam : bool, optional, default=True
                True = C.Beam의 정보를 Perform-3D 입력용 정보로 변환함.
                False = C.Beam의 정보를 변환하지 않음.
                
-    get_column : bool, optional, default=True
+    get_gcol : bool, optional, default=True
                  True = G.Column의 정보를 Perform-3D 입력용 정보로 변환함.
                  False = G.Column의 정보를 변환하지 않음.
                
@@ -965,7 +969,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
 
     Returns
     --------       
-    beam_output : pandas.core.frame.DataFrame or None
+    cbeam_output : pandas.core.frame.DataFrame or None
                   C.Beam Properties의 정보를 Perform-3D 입력용으로 변환한 정보.
                   Output_C.Beam Properties 시트에 입력됨.
                      
@@ -979,73 +983,17 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     '''    
     #%% 파일 load
     
-    pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
-    # UserWarning: openpyxl 안뜨게 하기
-    warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
+    # pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
+    # # UserWarning: openpyxl 안뜨게 하기
+    # warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
     
     input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw\
-                                      , ['C.Beam Properties', 'Wall Properties'\
-                                         , 'G.Column Properties', 'Story Data'
-                                         , 'ETC', 'Naming'], skiprows=3)
+    input_data_sheets = pd.read_excel(input_data_raw, ['Prop_S.Wall'\
+                                      , 'Prop_C.Beam', 'Prop_G.Beam'\
+                                      , 'Prop_E.Beam', 'Prop_G.Column'\
+                                      , 'Prop_E.Column', 'Story Data'
+                                      , 'ETC', 'Naming'], skiprows=3)
     input_data_raw.close()
-    
-    # Wall 정보 load
-    wall = input_data_sheets['Wall Properties'].iloc[:,np.r_[0:11, 21,22]]
-    wall.columns = ['Name', 'Story(from)', 'Story(to)', 'Thickness', 'Vertical Rebar(DXX)',\
-                    'V. Rebar Space', 'Horizontal Rebar(DXX)', 'H. Rebar Space', 'Type', 'Length', 'Element length', 'Fibers(Concrete)', 'Fibers(Rebar)']
-
-    wall = wall.dropna(axis=0, how='all')
-    wall.reset_index(inplace=True, drop=True)
-    
-    saved_wall_story_from = wall['Story(from)']
-    saved_wall_story_to = wall['Story(to)']
-    
-    wall = wall.fillna(method='ffill')
-    
-    wall['Story(from)'] = saved_wall_story_from
-    wall['Story(to)'] = saved_wall_story_to
-
-    # Column 정보 load
-    column = input_data_sheets['G.Column Properties'].iloc[:,0:18]
-    column.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)', 'h(mm)'
-                      , 'Cover Thickness(mm)', '내진상세 여부', 'Type(Main)'
-                      , 'Main Rebar(DXX)', 'Type(Hoop)', 'Hoop Rebar(DXX)'
-                      , 'EA(Layer1)', 'Row(Layer1)', 'EA(Layer2)', 'Row(Layer2)'
-                      , 'EA(Hoop_X)', 'EA(Hoop_Y)', 'Spacing(Hoop)']
-
-    column = column.dropna(axis=0, how='all')
-    column.reset_index(inplace=True, drop=True)
-    
-    saved_column_story_from = column['Story(from)']
-    saved_column_story_to = column['Story(to)']
-    saved_column_rebar = column.iloc[:,[11,12,13,14,15,16,17]]
-    
-    column = column.fillna(method='ffill')
-    
-    column['Story(from)'] = saved_column_story_from
-    column['Story(to)'] = saved_column_story_to
-    column.iloc[:,[11,12,13,14,15,16,17]] = saved_column_rebar
-
-    # Beam 정보 load
-    beam = input_data_sheets['C.Beam Properties'].iloc[:,0:21]
-    beam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
-                    'h(mm)', 'Cover Thickness(mm)', 'Type', '배근', '내진상세 여부',\
-                    'Main Rebar(DXX)', 'Stirrup Rebar(DXX)', 'X-Bracing Rebar', 'Top(1)', 'Top(2)',\
-                    'Top(3)', 'EA(Stirrup)', 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'D(mm)']
-
-    beam = beam.dropna(axis=0, how='all')
-    beam.reset_index(inplace=True, drop=True)
-    
-    saved_beam_story_from = beam['Story(from)']
-    saved_beam_story_to = beam['Story(to)']
-    saved_beam_rebar = beam.iloc[:,[12,13,14,15,16,17,18,19]]
-    
-    beam = beam.fillna(method='ffill')
-    
-    beam['Story(from)'] = saved_beam_story_from
-    beam['Story(to)'] = saved_beam_story_to
-    beam.iloc[:,[12,13,14,15,16,17,18,19]] = saved_beam_rebar
 
     # 구분 조건 load
     naming_criteria = input_data_sheets['ETC']
@@ -1062,15 +1010,13 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     
     num_of_beam = num_of_elem.iloc[:,[0,3]]
     num_of_wall = num_of_elem.iloc[:,[8,11]]
-    num_of_column = num_of_elem.iloc[:,[4,7]]
-    
-    num_of_beam = num_of_beam.dropna(axis=0)
-    num_of_wall = num_of_wall.dropna(axis=0)
-    num_of_column = num_of_column.dropna(axis=0)
-
+    num_of_col = num_of_elem.iloc[:,[4,7]]
     num_of_beam.columns = ['Name', 'EA']
     num_of_wall.columns = ['Name', 'EA']
-    num_of_column.columns = ['Name', 'EA']
+    num_of_col.columns = ['Name', 'EA']    
+    num_of_beam = num_of_beam.dropna(axis=0)
+    num_of_wall = num_of_wall.dropna(axis=0)
+    num_of_col = num_of_col.dropna(axis=0)
 
     #%% 부재 이름 설정할 때 필요한 함수들
 
@@ -1124,7 +1070,10 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
 
     # 철근 지름 앞의 D 떼주는 함수 (D10...)
     def str_extract(sth_str):
-        result = int(re.findall(r'[0-9]+', sth_str)[0])
+        if pd.isna(sth_str):
+            result = 9999
+        else: 
+            result = int(re.findall(r'[0-9]+', sth_str)[0])
         
         return result
 
@@ -1143,9 +1092,26 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     steel_geometry_database['Name'] = new_steel_geometry_name
 
     #%% 1. Wall
-    #%% 불러온 wall 정보 정리하기
+    # 불러온 wall 정보 정리하기
     if get_wall == True:
         
+        # Wall 정보 load
+        wall = input_data_sheets['Prop_S.Wall'].iloc[:,np.r_[0:11, 21,22]]
+        wall.columns = ['Name', 'Story(from)', 'Story(to)', 'Thickness', 'Vertical Rebar(DXX)',\
+                        'V. Rebar Space', 'Horizontal Rebar(DXX)', 'H. Rebar Space', 'Type', 'Length', 'Element length', 'Fibers(Concrete)', 'Fibers(Rebar)']
+
+        wall = wall.dropna(axis=0, how='all')
+        wall.reset_index(inplace=True, drop=True)
+        
+        # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
+        saved_wall_story_from = wall['Story(from)']
+        saved_wall_story_to = wall['Story(to)']
+        
+        wall = wall.fillna(method='ffill')
+        
+        wall['Story(from)'] = saved_wall_story_from
+        wall['Story(to)'] = saved_wall_story_to
+
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
         new_story = wall[['Story(from)', 'Story(to)']]
         new_story = new_story.fillna(method='ffill', axis=1)
@@ -1231,8 +1197,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
         naming_criteria_1_index.sort()
         naming_criteria_2_index.sort()
     
-        #%% 시작층, 끝층 정리
-    
+        # 시작층, 끝층 정리    
         naming_from_index = []
         naming_to_index = []
     
@@ -1245,8 +1210,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
             naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
             naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
     
-        #%%  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
-    
+        #  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리    
         naming_from_index_list = []
         naming_to_index_list = []
         naming_criteria_property_index_list = []
@@ -1361,35 +1325,57 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
         wall_output = wall_output.replace(np.nan, '', regex=True)
 
-    #%% 2. Column
-    #%% 불러온 Column 정보 정리
-    if get_column == True:
+    #%% 2. G.Column
+    # 불러온 Column 정보 정리
+    if get_gcol == True:
         
+        # Column 정보 load
+        gcol = input_data_sheets['Prop_G.Column'].iloc[:,0:17]
+        gcol.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)', 'h(mm)'
+                        , '내진상세 여부', 'Type(Main)'
+                        , 'Main Rebar(DXX)', 'Type(Hoop)', 'Hoop Rebar(DXX)'
+                        , 'EA(Layer1)', 'Row(Layer1)', 'EA(Layer2)', 'Row(Layer2)'
+                        , 'EA(Hoop_X)', 'EA(Hoop_Y)', 'Spacing(Hoop)']
+
+        gcol = gcol.dropna(axis=0, how='all')
+        gcol.reset_index(inplace=True, drop=True)
+        
+        # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
+        saved_gcol_story_from = gcol['Story(from)']
+        saved_gcol_story_to = gcol['Story(to)']
+        saved_gcol_rebar = gcol.iloc[:,[10,11,12,13,14,15,16]]
+        
+        gcol = gcol.fillna(method='ffill')
+        
+        gcol['Story(from)'] = saved_gcol_story_from
+        gcol['Story(to)'] = saved_gcol_story_to
+        gcol.iloc[:,[10,11,12,13,14,15,16]] = saved_gcol_rebar
+
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
-        new_story = column[['Story(from)', 'Story(to)']]
+        new_story = gcol[['Story(from)', 'Story(to)']]
         new_story = new_story.fillna(method='ffill', axis=1)
               
-        column['Story(from)'] = new_story['Story(from)']
-        column['Story(to)'] = new_story['Story(to)']
+        gcol['Story(from)'] = new_story['Story(from)']
+        gcol['Story(to)'] = new_story['Story(to)']
     
         # 철근의 앞에붙은 D 떼어주기
         new_m_rebar = []
         new_h_rebar = []
     
-        for i in column['Main Rebar(DXX)']:
+        for i in gcol['Main Rebar(DXX)']:
             if isinstance(i, int):
                 new_m_rebar.append(i)
             else:
                 new_m_rebar.append(str_extract(i))
                 
-        for j in column['Hoop Rebar(DXX)']:
+        for j in gcol['Hoop Rebar(DXX)']:
             if isinstance(j, int):
                 new_h_rebar.append(j)
             else:
                 new_h_rebar.append(str_extract(j))
                 
-        column['Main Rebar(DXX)'] = new_m_rebar
-        column['Hoop Rebar(DXX)'] = new_h_rebar
+        gcol['Main Rebar(DXX)'] = new_m_rebar
+        gcol['Hoop Rebar(DXX)'] = new_h_rebar
     
         #%% 이름 구분 조건 load & 정리
     
@@ -1413,12 +1399,11 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
         naming_criteria_1_index.sort()
         naming_criteria_2_index.sort()
     
-        #%% 시작층, 끝층 정리
-    
+        # 시작층, 끝층 정리    
         naming_from_index = []
         naming_to_index = []
     
-        for naming_from, naming_to in zip(column['Story(from)'], column['Story(to)']):
+        for naming_from, naming_to in zip(gcol['Story(from)'], gcol['Story(to)']):
             if isinstance(naming_from, str) == False:
                 naming_from = str(naming_from)
             if isinstance(naming_to, str) == False:
@@ -1427,7 +1412,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
             naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
             naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
     
-        #%%  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
+        #  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
     
         naming_from_index_list = []
         naming_to_index_list = []
@@ -1479,24 +1464,28 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
             naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
     
         # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
-        column_info = column.copy()  # input sheet에서 나온 properties
-        column_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
+        gcol_info = gcol.copy()  # input sheet에서 나온 properties
+        gcol_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
     
         name_output = []  # new names
         property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
-        column_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
+        gcol_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
     
         count = 1000
         count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
+
+        # 부재 수 df에서 해당 부재의 수만 slice
+        num_of_gcol = pd.merge(gcol_info, num_of_col, how='left')
+        num_of_gcol = num_of_gcol[['Name', 'EA']].drop_duplicates()
     
-        for i, j in zip(num_of_column['Name'], num_of_column['EA']):
+        for i, j in zip(num_of_gcol['Name'], num_of_gcol['EA']):
             
             for k in range(1,int(j)+1):
     
-                for current_column_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_column_info_index\
-                            in zip(column['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, column_info.index):
+                for current_gcol_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_gcol_info_index\
+                            in zip(gcol['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, gcol_info.index):
     
-                    if i == current_column_name:
+                    if i == current_gcol_name:
                     
                         for p, q, r in zip(current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list):
                             if p != q:
@@ -1504,74 +1493,311 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     
                                     count_list.append(count + s)
                                     
-                                    name_output.append(current_column_name + '_' + str(k) + '_' + str(story_name[s]))
+                                    name_output.append(current_gcol_name + '_' + str(k) + '_' + str(story_name[s]))
                                     
                                     property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
-                                    column_info_output.append(column_info.iloc[current_column_info_index])
+                                    gcol_info_output.append(gcol_info.iloc[current_gcol_info_index])
                                     
                             else:
                                 count_list.append(count + q)
                                 
-                                name_output.append(current_column_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
+                                name_output.append(current_gcol_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
                                 
                                 property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
-                                column_info_output.append(column_info.iloc[current_column_info_index])  
+                                gcol_info_output.append(gcol_info.iloc[current_gcol_info_index])  
                                 
                 count += 1000
                 
-        column_info_output = pd.DataFrame(column_info_output)
-        column_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
+        gcol_info_output = pd.DataFrame(gcol_info_output)
+        gcol_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
     
-        column_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
+        gcol_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
     
         # 중간결과
-        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 column_info를 바로 출력
-            column_ongoing = column_info
+        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 gcol_info를 바로 출력
+            gcol_ongoing = gcol_info
         else:
-            column_ongoing = pd.concat([pd.Series(name_output, name='Name'), column_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
+            gcol_ongoing = pd.concat([pd.Series(name_output, name='Name'), gcol_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
     
-        column_ongoing = column_ongoing.sort_values(by=['Count'])
-        column_ongoing.reset_index(inplace=True, drop=True)
+        gcol_ongoing = gcol_ongoing.sort_values(by=['Count'])
+        gcol_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        column_output = column_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]  
+        gcol_output = gcol_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18,12,13,14,15,16,17,18]]  
     
         # 철근지름에 다시 D붙이기
-        column_output.loc[:,'Main Rebar(DXX)'] = 'D' + column_output['Main Rebar(DXX)'].astype(str)
-        column_output.loc[:,'Hoop Rebar(DXX)'] = 'D' + column_output['Hoop Rebar(DXX)'].astype(str)
+        gcol_output.loc[:,'Main Rebar(DXX)'] = 'D' + gcol_output['Main Rebar(DXX)'].astype(str)
+        gcol_output.loc[:,'Hoop Rebar(DXX)'] = 'D' + gcol_output['Hoop Rebar(DXX)'].astype(str)
         
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-        column_output = column_output.replace(np.nan, '', regex=True)
+        gcol_output = gcol_output.replace(np.nan, '', regex=True)
     
-    #%% 3. Beam
-    #%% 불러온 Beam 정보 정리
-    if get_beam == True:
+    #%% 3. E.Column
+    # 불러온 Column 정보 정리
+    if get_ecol == True:
         
+        # Column 정보 load
+        ecol = input_data_sheets['Prop_E.Column'].iloc[:,0:17]
+        ecol.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)', 'h(mm)'
+                        , '내진상세 여부', 'Type(Main)'
+                        , 'Main Rebar(DXX)', 'Type(Hoop)', 'Hoop Rebar(DXX)'
+                        , 'EA(Layer1)', 'Row(Layer1)', 'EA(Layer2)', 'Row(Layer2)'
+                        , 'EA(Hoop_X)', 'EA(Hoop_Y)', 'Spacing(Hoop)']
+
+        ecol = ecol.dropna(axis=0, how='all')
+        ecol.reset_index(inplace=True, drop=True)
+        
+        # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
+        saved_ecol_story_from = ecol['Story(from)']
+        saved_ecol_story_to = ecol['Story(to)']
+        saved_ecol_rebar = ecol.iloc[:,[10,11,12,13,14,15,16]]
+        
+        ecol = ecol.fillna(method='ffill')
+        
+        ecol['Story(from)'] = saved_ecol_story_from
+        ecol['Story(to)'] = saved_ecol_story_to
+        ecol.iloc[:,[10,11,12,13,14,15,16]] = saved_ecol_rebar
+
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
-        new_story = beam[['Story(from)', 'Story(to)']]
+        new_story = ecol[['Story(from)', 'Story(to)']]
         new_story = new_story.fillna(method='ffill', axis=1)
               
-        beam['Story(from)'] = new_story['Story(from)']
-        beam['Story(to)'] = new_story['Story(to)']
+        ecol['Story(from)'] = new_story['Story(from)']
+        ecol['Story(to)'] = new_story['Story(to)']
     
         # 철근의 앞에붙은 D 떼어주기
         new_m_rebar = []
-        new_s_rebar = []
+        new_h_rebar = []
     
-        for i in beam['Main Rebar(DXX)']:
+        for i in ecol['Main Rebar(DXX)']:
             if isinstance(i, int):
                 new_m_rebar.append(i)
             else:
                 new_m_rebar.append(str_extract(i))
                 
-        for j in beam['Stirrup Rebar(DXX)']:
+        for j in ecol['Hoop Rebar(DXX)']:
+            if isinstance(j, int):
+                new_h_rebar.append(j)
+            else:
+                new_h_rebar.append(str_extract(j))
+                
+        ecol['Main Rebar(DXX)'] = new_m_rebar
+        ecol['Hoop Rebar(DXX)'] = new_h_rebar
+    
+        #%% 이름 구분 조건 load & 정리
+    
+        # 층 구분 조건에  story_name의 index 매칭시켜서 새로 열 만들기
+        naming_criteria_1_index = []
+        naming_criteria_2_index = []
+    
+        for i, j in zip(naming_criteria.iloc[:,5].dropna(), naming_criteria.iloc[:,6].dropna()):
+            naming_criteria_1_index.append(pd.Index(story_name).get_loc(i))
+            naming_criteria_2_index.append(pd.Index(story_name).get_loc(j))
+    
+        ### 구분 조건이 층 순서에 상관없이 작동되게 재정렬
+        # 구분 조건에 해당하는 콘크리트 강도 재정렬
+        naming_criteria_property = pd.concat([pd.Series(naming_criteria_1_index, name='Story(from) Index'), naming_criteria.iloc[:,7].dropna()], axis=1)
+    
+        naming_criteria_property['Story(from) Index'] = pd.Categorical(naming_criteria_property['Story(from) Index'], naming_criteria_1_index.sort())
+        naming_criteria_property.sort_values('Story(from) Index', inplace=True)
+        naming_criteria_property.reset_index(inplace=True)
+    
+        # 구분 조건 재정렬
+        naming_criteria_1_index.sort()
+        naming_criteria_2_index.sort()
+    
+        # 시작층, 끝층 정리    
+        naming_from_index = []
+        naming_to_index = []
+    
+        for naming_from, naming_to in zip(ecol['Story(from)'], ecol['Story(to)']):
+            if isinstance(naming_from, str) == False:
+                naming_from = str(naming_from)
+            if isinstance(naming_to, str) == False:
+                naming_from = str(naming_from)
+                
+            naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
+            naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
+    
+        #  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
+    
+        naming_from_index_list = []
+        naming_to_index_list = []
+        naming_criteria_property_index_list = []
+    
+        for current_naming_from_index, current_naming_to_index in zip(naming_from_index, naming_to_index):  # 부재의 시작과 끝 층 loop
+            naming_from_index_sublist = [current_naming_from_index]
+            naming_to_index_sublist = [current_naming_to_index]
+            naming_criteria_property_index_sublist = []
+                
+            for i, j, k in zip(naming_criteria_1_index, naming_criteria_2_index, naming_criteria_property.index):
+                if (i >= current_naming_from_index) and (i <= current_naming_to_index):
+                    naming_from_index_sublist.append(i)
+                    naming_criteria_property_index_sublist.append(k)
+                                
+                    if (j >= current_naming_from_index) and (j <= current_naming_to_index):
+                        naming_to_index_sublist.append(j)
+                    else:
+                        naming_to_index_sublist.append(i-1)
+                        
+                    if i != current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(k-1)
+                                            
+                elif (i < current_naming_from_index) and (j >= current_naming_to_index):
+                    naming_criteria_property_index_sublist.append(k)
+                    
+                elif (i < current_naming_from_index) and (j <= current_naming_to_index):
+                    naming_to_index_sublist.append(j)
+                    
+                else:
+                    if max(naming_criteria_1_index) < current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(max(naming_criteria_property.index))
+                        
+                    elif min(naming_criteria_1_index) > current_naming_to_index:
+                            naming_criteria_property_index_sublist.append(min(naming_criteria_property.index))
+                    
+                naming_from_index_sublist = list(set(naming_from_index_sublist))
+                naming_to_index_sublist = list(set(naming_to_index_sublist))
+                naming_criteria_property_index_sublist = list(set(naming_criteria_property_index_sublist))
+                        
+                # sublist 안의 element들을 내림차순으로 정렬            
+                naming_from_index_sublist.sort(reverse = True)
+                naming_to_index_sublist.sort(reverse = True)
+                naming_criteria_property_index_sublist.sort(reverse = True)
+            
+            # sublist를 합쳐 list로 완성
+            naming_from_index_list.append(naming_from_index_sublist)
+            naming_to_index_list.append(naming_to_index_sublist)
+            naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
+    
+        # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
+        ecol_info = ecol.copy()  # input sheet에서 나온 properties
+        ecol_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
+    
+        name_output = []  # new names
+        property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
+        ecol_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
+    
+        count = 1000
+        count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
+        
+        # 부재 수 df에서 해당 부재의 수만 slice
+        num_of_ecol = pd.merge(ecol_info, num_of_col, how='left')
+        num_of_ecol = num_of_ecol[['Name', 'EA']].drop_duplicates()
+    
+        for i, j in zip(num_of_ecol['Name'], num_of_ecol['EA']):
+            
+            for k in range(1,int(j)+1):
+    
+                for current_ecol_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_ecol_info_index\
+                            in zip(ecol['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, ecol_info.index):
+    
+                    if i == current_ecol_name:
+                    
+                        for p, q, r in zip(current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list):
+                            if p != q:
+                                for s in range(p, q+1):
+    
+                                    count_list.append(count + s)
+                                    
+                                    name_output.append(current_ecol_name + '_' + str(k) + '_' + str(story_name[s]))
+                                    
+                                    property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                    ecol_info_output.append(ecol_info.iloc[current_ecol_info_index])
+                                    
+                            else:
+                                count_list.append(count + q)
+                                
+                                name_output.append(current_ecol_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
+                                
+                                property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                ecol_info_output.append(ecol_info.iloc[current_ecol_info_index])  
+                                
+                count += 1000
+                
+        ecol_info_output = pd.DataFrame(ecol_info_output)
+        ecol_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
+    
+        ecol_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
+    
+        # 중간결과
+        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 ecol_info를 바로 출력
+            ecol_ongoing = ecol_info
+        else:
+            ecol_ongoing = pd.concat([pd.Series(name_output, name='Name'), ecol_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
+    
+        ecol_ongoing = ecol_ongoing.sort_values(by=['Count'])
+        ecol_ongoing.reset_index(inplace=True, drop=True)
+    
+        # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
+        ecol_output = ecol_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]  
+    
+        # 철근지름에 다시 D붙이기
+        ecol_output.loc[:,'Main Rebar(DXX)'] = 'D' + ecol_output['Main Rebar(DXX)'].astype(str)
+        ecol_output.loc[:,'Hoop Rebar(DXX)'] = 'D' + ecol_output['Hoop Rebar(DXX)'].astype(str)
+        
+        # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+        ecol_output = ecol_output.replace(np.nan, '', regex=True)
+
+
+    #%% 4. C.Beam
+    # 불러온 Beam 정보 정리
+    if get_cbeam == True:
+        # Beam 정보 load
+        cbeam = input_data_sheets['Prop_C.Beam'].iloc[:,0:20]
+        cbeam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
+                        'h(mm)', 'Type', '배근', '내진상세 여부',\
+                        'Main Rebar(DXX)', 'Stirrup Rebar(DXX)', 'X-Bracing Rebar', 'Top(1)', 'Top(2)',\
+                        'Top(3)', 'EA(Stirrup)', 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'D(mm)']
+
+        cbeam = cbeam.dropna(axis=0, how='all')
+        cbeam.reset_index(inplace=True, drop=True)
+        
+        # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
+        saved_cbeam_story_from = cbeam['Story(from)']
+        saved_cbeam_story_to = cbeam['Story(to)']
+        saved_cbeam_rebar = cbeam.iloc[:,[12,13,14,15,16,17,18]]
+        
+        cbeam = cbeam.fillna(method='ffill')
+        
+        cbeam['Story(from)'] = saved_cbeam_story_from
+        cbeam['Story(to)'] = saved_cbeam_story_to
+        cbeam.iloc[:,[12,13,14,15,16,17,18]] = saved_cbeam_rebar
+        
+        # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
+        new_story = cbeam[['Story(from)', 'Story(to)']]
+        new_story = new_story.fillna(method='ffill', axis=1)
+              
+        cbeam['Story(from)'] = new_story['Story(from)']
+        cbeam['Story(to)'] = new_story['Story(to)']
+    
+        # 철근의 앞에붙은 D 떼어주기
+        new_m_rebar = []
+        new_s_rebar = []
+        new_x_rebar = []
+    
+        for i in cbeam['Main Rebar(DXX)']:
+            if isinstance(i, int):
+                new_m_rebar.append(i)
+            else:
+                new_m_rebar.append(str_extract(i))
+                
+        for j in cbeam['Stirrup Rebar(DXX)']:
             if isinstance(j, int):
                 new_s_rebar.append(j)
             else:
                 new_s_rebar.append(str_extract(j))
                 
-        beam['Main Rebar(DXX)'] = new_m_rebar
-        beam['Stirrup Rebar(DXX)'] = new_s_rebar
+        for k in cbeam['X-Bracing Rebar']:
+            # print(str_extract(k), type(str_extract(k)))
+            if isinstance(k, int):
+                new_x_rebar.append(k)
+            else:
+                new_x_rebar.append(str_extract(k))
+                
+        cbeam['Main Rebar(DXX)'] = new_m_rebar
+        cbeam['Stirrup Rebar(DXX)'] = new_s_rebar
+        cbeam['X-Bracing Rebar'] = new_x_rebar
     
         #%% 이름 구분 조건 load & 정리
     
@@ -1595,12 +1821,11 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
         naming_criteria_1_index.sort()
         naming_criteria_2_index.sort()
     
-        #%% 시작층, 끝층 정리
-    
+        # 시작층, 끝층 정리    
         naming_from_index = []
         naming_to_index = []
     
-        for naming_from, naming_to in zip(beam['Story(from)'], beam['Story(to)']):
+        for naming_from, naming_to in zip(cbeam['Story(from)'], cbeam['Story(to)']):
             if isinstance(naming_from, str) == False:
                 naming_from = str(naming_from)
             if isinstance(naming_to, str) == False:
@@ -1609,8 +1834,7 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
             naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
             naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
     
-        #%%  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
-    
+        #  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리    
         naming_from_index_list = []
         naming_to_index_list = []
         naming_criteria_property_index_list = []
@@ -1661,24 +1885,28 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
             naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
     
         # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
-        beam_info = beam.copy()  # input sheet에서 나온 properties
-        beam_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
+        cbeam_info = cbeam.copy()  # input sheet에서 나온 properties
+        cbeam_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
     
         name_output = []  # new names
         property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
-        beam_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
+        cbeam_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
     
         count = 1000
         count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
-    
-        for i, j in zip(num_of_beam['Name'], num_of_beam['EA']):
+        
+        # 부재 수 df에서 해당 부재의 수만 slice
+        num_of_cbeam = pd.merge(cbeam_info, num_of_beam, how='left')
+        num_of_cbeam = num_of_cbeam[['Name', 'EA']].drop_duplicates()
+        
+        for i, j in zip(num_of_cbeam['Name'], num_of_cbeam['EA']):
             
             for k in range(1,int(j)+1):
     
-                for current_beam_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_beam_info_index\
-                            in zip(beam['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, beam_info.index):
+                for current_cbeam_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_cbeam_info_index\
+                            in zip(cbeam['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, cbeam_info.index):
     
-                    if i == current_beam_name:
+                    if i == current_cbeam_name:
                         
                         
                         
@@ -1688,499 +1916,760 @@ def convert_property(input_xlsx_path, get_beam=True, get_column=True, get_wall=T
     
                                     count_list.append(count + s)
                                     
-                                    name_output.append(current_beam_name + '_' + str(k) + '_' + str(story_name[s]))
+                                    name_output.append(current_cbeam_name + '_' + str(k) + '_' + str(story_name[s]))
                                     
                                     property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
-                                    beam_info_output.append(beam_info.iloc[current_beam_info_index])
+                                    cbeam_info_output.append(cbeam_info.iloc[current_cbeam_info_index])
                                     
                             else:
                                 count_list.append(count + q)
                                 
-                                name_output.append(current_beam_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
+                                name_output.append(current_cbeam_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
                                 
                                 property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
-                                beam_info_output.append(beam_info.iloc[current_beam_info_index])  
+                                cbeam_info_output.append(cbeam_info.iloc[current_cbeam_info_index])  
                                 
                 count += 1000
                 
-        beam_info_output = pd.DataFrame(beam_info_output)
-        beam_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
+        cbeam_info_output = pd.DataFrame(cbeam_info_output)
+        cbeam_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
     
-        beam_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
+        cbeam_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
     
         # 중간결과
-        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 beam_info를 바로 출력
-            beam_ongoing = beam_info
+        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 cbeam_info를 바로 출력
+            cbeam_ongoing = cbeam_info
         else:
-            beam_ongoing = pd.concat([pd.Series(name_output, name='Name'), beam_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
+            cbeam_ongoing = pd.concat([pd.Series(name_output, name='Name'), cbeam_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
     
-        beam_ongoing = beam_ongoing.sort_values(by=['Count'])
-        beam_ongoing.reset_index(inplace=True, drop=True)
+        cbeam_ongoing = cbeam_ongoing.sort_values(by=['Count'])
+        cbeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        beam_output = beam_ongoing.iloc[:,[0,4,5,6,21,22,8,9,10,11,12,13,14,15,16,17,18,19,20]]  
+        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,20,21,7,8,9,10,11,12,13,14,15,16,17,18,19,13,14,15,16,17,18,19]]  
     
         # 철근지름에 다시 D붙이기
-        beam_output.loc[:,'Main Rebar(DXX)'] = 'D' + beam_output['Main Rebar(DXX)'].astype(str)
-        beam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + beam_output['Stirrup Rebar(DXX)'].astype(str)
+        cbeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + cbeam_output['Main Rebar(DXX)'].astype(str)
+        cbeam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + cbeam_output['Stirrup Rebar(DXX)'].astype(str)
+        cbeam_output.loc[:,'X-Bracing Rebar'] = 'D' + cbeam_output['X-Bracing Rebar'].astype(str)
+        cbeam_output = cbeam_output.replace('D9999', '', regex=True)
         
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-        beam_output = beam_output.replace(np.nan, '', regex=True)
+        cbeam_output = cbeam_output.replace(np.nan, '', regex=True)
 
-    #%% Printout
+    #%% 5. G.Beam
+    # 불러온 Beam 정보 정리
+    if get_gbeam == True:
+        # Beam 정보 load
+        gbeam = input_data_sheets['Prop_G.Beam'].iloc[:,0:18]
+        gbeam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
+                        'h(mm)', 'Type', '내진상세 여부', 'Main Rebar(DXX)'
+                        , 'Stirrup Rebar(DXX)', 'Top(1)', 'Top(2)', 'Top(3)'
+                        , 'Bot(3)', 'Bot(2)', 'Bot(1)', 'EA(Stirrup)', 'Spacing(Stirrup)']
+    
+        gbeam = gbeam.dropna(axis=0, how='all')
+        gbeam.reset_index(inplace=True, drop=True)
+        
+        # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
+        saved_gbeam_story_from = gbeam['Story(from)']
+        saved_gbeam_story_to = gbeam['Story(to)']
+        saved_gbeam_rebar = gbeam.iloc[:,[10,11,12,13,14,15,16,17]]
+        
+        gbeam = gbeam.fillna(method='ffill')
+        
+        gbeam['Story(from)'] = saved_gbeam_story_from
+        gbeam['Story(to)'] = saved_gbeam_story_to
+        gbeam.iloc[:,[10,11,12,13,14,15,16,17]] = saved_gbeam_rebar
+        
+        # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
+        new_story = gbeam[['Story(from)', 'Story(to)']]
+        new_story = new_story.fillna(method='ffill', axis=1)
+              
+        gbeam['Story(from)'] = new_story['Story(from)']
+        gbeam['Story(to)'] = new_story['Story(to)']
+    
+        # 철근의 앞에붙은 D 떼어주기
+        new_m_rebar = []
+        new_s_rebar = []
+    
+        for i in gbeam['Main Rebar(DXX)']:
+            if isinstance(i, int):
+                new_m_rebar.append(i)
+            else:
+                new_m_rebar.append(str_extract(i))
+                
+        for j in gbeam['Stirrup Rebar(DXX)']:
+            if isinstance(j, int):
+                new_s_rebar.append(j)
+            else:
+                new_s_rebar.append(str_extract(j))
+                
+        gbeam['Main Rebar(DXX)'] = new_m_rebar
+        gbeam['Stirrup Rebar(DXX)'] = new_s_rebar
+    
+        #%% 이름 구분 조건 load & 정리
+    
+        # 층 구분 조건에  story_name의 index 매칭시켜서 새로 열 만들기
+        naming_criteria_1_index = []
+        naming_criteria_2_index = []
+    
+        for i, j in zip(naming_criteria.iloc[:,8].dropna(), naming_criteria.iloc[:,9].dropna()):
+            naming_criteria_1_index.append(pd.Index(story_name).get_loc(i))
+            naming_criteria_2_index.append(pd.Index(story_name).get_loc(j))
+    
+        ### 구분 조건이 층 순서에 상관없이 작동되게 재정렬
+        # 구분 조건에 해당하는 콘크리트 강도 재정렬
+        naming_criteria_property = pd.concat([pd.Series(naming_criteria_1_index, name='Story(from) Index'), naming_criteria.iloc[:,10].dropna()], axis=1)
+    
+        naming_criteria_property['Story(from) Index'] = pd.Categorical(naming_criteria_property['Story(from) Index'], naming_criteria_1_index.sort())
+        naming_criteria_property.sort_values('Story(from) Index', inplace=True)
+        naming_criteria_property.reset_index(inplace=True)
+    
+        # 구분 조건 재정렬
+        naming_criteria_1_index.sort()
+        naming_criteria_2_index.sort()
+    
+        # 시작층, 끝층 정리    
+        naming_from_index = []
+        naming_to_index = []
+    
+        for naming_from, naming_to in zip(gbeam['Story(from)'], gbeam['Story(to)']):
+            if isinstance(naming_from, str) == False:
+                naming_from = str(naming_from)
+            if isinstance(naming_to, str) == False:
+                naming_from = str(naming_from)
+                
+            naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
+            naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
+    
+        #  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리    
+        naming_from_index_list = []
+        naming_to_index_list = []
+        naming_criteria_property_index_list = []
+    
+        for current_naming_from_index, current_naming_to_index in zip(naming_from_index, naming_to_index):  # 부재의 시작과 끝 층 loop
+            naming_from_index_sublist = [current_naming_from_index]
+            naming_to_index_sublist = [current_naming_to_index]
+            naming_criteria_property_index_sublist = []
+                
+            for i, j, k in zip(naming_criteria_1_index, naming_criteria_2_index, naming_criteria_property.index):
+                if (i >= current_naming_from_index) and (i <= current_naming_to_index):
+                    naming_from_index_sublist.append(i)
+                    naming_criteria_property_index_sublist.append(k)
+                                
+                    if (j >= current_naming_from_index) and (j <= current_naming_to_index):
+                        naming_to_index_sublist.append(j)
+                    else:
+                        naming_to_index_sublist.append(i-1)
+                        
+                    if i != current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(k-1)
+                                            
+                elif (i < current_naming_from_index) and (j >= current_naming_to_index):
+                    naming_criteria_property_index_sublist.append(k)
+                    
+                elif (i < current_naming_from_index) and (j <= current_naming_to_index):
+                    naming_to_index_sublist.append(j)
+                    
+                else:
+                    if max(naming_criteria_1_index) < current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(max(naming_criteria_property.index))
+                        
+                    elif min(naming_criteria_1_index) > current_naming_to_index:
+                            naming_criteria_property_index_sublist.append(min(naming_criteria_property.index))
+                    
+                naming_from_index_sublist = list(set(naming_from_index_sublist))
+                naming_to_index_sublist = list(set(naming_to_index_sublist))
+                naming_criteria_property_index_sublist = list(set(naming_criteria_property_index_sublist))
+                        
+                # sublist 안의 element들을 내림차순으로 정렬            
+                naming_from_index_sublist.sort(reverse = True)
+                naming_to_index_sublist.sort(reverse = True)
+                naming_criteria_property_index_sublist.sort(reverse = True)
+            
+            # sublist를 합쳐 list로 완성
+            naming_from_index_list.append(naming_from_index_sublist)
+            naming_to_index_list.append(naming_to_index_sublist)
+            naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
+    
+        # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
+        gbeam_info = gbeam.copy()  # input sheet에서 나온 properties
+        gbeam_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
+    
+        name_output = []  # new names
+        property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
+        gbeam_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
+    
+        count = 1000
+        count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
+        
+        # 부재 수 df에서 해당 부재의 수만 slice
+        num_of_gbeam = pd.merge(gbeam_info, num_of_beam, how='left')
+        num_of_gbeam = num_of_gbeam[['Name', 'EA']].drop_duplicates()
+        
+        for i, j in zip(num_of_gbeam['Name'], num_of_gbeam['EA']):
+            
+            for k in range(1,int(j)+1):
+    
+                for current_gbeam_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_gbeam_info_index\
+                            in zip(gbeam['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, gbeam_info.index):
+    
+                    if i == current_gbeam_name:
+                        
+                        
+                        
+                        for p, q, r in zip(current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list):
+                            if p != q:
+                                for s in range(p, q+1):
+    
+                                    count_list.append(count + s)
+                                    
+                                    name_output.append(current_gbeam_name + '_' + str(k) + '_' + str(story_name[s]))
+                                    
+                                    property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                    gbeam_info_output.append(gbeam_info.iloc[current_gbeam_info_index])
+                                    
+                            else:
+                                count_list.append(count + q)
+                                
+                                name_output.append(current_gbeam_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
+                                
+                                property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                gbeam_info_output.append(gbeam_info.iloc[current_gbeam_info_index])  
+                                
+                count += 1000
+                
+        gbeam_info_output = pd.DataFrame(gbeam_info_output)
+        gbeam_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
+    
+        gbeam_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
+    
+        # 중간결과
+        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 gbeam_info를 바로 출력
+            gbeam_ongoing = gbeam_info
+        else:
+            gbeam_ongoing = pd.concat([pd.Series(name_output, name='Name'), gbeam_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
+    
+        gbeam_ongoing = gbeam_ongoing.sort_values(by=['Count'])
+        gbeam_ongoing.reset_index(inplace=True, drop=True)
+    
+        # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
+        gbeam_output = gbeam_ongoing.iloc[:,[0,4,5,6,19,7,8,9,10,11,12,13,14,15,16,17,18,11,12,13,14,15,16,17,18]]  
+    
+        # 철근지름에 다시 D붙이기
+        gbeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + gbeam_output['Main Rebar(DXX)'].astype(str)
+        gbeam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + gbeam_output['Stirrup Rebar(DXX)'].astype(str)
+        gbeam_output = gbeam_output.replace('D9999', '', regex=True)
+        
+        # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+        gbeam_output = gbeam_output.replace(np.nan, '', regex=True)
+
+    #%% 6. E.Beam
+    # 불러온 Beam 정보 정리
+    if get_ebeam == True:
+        # Beam 정보 load
+        ebeam = input_data_sheets['Prop_E.Beam'].iloc[:,0:17]
+        ebeam.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)',\
+                        'h(mm)', 'Type(Main)', 'Main Rebar(DXX)', 'Type(Stirrup)'
+                        , 'Stirrup Rebar(DXX)', 'Top(1)', 'Top(2)', 'Top(3)'
+                        , 'Bot(3)', 'Bot(2)', 'Bot(1)', 'EA(Stirrup)', 'Spacing(Stirrup)']
+    
+        ebeam = ebeam.dropna(axis=0, how='all')
+        ebeam.reset_index(inplace=True, drop=True)
+        
+        # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
+        saved_ebeam_story_from = ebeam['Story(from)']
+        saved_ebeam_story_to = ebeam['Story(to)']
+        saved_ebeam_rebar = ebeam.iloc[:,[9,10,11,12,13,14,15,16]]
+        
+        ebeam = ebeam.fillna(method='ffill')
+        
+        ebeam['Story(from)'] = saved_ebeam_story_from
+        ebeam['Story(to)'] = saved_ebeam_story_to
+        ebeam.iloc[:,[9,10,11,12,13,14,15,16]] = saved_ebeam_rebar
+        
+        # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
+        new_story = ebeam[['Story(from)', 'Story(to)']]
+        new_story = new_story.fillna(method='ffill', axis=1)
+              
+        ebeam['Story(from)'] = new_story['Story(from)']
+        ebeam['Story(to)'] = new_story['Story(to)']
+    
+        # 철근의 앞에붙은 D 떼어주기
+        new_m_rebar = []
+        new_s_rebar = []
+    
+        for i in ebeam['Main Rebar(DXX)']:
+            if isinstance(i, int):
+                new_m_rebar.append(i)
+            else:
+                new_m_rebar.append(str_extract(i))
+                
+        for j in ebeam['Stirrup Rebar(DXX)']:
+            if isinstance(j, int):
+                new_s_rebar.append(j)
+            else:
+                new_s_rebar.append(str_extract(j))
+                
+        ebeam['Main Rebar(DXX)'] = new_m_rebar
+        ebeam['Stirrup Rebar(DXX)'] = new_s_rebar
+    
+        #%% 이름 구분 조건 load & 정리
+    
+        # 층 구분 조건에  story_name의 index 매칭시켜서 새로 열 만들기
+        naming_criteria_1_index = []
+        naming_criteria_2_index = []
+    
+        for i, j in zip(naming_criteria.iloc[:,8].dropna(), naming_criteria.iloc[:,9].dropna()):
+            naming_criteria_1_index.append(pd.Index(story_name).get_loc(i))
+            naming_criteria_2_index.append(pd.Index(story_name).get_loc(j))
+    
+        ### 구분 조건이 층 순서에 상관없이 작동되게 재정렬
+        # 구분 조건에 해당하는 콘크리트 강도 재정렬
+        naming_criteria_property = pd.concat([pd.Series(naming_criteria_1_index, name='Story(from) Index'), naming_criteria.iloc[:,10].dropna()], axis=1)
+    
+        naming_criteria_property['Story(from) Index'] = pd.Categorical(naming_criteria_property['Story(from) Index'], naming_criteria_1_index.sort())
+        naming_criteria_property.sort_values('Story(from) Index', inplace=True)
+        naming_criteria_property.reset_index(inplace=True)
+    
+        # 구분 조건 재정렬
+        naming_criteria_1_index.sort()
+        naming_criteria_2_index.sort()
+    
+        # 시작층, 끝층 정리    
+        naming_from_index = []
+        naming_to_index = []
+    
+        for naming_from, naming_to in zip(ebeam['Story(from)'], ebeam['Story(to)']):
+            if isinstance(naming_from, str) == False:
+                naming_from = str(naming_from)
+            if isinstance(naming_to, str) == False:
+                naming_from = str(naming_from)
+                
+            naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
+            naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
+    
+        #  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리    
+        naming_from_index_list = []
+        naming_to_index_list = []
+        naming_criteria_property_index_list = []
+    
+        for current_naming_from_index, current_naming_to_index in zip(naming_from_index, naming_to_index):  # 부재의 시작과 끝 층 loop
+            naming_from_index_sublist = [current_naming_from_index]
+            naming_to_index_sublist = [current_naming_to_index]
+            naming_criteria_property_index_sublist = []
+                
+            for i, j, k in zip(naming_criteria_1_index, naming_criteria_2_index, naming_criteria_property.index):
+                if (i >= current_naming_from_index) and (i <= current_naming_to_index):
+                    naming_from_index_sublist.append(i)
+                    naming_criteria_property_index_sublist.append(k)
+                                
+                    if (j >= current_naming_from_index) and (j <= current_naming_to_index):
+                        naming_to_index_sublist.append(j)
+                    else:
+                        naming_to_index_sublist.append(i-1)
+                        
+                    if i != current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(k-1)
+                                            
+                elif (i < current_naming_from_index) and (j >= current_naming_to_index):
+                    naming_criteria_property_index_sublist.append(k)
+                    
+                elif (i < current_naming_from_index) and (j <= current_naming_to_index):
+                    naming_to_index_sublist.append(j)
+                    
+                else:
+                    if max(naming_criteria_1_index) < current_naming_from_index:
+                        naming_criteria_property_index_sublist.append(max(naming_criteria_property.index))
+                        
+                    elif min(naming_criteria_1_index) > current_naming_to_index:
+                            naming_criteria_property_index_sublist.append(min(naming_criteria_property.index))
+                    
+                naming_from_index_sublist = list(set(naming_from_index_sublist))
+                naming_to_index_sublist = list(set(naming_to_index_sublist))
+                naming_criteria_property_index_sublist = list(set(naming_criteria_property_index_sublist))
+                        
+                # sublist 안의 element들을 내림차순으로 정렬            
+                naming_from_index_sublist.sort(reverse = True)
+                naming_to_index_sublist.sort(reverse = True)
+                naming_criteria_property_index_sublist.sort(reverse = True)
+            
+            # sublist를 합쳐 list로 완성
+            naming_from_index_list.append(naming_from_index_sublist)
+            naming_to_index_list.append(naming_to_index_sublist)
+            naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
+    
+        # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
+        ebeam_info = ebeam.copy()  # input sheet에서 나온 properties
+        ebeam_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
+    
+        name_output = []  # new names
+        property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
+        ebeam_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
+    
+        count = 1000
+        count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
+        
+        # 부재 수 df에서 해당 부재의 수만 slice
+        num_of_ebeam = pd.merge(ebeam_info, num_of_beam, how='left')
+        num_of_ebeam = num_of_ebeam[['Name', 'EA']].drop_duplicates()
+        
+        for i, j in zip(num_of_ebeam['Name'], num_of_ebeam['EA']):
+            
+            for k in range(1,int(j)+1):
+    
+                for current_ebeam_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_ebeam_info_index\
+                            in zip(ebeam['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, ebeam_info.index):
+    
+                    if i == current_ebeam_name:
+                        
+                        
+                        
+                        for p, q, r in zip(current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list):
+                            if p != q:
+                                for s in range(p, q+1):
+    
+                                    count_list.append(count + s)
+                                    
+                                    name_output.append(current_ebeam_name + '_' + str(k) + '_' + str(story_name[s]))
+                                    
+                                    property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                    ebeam_info_output.append(ebeam_info.iloc[current_ebeam_info_index])
+                                    
+                            else:
+                                count_list.append(count + q)
+                                
+                                name_output.append(current_ebeam_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
+                                
+                                property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
+                                ebeam_info_output.append(ebeam_info.iloc[current_ebeam_info_index])  
+                                
+                count += 1000
+                
+        ebeam_info_output = pd.DataFrame(ebeam_info_output)
+        ebeam_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
+    
+        ebeam_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
+    
+        # 중간결과
+        if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 ebeam_info를 바로 출력
+            ebeam_ongoing = ebeam_info
+        else:
+            ebeam_ongoing = pd.concat([pd.Series(name_output, name='Name'), ebeam_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
+    
+        ebeam_ongoing = ebeam_ongoing.sort_values(by=['Count'])
+        ebeam_ongoing.reset_index(inplace=True, drop=True)
+    
+        # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
+        ebeam_output = ebeam_ongoing.iloc[:,[0,4,5,18,6,7,8,9,10,11,12,13,14,15,16,17,18,11,12,13,14,15,16,17]]  
+    
+        # 철근지름에 다시 D붙이기
+        ebeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + ebeam_output['Main Rebar(DXX)'].astype(str)
+        ebeam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + ebeam_output['Stirrup Rebar(DXX)'].astype(str)
+        ebeam_output = ebeam_output.replace('D9999', '', regex=True)
+        
+        # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+        ebeam_output = ebeam_output.replace(np.nan, '', regex=True)
+
+    #%% Printout to Excel
     # Using win32com...
 
-    # Call CoInitialize function before using any COM object
+    ### Call CoInitialize function before using any COM object
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)
-    ws_beam = wb.Sheets('Output_C.Beam Properties')
-    ws_column = wb.Sheets('Output_G.Column Properties')
-    ws_wall = wb.Sheets('Output_Wall Properties')
-
+    ws_wall = wb.Sheets('Input_S.Wall')
+    ws_gcol = wb.Sheets('Input_G.Column')
+    ws_ecol = wb.Sheets('Input_E.Column')
+    ws_cbeam = wb.Sheets('Input_C.Beam')
+    ws_gbeam = wb.Sheets('Input_G.Beam')
+    ws_ebeam = wb.Sheets('Input_E.Beam')
+    
     startrow, startcol = 5, 1
-
-    if get_beam == True:        
-        ws_beam.Range(ws_beam.Cells(startrow, startcol),\
-                      ws_beam.Cells(startrow + beam_output.shape[0]-1,\
-                                    startcol + beam_output.shape[1]-1)).Value\
-        = list(beam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
-        
-    if get_column == True:        
-        ws_column.Range(ws_column.Cells(startrow, startcol),\
-                        ws_column.Cells(startrow + column_output.shape[0]-1,\
-                                        startcol + column_output.shape[1]-1)).Value\
-        = list(column_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
-
+    
+    # Input converted data to Excel
     if get_wall == True:    
         ws_wall.Range(ws_wall.Cells(startrow, startcol),\
                       ws_wall.Cells(startrow + wall_output.shape[0]-1,\
                                     startcol + wall_output.shape[1]-1)).Value\
         = list(wall_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+        
+    if get_gcol == True:        
+        ws_gcol.Range(ws_gcol.Cells(startrow, startcol),\
+                        ws_gcol.Cells(startrow + gcol_output.shape[0]-1,\
+                                        startcol + gcol_output.shape[1]-1)).Value\
+        = list(gcol_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+        
+    if get_ecol == True:        
+        ws_ecol.Range(ws_ecol.Cells(startrow, startcol),\
+                        ws_ecol.Cells(startrow + ecol_output.shape[0]-1,\
+                                        startcol + ecol_output.shape[1]-1)).Value\
+        = list(ecol_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+        
+    if get_cbeam == True:        
+        ws_cbeam.Range(ws_cbeam.Cells(startrow, startcol),\
+                      ws_cbeam.Cells(startrow + cbeam_output.shape[0]-1,\
+                                    startcol + cbeam_output.shape[1]-1)).Value\
+        = list(cbeam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+        
+    if get_gbeam == True:        
+        ws_gbeam.Range(ws_gbeam.Cells(startrow, startcol),\
+                      ws_gbeam.Cells(startrow + gbeam_output.shape[0]-1,\
+                                    startcol + gbeam_output.shape[1]-1)).Value\
+        = list(gbeam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+        
+    if get_ebeam == True:        
+        ws_ebeam.Range(ws_ebeam.Cells(startrow, startcol),\
+                      ws_ebeam.Cells(startrow + ebeam_output.shape[0]-1,\
+                                    startcol + ebeam_output.shape[1]-1)).Value\
+        = list(ebeam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+
+
+    # Reduce Hoop space of NG elements(Autocompletion)
+    if get_cbeam == True: 
+        while True:
+            # Read Hoop Space
+            h_space = ws_cbeam.Range('X%s:X%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
+            # Read and Get the boolean value of Vy <= Vn
+            vy_vn = ws_cbeam.Range('AD%s:AD%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn_array = np.array([1 if 'N.G' in i[0] else 0 for i in vy_vn]) # (NG = 1, OK = 0)
+            
+            # If there is no NG element or Hoop space is less than 0, break
+            if (np.all(vy_vn_array == 0)) | (np.any(h_space_array <= 0)):
+                break
+    
+            # Reduce Hoop space of NG elements(-10mm every iteration)
+            h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
+            
+            # Input updated Hoop Space to Excel
+            ws_cbeam.Range('X%s:X%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value\
+            = [[i] for i in h_space_array]    
+        
+        # # Create a list of indices where Hoop space is changed
+        # h_space_changed_idx = np.where(vy_vn_array == 1)[0]
+        # # Change the color of the font of the changed Hoop space
+        # for j in h_space_changed_idx:
+        #     ws_cbeam.Range('X%s' %str(startrow + int(j))).Font.ColorIndex = 3
 
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
     
-#%% Convert Column Nu
+#%% insert_forces
 
-def convert_property_col_Nu(input_xlsx_path, result_path, result_xlsx='Analysis Result'
-                            , g_col_group_name = 'G.Column'):
-    '''
+def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
+                 , get_gcol=True, get_ecol=True):
+
+    ##### Load Excel Files (Analysis Result Sheets)
+    to_load_list = result_xlsx_path
     
-    User가 입력한 부재 정보들을 Perform-3D에 입력할 수 있는 형식으로 변환하여 Data Conversion 엑셀파일의 Output_Properties 시트에 작성.
+    ##### Excel 파일 읽는 Function (w/ Xlsx2csv & joblib)
+    def read_excel(path:str, sheet_name:str, skip_rows:list=[0,2]) -> pd.DataFrame:
+        data_buffer = StringIO()
+        Xlsx2csv(path, outputencoding="utf-8").convert(data_buffer, sheetname=sheet_name)
+        data_buffer.seek(0)
+        data_df = pd.read_csv(data_buffer, low_memory=False, skiprows=skip_rows)
+        return data_df
     
-    Parameters
-    ----------
-    input_path : str
-                 Data Conversion 엑셀 파일의 경로.
-                 
-    input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+    ##### Read Excel Files (Data Conversion Sheets & Analysis Result Sheets)
+    # Input_G.Beam
+    gbeam = read_excel(input_xlsx_path, sheet_name='Input_G.Beam', skip_rows=[0,1,2])
+    gbeam = gbeam.iloc[:,0]
+    gbeam.dropna(inplace=True, how='all')
+    gbeam.name = 'Property Name'
+    # Input_G.Column
+    gcol = read_excel(input_xlsx_path, sheet_name='Input_G.Column', skip_rows=[0,1,2])
+    gcol = gcol.iloc[:,0]
+    gcol.dropna(inplace=True, how='all')
+    gcol.name = 'Property Name'
+    # Input_E.Column
+    ecol = read_excel(input_xlsx_path, sheet_name='Input_E.Column', skip_rows=[0,1,2])
+    ecol = ecol.iloc[:,0]
+    ecol.dropna(inplace=True, how='all')
+    ecol.name = 'Property Name'
+    # Elements(Frame)
+    element_data = read_excel(to_load_list[0], 'Element Data - Frame Types')
+    column_name_to_slice = ['Element Name', 'Property Name', 'I-Node ID', 'J-Node ID']
+    element_data = element_data.loc[:, column_name_to_slice]    
+    # Forces (Vu, Nu)
+    beam_force_data = Parallel(n_jobs=-1, verbose=10)(delayed(read_excel)(file_path, 'Frame Results - End Forces') for file_path in to_load_list)
+    beam_force_data = pd.concat(beam_force_data, ignore_index=True)
+    column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
+    beam_force_data = beam_force_data.loc[:, column_name_to_slice]
 
-    get_beam : bool, optional, default=True
-               True = C.Beam의 정보를 Perform-3D 입력용 정보로 변환함.
-               False = C.Beam의 정보를 변환하지 않음.
-               
-    get_column : bool, optional, default=True
-                 True = G.Column의 정보를 Perform-3D 입력용 정보로 변환함.
-                 False = G.Column의 정보를 변환하지 않음.
-               
-    get_wall : bool, optional, default=True
-               True = Wall의 정보를 Perform-3D 입력용 정보로 변환함.
-               False = Wall의 정보를 변환하지 않음.
-
-    Returns
-    --------       
-    beam_output : pandas.core.frame.DataFrame or None
-                  C.Beam Properties의 정보를 Perform-3D 입력용으로 변환한 정보.
-                  Output_C.Beam Properties 시트에 입력됨.
-                     
-    wall_output : pandas.core.frame.DataFrame or None
-                  Wall Properties의 정보를 Perform-3D 입력용으로 변환한 정보.
-                  Output_Wall Properties 시트에 입력됨.   
-                  
-    Raises
-    -------
-    
-    '''    
-    #%% 파일 load
-    
-    pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
-    # UserWarning: openpyxl 안뜨게 하기
-    warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
-    
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw\
-                                      , ['G.Column Properties', 'Story Data'
-                                         , 'ETC', 'Naming'], skiprows=3)
-    input_data_raw.close()
-
-    # Column 정보 load
-    column = input_data_sheets['G.Column Properties'].iloc[:,0:18]
-    column.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)', 'h(mm)'
-                      , 'Cover Thickness(mm)', '내진상세 여부', 'Type(Main)'
-                      , 'Main Rebar(DXX)', 'Type(Hoop)', 'Hoop Rebar(DXX)'
-                      , 'EA(Layer1)', 'Row(Layer1)', 'EA(Layer2)', 'Row(Layer2)'
-                      , 'EA(Hoop_X)', 'EA(Hoop_Y)', 'Spacing(Hoop)']
-
-    column = column.dropna(axis=0, how='all')
-    column.reset_index(inplace=True, drop=True)
-    column = column.fillna(method='ffill')
-
-    # 구분 조건 load
-    naming_criteria = input_data_sheets['ETC']
-
-    # Story 정보 load
-    story_info = input_data_sheets['Story Data'].iloc[:,0:3]
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    story_name = story_info.loc[:, 'Story Name']
-    story_name = story_name[::-1]  # 층 이름 재배열
-    story_name.reset_index(drop=True, inplace=True)
-
-    # 벽체,기둥,보 개수 load
-    num_of_elem = input_data_sheets['Naming']
-    
-    num_of_beam = num_of_elem.iloc[:,[0,3]]
-    num_of_wall = num_of_elem.iloc[:,[8,11]]
-    num_of_column = num_of_elem.iloc[:,[4,7]]
-    
-    num_of_beam = num_of_beam.dropna(axis=0)
-    num_of_wall = num_of_wall.dropna(axis=0)
-    num_of_column = num_of_column.dropna(axis=0)
-
-    num_of_beam.columns = ['Name', 'EA']
-    num_of_wall.columns = ['Name', 'EA']
-    num_of_column.columns = ['Name', 'EA']
-
-    #%% 부재 이름 설정할 때 필요한 함수들
-
-    # 층 나누는 함수 (12F~15F)
-    def str_div(temp_list):
-        first = []
-        second = []
-        
-        for i in temp_list:
-            if '~' in i:
-                first.append(i.split('~')[0])
-                second.append(i.split('~')[1])
-            elif '-' in i:
-                second.append(i.split('-')[0])
-                first.append(i.split('-')[1])
-            else:
-                first.append(i)
-                second.append(i)
-        
-        first = pd.Series(first).str.strip()
-        second = pd.Series(second).str.strip()
-        
-        return first, second
-
-    # 층, 철근 나누는 함수 (12F~15F, D10@300)
-    def rebar_div(temp_list1, temp_list2):
-        first = []
-        second = []
-        third = []
-        
-        for i, j in zip(temp_list1, temp_list2):
-            if isinstance(i, str) : # string인 경우
-                if '@' in i:
-                    first.append(i.split('@')[0].strip())
-                    second.append(i.split('@')[1])
-                    third.append(np.nan)
-                elif '-' in i:
-                    third.append(i.split('-')[0])
-                    first.append(i.split('-')[1].strip())
-                    second.append(np.nan)
-                else: 
-                    first.append(i.strip())
-                    second.append(j)
-                    third.append(np.nan)
-            else: # string 아닌 경우
-                first.append(i)
-                second.append(j)
-                third.append(np.nan)
-
-        return first, second, third
-
-    # 철근 지름 앞의 D 떼주는 함수 (D10...)
-    def str_extract(sth_str):
-        result = int(re.findall(r'[0-9]+', sth_str)[0])
-        
-        return result
-
-    #%% 데이터베이스
-    steel_geometry_database = naming_criteria.iloc[:,[0,1,2]].dropna()
-    steel_geometry_database.columns = ['Name', 'Diameter(mm)', 'Area(mm^2)']
-
-    new_steel_geometry_name = []
-
-    for i in steel_geometry_database['Name']:
-        if isinstance(i, int):
-            new_steel_geometry_name.append(i)
-        else:
-            new_steel_geometry_name.append(str_extract(i))
-
-    steel_geometry_database['Name'] = new_steel_geometry_name
-
-    #%% 2. Column
-    #%% 불러온 Column 정보 정리
-        
-    # 글자가 합쳐져 있을 경우 글자 나누기 (12F~15F, D10@300)
-    # 층 나누기
-
-    if column['Story(to)'].isnull().any() == True:
-        column['Story(to)'] = str_div(column['Story(from)'])[1]
-        column['Story(from)'] = str_div(column['Story(from)'])[0]
-    else: pass
-
-    # 철근의 앞에붙은 D 떼어주기
-    new_m_rebar = []
-    new_h_rebar = []
-
-    for i in column['Main Rebar(DXX)']:
-        if isinstance(i, int):
-            new_m_rebar.append(i)
-        else:
-            new_m_rebar.append(str_extract(i))
-            
-    for j in column['Hoop Rebar(DXX)']:
-        if isinstance(j, int):
-            new_h_rebar.append(j)
-        else:
-            new_h_rebar.append(str_extract(j))
-            
-    column['Main Rebar(DXX)'] = new_m_rebar
-    column['Hoop Rebar(DXX)'] = new_h_rebar
-
-    #%% 이름 구분 조건 load & 정리
-
-    # 층 구분 조건에  story_name의 index 매칭시켜서 새로 열 만들기
-    naming_criteria_1_index = []
-    naming_criteria_2_index = []
-
-    for i, j in zip(naming_criteria.iloc[:,5].dropna(), naming_criteria.iloc[:,6].dropna()):
-        naming_criteria_1_index.append(pd.Index(story_name).get_loc(i))
-        naming_criteria_2_index.append(pd.Index(story_name).get_loc(j))
-
-    ### 구분 조건이 층 순서에 상관없이 작동되게 재정렬
-    # 구분 조건에 해당하는 콘크리트 강도 재정렬
-    naming_criteria_property = pd.concat([pd.Series(naming_criteria_1_index, name='Story(from) Index'), naming_criteria.iloc[:,7].dropna()], axis=1)
-
-    naming_criteria_property['Story(from) Index'] = pd.Categorical(naming_criteria_property['Story(from) Index'], naming_criteria_1_index.sort())
-    naming_criteria_property.sort_values('Story(from) Index', inplace=True)
-    naming_criteria_property.reset_index(inplace=True)
-
-    # 구분 조건 재정렬
-    naming_criteria_1_index.sort()
-    naming_criteria_2_index.sort()
-
-    #%% 시작층, 끝층 정리
-
-    naming_from_index = []
-    naming_to_index = []
-
-    for naming_from, naming_to in zip(column['Story(from)'], column['Story(to)']):
-        if isinstance(naming_from, str) == False:
-            naming_from = str(naming_from)
-        if isinstance(naming_to, str) == False:
-            naming_from = str(naming_from)
-            
-        naming_from_index.append(pd.Index(story_name).get_loc(naming_from))
-        naming_to_index.append(pd.Index(story_name).get_loc(naming_to))
-
-    #%%  층 이름을 etc의 이름 구분 조건에 맞게 나누어서 리스트로 정리
-
-    naming_from_index_list = []
-    naming_to_index_list = []
-    naming_criteria_property_index_list = []
-
-    for current_naming_from_index, current_naming_to_index in zip(naming_from_index, naming_to_index):  # 부재의 시작과 끝 층 loop
-        naming_from_index_sublist = [current_naming_from_index]
-        naming_to_index_sublist = [current_naming_to_index]
-        naming_criteria_property_index_sublist = []
-            
-        for i, j, k in zip(naming_criteria_1_index, naming_criteria_2_index, naming_criteria_property.index):
-            if (i >= current_naming_from_index) and (i <= current_naming_to_index):
-                naming_from_index_sublist.append(i)
-                naming_criteria_property_index_sublist.append(k)
-                            
-                if (j >= current_naming_from_index) and (j <= current_naming_to_index):
-                    naming_to_index_sublist.append(j)
-                else:
-                    naming_to_index_sublist.append(i-1)
-                    
-                if i != current_naming_from_index:
-                    naming_criteria_property_index_sublist.append(k-1)
-                                        
-            elif (i < current_naming_from_index) and (j >= current_naming_to_index):
-                naming_criteria_property_index_sublist.append(k)
-                
-            elif (i < current_naming_from_index) and (j <= current_naming_to_index):
-                naming_to_index_sublist.append(j)
-                
-            else:
-                if max(naming_criteria_1_index) < current_naming_from_index:
-                    naming_criteria_property_index_sublist.append(max(naming_criteria_property.index))
-                    
-                elif min(naming_criteria_1_index) > current_naming_to_index:
-                        naming_criteria_property_index_sublist.append(min(naming_criteria_property.index))
-                
-            naming_from_index_sublist = list(set(naming_from_index_sublist))
-            naming_to_index_sublist = list(set(naming_to_index_sublist))
-            naming_criteria_property_index_sublist = list(set(naming_criteria_property_index_sublist))
-                    
-            # sublist 안의 element들을 내림차순으로 정렬            
-            naming_from_index_sublist.sort(reverse = True)
-            naming_to_index_sublist.sort(reverse = True)
-            naming_criteria_property_index_sublist.sort(reverse = True)
-        
-        # sublist를 합쳐 list로 완성
-        naming_from_index_list.append(naming_from_index_sublist)
-        naming_to_index_list.append(naming_to_index_sublist)
-        naming_criteria_property_index_list.append(naming_criteria_property_index_sublist)        
-
-    # 부재명 만들기, 기타 input sheet의 정보들 부재명에 따라 정리
-    column_info = column.copy()  # input sheet에서 나온 properties
-    column_info.reset_index(drop=True, inplace=True)  # ?빼도되나?
-
-    name_output = []  # new names
-    property_output = []  # 이름 구분 조건에 따라 할당되는 properties를 새로운 부재명에 맞게 다시 정리한 output
-    column_info_output = []  # input sheet에서 나온 properties를 새로운 부재명에 맞게 다시 정리한 output
-
-    count = 1000
-    count_list = [] # 벽체이름을 오름차순으로 바꾸기 위한 index 만들기
-
-    for i, j in zip(num_of_column['Name'], num_of_column['EA']):
-        
-        for k in range(1,int(j)+1):
-
-            for current_column_name, current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list, current_column_info_index\
-                        in zip(column['Name'], naming_from_index_list, naming_to_index_list, naming_criteria_property_index_list, column_info.index):
-
-                if i == current_column_name:
-                
-                    for p, q, r in zip(current_naming_from_index_list, current_naming_to_index_list, current_naming_criteria_property_index_list):
-                        if p != q:
-                            for s in range(p, q+1):
-
-                                count_list.append(count + s)
-                                
-                                name_output.append(current_column_name + '_' + str(k) + '_' + str(story_name[s]))
-                                
-                                property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
-                                column_info_output.append(column_info.iloc[current_column_info_index])
-                                
-                        else:
-                            count_list.append(count + q)
-                            
-                            name_output.append(current_column_name + '_' + str(k) + '_' + str(story_name[q]))  # 시작과 끝층이 같으면 둘 중 한 층만 표기
-                            
-                            property_output.append(naming_criteria_property.iloc[:,-1][r])  # 각 이름에 맞게 property 할당 (index의 index 사용하였음)
-                            column_info_output.append(column_info.iloc[current_column_info_index])  
-                            
-            count += 1000
-            
-    column_info_output = pd.DataFrame(column_info_output)
-    column_info_output.reset_index(drop=True, inplace=True)  # 왜인지는 모르겠는데 index가 이상해져서..
-
-    column_info_output['Concrete Strength(CXX)'] = property_output  # 이름 구분 조건에 따른 property를 중간결과물에 재할당
-
-    # 중간결과
-    if (len(name_output) == 0) or (len(property_output) == 0):  # 구분 조건없이 을 경우는 column_info를 바로 출력
-        column_ongoing = column_info
-    else:
-        column_ongoing = pd.concat([pd.Series(name_output, name='Name'), column_info_output, pd.Series(count_list, name='Count')], axis = 1)  # 중간결과물 : 부재명 변경, 콘크리트 강도 추가, 부재명과 콘크리트 강도에 따른 properties
-
-    column_ongoing = column_ongoing.sort_values(by=['Count'])
-    column_ongoing.reset_index(inplace=True, drop=True)
-
-#%% Nu값 불러오기
-    to_load_list = []
-    file_names = os.listdir(result_path)
-    for file_name in file_names:
-        if (result_xlsx in file_name) and ('~$' not in file_name):
-            to_load_list.append(file_name)
-
-    P_data = pd.DataFrame()
-
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(result_path + '\\' + i)
-        result_data_sheets = pd.read_excel(result_data_raw, ['Element Data - Frame Types', 'Frame Results - End Forces'], skiprows=[0,2])
-        
-        column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End']
-        P_data_temp = result_data_sheets['Frame Results - End Forces'].loc[:,column_name_to_slice]
-        P_data = pd.concat([P_data, P_data_temp])
-        
-    column_name = result_data_sheets['Element Data - Frame Types'].loc[:,['Element Name', 'Property Name']]
-    
-#%% 지진파 이름 list 만들기
+    ##### Create Seismic Loads List
     load_name_list = []
-    for i in P_data['Load Case'].drop_duplicates():
+    for i in beam_force_data['Load Case'].drop_duplicates():
         new_i = i.split('+')[1]
         new_i = new_i.strip()
         load_name_list.append(new_i)
-
     gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
     seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-
-    seismic_load_name_list.sort()
-    
+    seismic_load_name_list.sort()        
     DE_load_name_list = [x for x in load_name_list if 'DE' in x]
     MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
 
-#%% Nu값 뽑기
-    # 축력 불러와서 Grouping
-    P_data = P_data[P_data['Group Name'] == g_col_group_name]    
-    P_data = P_data[P_data['Step Type'].str.contains('Min')]
-    P_data = P_data[P_data['Load Case'].str.contains(gravity_load_name[0])]
-    P_data = pd.merge(P_data, column_name, how='left')
-    P_data.reset_index(inplace=True, drop=True)
+    ##### Merge Result Data & Element Data
+    beam_force_data = pd.merge(beam_force_data, element_data, how='left')
+    ##### Slice only Data from Gravitaional Loads
+    beam_force_data = beam_force_data[beam_force_data['Load Case'].str.contains(gravity_load_name[0])]
+    beam_force_data.reset_index(inplace=True, drop=True)
 
-    # 부호 반대로
-    P_data['P J-End'] = -P_data['P J-End']
+    print(get_gbeam, type(get_gbeam))
+    print(get_gcol, type(get_gcol))
+    print(get_ecol, type(get_ecol))
 
-    # result
-    P = P_data[['Property Name', 'P J-End']]
-    P.columns = ['Name', 'Nu(kN)']
-    
-#%% Column Output 출력
+#%% Get Force Results (in each case)
+    if get_gbeam == True:
+        # Break if there is no data
+        if len(gbeam) == 0:
+            print('No Data in G.Beam')
 
-    # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-    column_output = column_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]  
+        else:        
+            # Slice Data (Group = G.Beam)
+            gbeam_force_data = beam_force_data[beam_force_data['Property Name'].isin(gbeam)]
 
-    # 철근지름에 다시 D붙이기
-    column_output.loc[:,'Main Rebar(DXX)'] = 'D' + column_output['Main Rebar(DXX)'].astype(str)
-    column_output.loc[:,'Hoop Rebar(DXX)'] = 'D' + column_output['Hoop Rebar(DXX)'].astype(str)
-    
-    # Nu merge
-    column_output = pd.merge(column_output, P, how='left')
-    
-    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-    column_output = column_output.replace(np.nan, '', regex=True)
+            # Result -> Absolute Values
+            gbeam_force_data[['V2 I-End', 'V2 J-End']] = gbeam_force_data[['V2 I-End', 'V2 J-End']].abs()
+
+            # Choose Maximum Value (in each row)
+            gbeam_force_data['V2 Max'] = gbeam_force_data[['V2 I-End', 'V2 J-End']].max(axis=1)
+            # Choose Maximum Value (of each element)
+            gbeam_force_max_idx = gbeam_force_data.groupby('Element Name')['V2 Max'].transform('max') == gbeam_force_data['V2 Max']
+            gbeam_force_data = gbeam_force_data[gbeam_force_max_idx]
+            # Choose Maximum Value (of elements with same "Element Name")
+            gbeam_force_max_idx = gbeam_force_data.groupby('Property Name')['V2 Max'].transform('max') == gbeam_force_data['V2 Max']
+            gbeam_force_data = gbeam_force_data[gbeam_force_max_idx]
+
+            # Dataframe to be printed in Excel
+            gbeam_output = gbeam_force_data.loc[:, ['Property Name', 'V2 Max']]
+            gbeam_output = pd.merge(gbeam, gbeam_output, how='left') # Sort by "Input_G.Beam"
+            gbeam_output.reset_index(inplace=True, drop=True)
+            gbeam_output = gbeam_output.replace(np.nan, '', regex=True)
+
+    if get_gcol == True:
+        # Break if there is no data
+        if len(gcol) == 0:
+            print('No Data in G.Column')
+
+        else:
+            # Slice Data (Group = G.Column)
+            gcol_force_data = beam_force_data[beam_force_data['Property Name'].isin(gcol)]
+
+            # Reverse Sign
+            gcol_force_data['P J-End'] = - gcol_force_data['P J-End']
+
+            # Choose Maximum Value (of each element)
+            gcol_force_max_idx = gcol_force_data.groupby('Element Name')['P J-End'].transform('max') == gcol_force_data['P J-End']
+            gcol_force_data = gcol_force_data[gcol_force_max_idx]
+            # Choose Maximum Value (of elements with same "Element Name")
+            gcol_force_max_idx = gcol_force_data.groupby('Property Name')['P J-End'].transform('max') == gcol_force_data['P J-End']
+            gcol_force_data = gcol_force_data[gcol_force_max_idx]
+
+            # Dataframe to be printed in Excel
+            gcol_output = gcol_force_data.loc[:, ['Property Name', 'P J-End']]
+            gcol_output = pd.merge(gcol, gcol_output, how='left') # Sort by "Input_G.Column"
+            gcol_output.reset_index(inplace=True, drop=True)
+            gcol_output = gcol_output.replace(np.nan, '', regex=True)
+
+    if get_ecol == True:
+        # Break if there is no data
+        if len(ecol) == 0:
+            print('No Data in E.Column')
+
+        else:
+            # Slice Data (Group = G.Column)
+            ecol_force_data = beam_force_data[beam_force_data['Property Name'].isin(ecol)]
+
+            # Reverse Sign
+            ecol_force_data['P J-End'] = - ecol_force_data['P J-End']
+
+            # Choose Maximum Value (of each element)
+            ecol_force_max_idx = ecol_force_data.groupby('Element Name')['P J-End'].transform('max') == ecol_force_data['P J-End']
+            ecol_force_data = ecol_force_data[ecol_force_max_idx]
+            # Choose Maximum Value (of elements with same "Element Name")
+            ecol_force_max_idx = ecol_force_data.groupby('Property Name')['P J-End'].transform('max') == ecol_force_data['P J-End']
+            ecol_force_data = ecol_force_data[ecol_force_max_idx]
+
+            # Dataframe to be printed in Excel
+            ecol_output = ecol_force_data.loc[:, ['Property Name', 'P J-End']]
+            ecol_output = pd.merge(ecol, ecol_output, how='left') # Sort by "Input_E.Column"
+            ecol_output.reset_index(inplace=True, drop=True)
+            ecol_output = ecol_output.replace(np.nan, '', regex=True)       
 
     #%% Printout
     # Using win32com...
 
+    # print(len(gbeam_output))
     # Call CoInitialize function before using any COM object
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)
-    ws_column = wb.Sheets('Output_G.Column Properties')
+    ws_gbeam = wb.Sheets('Input_G.Beam')
+    ws_gcol = wb.Sheets('Input_G.Column')
+    ws_ecol = wb.Sheets('Input_E.Column')
 
+    # Declare startrow, startcol
     startrow, startcol = 5, 1
 
-    ws_column.Range(ws_column.Cells(startrow, startcol),\
-                    ws_column.Cells(startrow + column_output.shape[0]-1,\
-                                    startcol + column_output.shape[1]-1)).Value\
-    = list(column_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+    if get_gbeam == True:
+        # Insert Result Forces (Vu)
+        ws_gbeam.Range('Z%s:Z%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
+        = [[i] for i in gbeam_output['V2 Max']]
+
+        # Reduce Hoop space of NG elements(Autocompletion)
+        while True:
+            # Read Hoop Space
+            h_space = ws_gbeam.Range('Y%s:Y%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
+            h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
+            # Read and Get the boolean value of Vy <= Vn
+            vy_vn = ws_gbeam.Range('AD%s:AG%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
+            
+            # If there is no NG element or Hoop space is less than 0, break
+            if (np.all(vy_vn_array == 0)) | (np.any(h_space_array <= 0)):
+                break
+    
+            # Reduce Hoop space of NG elements(-10mm every iteration)
+            h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
+            
+            # Input updated Hoop Space to Excel
+            ws_gbeam.Range('Y%s:Y%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
+            = [[i] for i in h_space_array]
+        
+    if get_gcol == True:        
+        # Insert Result Forces (Nu)
+        ws_gcol.Range('X%s:X%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
+        = [[i] for i in gcol_output['P J-End']]
+
+        # Reduce Hoop space of NG elements(Autocompletion)
+        while True:
+            # Read Hoop Space
+            h_space = ws_gcol.Range('W%s:W%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
+            h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
+            # Read and Get the boolean value of Vy <= Vn
+            vy_vn = ws_gcol.Range('AC%s:AF%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
+            vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
+            
+            # If there is no NG element or Hoop space is less than 0, break
+            if (np.all(vy_vn_array == 0)) | (np.any(h_space_array <= 0)):
+                break
+    
+            # Reduce Hoop space of NG elements(-10mm every iteration)
+            h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
+            
+            # Input updated Hoop Space to Excel
+            ws_gcol.Range('W%s:W%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
+            = [[i] for i in h_space_array]
+
+    if get_ecol == True:        
+        # Insert Result Forces (Nu)
+        ws_ecol.Range('P%s:P%s' %(startrow, startrow + ecol_output.shape[0]-1)).Value\
+        = [[i] for i in ecol_output['P J-End']]
 
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
-    
-#%% Property Assign Macro (Wall)
-
-# def property_assign_macro()

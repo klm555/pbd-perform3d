@@ -19,11 +19,19 @@ time_start = time.time()
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'D:\이형우\성능기반 내진설계\김해신문1지구 A17-1BL 내진성능설계 자료 공유\Data_Conversion_Sheets\KHSM_105_Data Conversion_Ver.1.3M_내진상세.xlsx'
-# input_xlsx_path = r'K:\2105-이형우\KHSM_106_Data Conversion_Ver.1.3M.xlsx'
-# input_xlsx_path = r'D:\이형우\성능기반 내진설계\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\101\101D_N3_Data Conversion_Ver.1.2.xlsx'
-result_path = r'K:\2105-이형우\from 박재성\Results_E.Column'
-result_xlsx = 'Analysis Result'
+input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\2_Excel_Sheets\Data Conversion_Ver.1.4 - 복사본.xlsx'
+# result_path = r'K:\2105-이형우\from 박재성\Results_E.Column'
+# result_xlsx = 'Analysis Result'
+
+# Analysis Result
+result_xlsx_1 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\105\KHSM_105_8_Analysis Result_1.xlsx'"
+result_xlsx_2 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\105\KHSM_105_8_Analysis Result_2.xlsx'"
+result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\105\KHSM_105_8_Analysis Result_3.xlsx'"
+result_xlsx_path = result_xlsx_1 + ',' + result_xlsx_2 + ',' + result_xlsx_3  # + ',' + result_xlsx_4 + ',' + result_xlsx_5
+result_xlsx_path = result_xlsx_path.split(',')
+result_xlsx_path = [i.strip("'") for i in result_xlsx_path]
+result_xlsx_path = [i.strip('"') for i in result_xlsx_path]
+to_load_list = result_xlsx_path
 
 DL_name = 'DL' # Midas Gen에서 Import해올 때 만든 하중 이름
 LL_name = 'LL'
