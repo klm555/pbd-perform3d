@@ -1537,9 +1537,9 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
     if get_ecol == True:
         
         # Column 정보 load
-        ecol = input_data_sheets['Prop_E.Column'].iloc[:,0:17]
+        ecol = input_data_sheets['Prop_E.Column'].iloc[:,0:16]
         ecol.columns = ['Name', 'Story(from)', 'Story(to)', 'b(mm)', 'h(mm)'
-                        , '내진상세 여부', 'Type(Main)'
+                        , 'Type(Main)'
                         , 'Main Rebar(DXX)', 'Type(Hoop)', 'Hoop Rebar(DXX)'
                         , 'EA(Layer1)', 'Row(Layer1)', 'EA(Layer2)', 'Row(Layer2)'
                         , 'EA(Hoop_X)', 'EA(Hoop_Y)', 'Spacing(Hoop)']
@@ -1550,13 +1550,13 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
         # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
         saved_ecol_story_from = ecol['Story(from)']
         saved_ecol_story_to = ecol['Story(to)']
-        saved_ecol_rebar = ecol.iloc[:,[10,11,12,13,14,15,16]]
+        saved_ecol_rebar = ecol.iloc[:,[9,10,11,12,13,14,15]]
         
         ecol = ecol.fillna(method='ffill')
         
         ecol['Story(from)'] = saved_ecol_story_from
         ecol['Story(to)'] = saved_ecol_story_to
-        ecol.iloc[:,[10,11,12,13,14,15,16]] = saved_ecol_rebar
+        ecol.iloc[:,[9,10,11,12,13,14,15]] = saved_ecol_rebar
 
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
         new_story = ecol[['Story(from)', 'Story(to)']]
@@ -1730,7 +1730,7 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
         ecol_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        ecol_output = ecol_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]  
+        ecol_output = ecol_ongoing.iloc[:,[0,4,5,17,6,7,8,9,10,11,12,13,14,15,16]]  
     
         # 철근지름에 다시 D붙이기
         ecol_output.loc[:,'Main Rebar(DXX)'] = 'D' + ecol_output['Main Rebar(DXX)'].astype(str)
@@ -2472,13 +2472,14 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
         data_buffer.seek(0)
         data_df = pd.read_csv(data_buffer, low_memory=False, skiprows=skip_rows)
         return data_df
-    
+
     ##### Read Excel Files (Data Conversion Sheets & Analysis Result Sheets)
     # Input_G.Beam
     gbeam = read_excel(input_xlsx_path, sheet_name='Input_G.Beam', skip_rows=[0,1,2])
     gbeam = gbeam.iloc[:,0]
     gbeam.dropna(inplace=True, how='all')
     gbeam.name = 'Property Name'
+
     # Input_G.Column
     gcol = read_excel(input_xlsx_path, sheet_name='Input_G.Column', skip_rows=[0,1,2])
     gcol = gcol.iloc[:,0]
@@ -2489,12 +2490,16 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
     ecol = ecol.iloc[:,0]
     ecol.dropna(inplace=True, how='all')
     ecol.name = 'Property Name'
+
     # Elements(Frame)
     element_data = read_excel(to_load_list[0], 'Element Data - Frame Types')
     column_name_to_slice = ['Element Name', 'Property Name', 'I-Node ID', 'J-Node ID']
     element_data = element_data.loc[:, column_name_to_slice]    
+
     # Forces (Vu, Nu)
-    beam_force_data = Parallel(n_jobs=-1, verbose=10)(delayed(read_excel)(file_path, 'Frame Results - End Forces') for file_path in to_load_list)
+    # Using joblib (occurs an error "NoneType has no attribute 'write'")
+    # beam_force_data = Parallel(n_jobs=-1, verbose=10)(delayed(read_excel)(file_path, 'Frame Results - End Forces') for file_path in to_load_list)
+    # Using dask
     beam_force_data = pd.concat(beam_force_data, ignore_index=True)
     column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
     beam_force_data = beam_force_data.loc[:, column_name_to_slice]
@@ -2517,9 +2522,6 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
     beam_force_data = beam_force_data[beam_force_data['Load Case'].str.contains(gravity_load_name[0])]
     beam_force_data.reset_index(inplace=True, drop=True)
 
-    print(get_gbeam, type(get_gbeam))
-    print(get_gcol, type(get_gcol))
-    print(get_ecol, type(get_ecol))
 
 #%% Get Force Results (in each case)
     if get_gbeam == True:
@@ -2605,7 +2607,7 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
     # print(len(gbeam_output))
     # Call CoInitialize function before using any COM object
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
-    excel.Visible = True # 엑셀창 안보이게
+    excel.Visible = True # 엑셀창 보이게
 
     wb = excel.Workbooks.Open(input_xlsx_path)
     ws_gbeam = wb.Sheets('Input_G.Beam')

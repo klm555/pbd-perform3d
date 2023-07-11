@@ -255,66 +255,66 @@ def E_CSF(input_xlsx_path, result_xlsx_path, column_xlsx_path\
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application
     
-#%% Transfer Column SF (DCR) PDF export
-def E_CSF_pdf(column_xlsx_path, pdf_name='E.Column Results'):
-    ''' 
+# #%% Transfer Column SF (DCR) PDF export
+# def E_CSF_pdf(column_xlsx_path, pdf_name='E.Column Results'):
+#     ''' 
 
-    Perform-3D 해석 결과에서 기둥의 축력, 전단력, 모멘트를 불러와 Results_E.Column 엑셀파일을 작성. \n
-    result_path : Perform-3D에서 나온 해석 파일의 경로. \n
-    result_xlsx : Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다. \n
-    input_path : Data Conversion 엑셀 파일의 경로 \n
-    input_xlsx : Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다. \n
-    column_xlsx : Results_E.Column 엑셀 파일의 이름.확장자명(.xlsx)까지 기입해줘야한다. \n
-    export_to_pdf : 입력된 값에 따른 각 부재들의 결과 시트를 pdf로 출력. True = pdf 출력, False = pdf 미출력(Results_E.Column 엑셀파일만 작성됨).
-    pdf_name = 출력할 pdf 파일 이름.
+#     Perform-3D 해석 결과에서 기둥의 축력, 전단력, 모멘트를 불러와 Results_E.Column 엑셀파일을 작성. \n
+#     result_path : Perform-3D에서 나온 해석 파일의 경로. \n
+#     result_xlsx : Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다. \n
+#     input_path : Data Conversion 엑셀 파일의 경로 \n
+#     input_xlsx : Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다. \n
+#     column_xlsx : Results_E.Column 엑셀 파일의 이름.확장자명(.xlsx)까지 기입해줘야한다. \n
+#     export_to_pdf : 입력된 값에 따른 각 부재들의 결과 시트를 pdf로 출력. True = pdf 출력, False = pdf 미출력(Results_E.Column 엑셀파일만 작성됨).
+#     pdf_name = 출력할 pdf 파일 이름.
     
-    '''
+#     '''
 
-#%% Column 엑셀시트 불러오기
-    SF_output = pd.read_excel(column_xlsx_path, sheet_name='Results', usecols=[0], skiprows=3)
-    SF_output = SF_output.iloc[:,0]
-    SF_output = SF_output[SF_output.str.contains('\(', na=False)]
+# #%% Column 엑셀시트 불러오기
+#     SF_output = pd.read_excel(column_xlsx_path, sheet_name='Results', usecols=[0], skiprows=3)
+#     SF_output = SF_output.iloc[:,0]
+#     SF_output = SF_output[SF_output.str.contains('\(', na=False)]
 
-#%% 출력 (Using win32com...)
+# #%% 출력 (Using win32com...)
     
-    # Using win32com...
-    # Call CoInitialize function before using any COM object
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
-    excel.Visible = True # 엑셀창 안보이게
+#     # Using win32com...
+#     # Call CoInitialize function before using any COM object
+#     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+#     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(column_xlsx_path)
-    ws = wb.Sheets('Results')
+#     wb = excel.Workbooks.Open(column_xlsx_path)
+#     ws = wb.Sheets('Results')
     
-    # pdf Merge를 위한 PdfMerger 클래스 생성
-    merger = PdfMerger()
+#     # pdf Merge를 위한 PdfMerger 클래스 생성
+#     merger = PdfMerger()
     
-    input_path = os.path.dirname(column_xlsx_path)
+#     input_path = os.path.dirname(column_xlsx_path)
 
-    for i in range(SF_output.shape[0]):
+#     for i in range(SF_output.shape[0]):
         
-        pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
+#         pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
                
-        wb.Worksheets(2).Select()        
-        wb.Worksheets(2).Name = '({})'.format(i+1)
+#         wb.Worksheets(2).Select()        
+#         wb.Worksheets(2).Name = '({})'.format(i+1)
         
-        xlTypePDF = 0
-        xlQualityStandard = 0
+#         xlTypePDF = 0
+#         xlQualityStandard = 0
         
-        wb.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path
-                                           , xlQualityStandard, True, False)
+#         wb.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path
+#                                            , xlQualityStandard, True, False)
         
-        merger.append(pdf_file_path)
+#         merger.append(pdf_file_path)
     
-    merger.write(input_path+'\\'+'{}.pdf'.format(pdf_name))
-    merger.close()
+#     merger.write(input_path+'\\'+'{}.pdf'.format(pdf_name))
+#     merger.close()
     
-    # Merge한 후 개별 파일들 지우기    
-    for i in range(SF_output.shape[0]):
-        pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
-        os.remove(pdf_file_path)
+#     # Merge한 후 개별 파일들 지우기    
+#     for i in range(SF_output.shape[0]):
+#         pdf_file_path = os.path.join(input_path, pdf_name+'({}).pdf'.format(i+1))
+#         os.remove(pdf_file_path)
             
-    wb.Close(SaveChanges=1) # Closing the workbook
-    # excel.Quit() # Closing the application
+#     wb.Close(SaveChanges=1) # Closing the workbook
+#     # excel.Quit() # Closing the application
 
 #%% Column Rotation (DCR)
 def CR(self, DCR_criteria=1, yticks=2, xlim=3):

@@ -11,8 +11,7 @@ import sys
 # A list of packages to include in the build (this is to safeguard against cx_freeze missing a package since it automatically detects required packages).
 buildOptions = dict(packages = [],
                     excludes = ['numpy_mkl'],
-                    include_files = ['PBD_p3d.ui', './images'],
-                    zip_include_packages = ['PyQt5'])
+                    include_files = ['PBD_p3d.ui', './images'])
 
 base = None
 if sys.platform == "win32":
@@ -22,7 +21,7 @@ if sys.platform == "win32":
 if 'bdist_msi' in sys.argv:
     sys.argv += ['--initial-target-dir', 'C:\PBD with Perform-3D']
     
-exe = [Executable(script="GUI_main.py", base=base, icon='./images/icon_earthquake.ico')]
+exe = [Executable(script="GUI_main.py", base=base, targetName='PBD-p3d.exe', icon='./images/icon_earthquake.ico')]
 
 setup(
     name='PBD-p3d',
