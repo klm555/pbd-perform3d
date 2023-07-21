@@ -6,15 +6,12 @@ import pythoncom
 import re
 import warnings
 from collections import deque
-from io import StringIO
-from xlsx2csv import Xlsx2csv
-from joblib import Parallel, delayed
 
 #%% Node, Element, Mass, Load Import
 
 def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
-                 , import_node=True, import_DL=True, import_LL=True\
-                 , import_mass=True, **kwargs):
+                 , import_node=False, import_DL=False, import_LL=False\
+                 , import_mass=False, **kwargs):
     
     #%% 변수 정리(default값=True)
     import_beam = kwargs['import_beam'] if 'import_beam' in kwargs.keys() else True
@@ -941,8 +938,8 @@ def naming(input_xlsx_path, drift_position=[2,5,7,11]):
 
 #%% Convert C.Beam, G.Beam, Wall
 
-def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
-                     , get_gbeam=True, get_ebeam=True, get_gcol=True, get_ecol=True):
+def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
+                     , get_gbeam=False, get_ebeam=False, get_gcol=False, get_ecol=False):
     '''
     
     User가 입력한 부재 정보들을 Perform-3D에 입력할 수 있는 형식으로 변환하여 Data Conversion 엑셀파일의 Output_Properties 시트에 작성.
@@ -1119,16 +1116,25 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
         wall['Story(from)'] = new_story['Story(from)']
         wall['Story(to)'] = new_story['Story(to)']
     
-        # V. Rebar 나누기
-        v_rebar_div = rebar_div(wall['Vertical Rebar(DXX)'], wall['V. Rebar Space'])
-        wall['Vertical Rebar(DXX)'] = v_rebar_div[0]
-        wall['V. Rebar Space'] = v_rebar_div[1]
-        wall['V. Rebar EA'] = v_rebar_div[2]
+        # V. Rebar 나누기 (DCS_v1.4부터는 엑셀에서 나뉨)
+        # v_rebar_div = rebar_div(wall['Vertical Rebar(DXX)'], wall['V. Rebar Space'])
+        # wall['Vertical Rebar(DXX)'] = v_rebar_div[0]
+        # wall['V. Rebar Space'] = v_rebar_div[1]
+        # wall['V. Rebar EA'] = v_rebar_div[2]        
+        wall_rebar = input_data_sheets['Prop_S.Wall'].iloc[:,[15,16,17,18,19]]
+        wall_rebar = wall_rebar.dropna(axis=0, how='all')
+        wall_rebar.reset_index(inplace=True, drop=True)
+        wall_rebar.columns = ['V.Rebar Type', 'V.Rebar Spacing', 'V.Rebar EA', 'H.Rebar Type', 'H.Rebar Spacing']
+        wall['Vertical Rebar(DXX)'] = wall_rebar.loc[:,'V.Rebar Type']
+        wall['V. Rebar Space'] = wall_rebar.loc[:,'V.Rebar Spacing']
+        wall['V. Rebar EA'] = wall_rebar.loc[:,'V.Rebar EA']
     
-        # H. Rebar 나누기
-        h_rebar_div = rebar_div(wall['Horizontal Rebar(DXX)'], wall['H. Rebar Space'])
-        wall['Horizontal Rebar(DXX)'] = h_rebar_div[0]
-        wall['H. Rebar Space'] = h_rebar_div[1]
+        # H. Rebar 나누기 (DCS_v1.4부터는 엑셀에서 나뉨)
+        # h_rebar_div = rebar_div(wall['Horizontal Rebar(DXX)'], wall['H. Rebar Space'])
+        # wall['Horizontal Rebar(DXX)'] = h_rebar_div[0]
+        # wall['H. Rebar Space'] = h_rebar_div[1]
+        wall['Horizontal Rebar(DXX)'] = wall_rebar.loc[:,'H.Rebar Type']
+        wall['H. Rebar Space'] = wall_rebar.loc[:,'H.Rebar Spacing']
     
         # 철근의 앞에붙은 D 떼어주기
         new_v_rebar = []
@@ -1523,11 +1529,20 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
         gcol_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        gcol_output = gcol_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18,12,13,14,15,16,17,18]]  
+        gcol_output = gcol_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]
+        
+        # gcol_output에 붙이기 위한 보강 후(after) dataframe
+        rebar_after = gcol_ongoing.iloc[:,[6,8,12,13,14,15,16,17,18]]
+        rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
+        
+        # (gcol_output) + (보강 후 df) concat
+        gcol_output = pd.concat([gcol_output, rebar_after], axis=1)
     
         # 철근지름에 다시 D붙이기
         gcol_output.loc[:,'Main Rebar(DXX)'] = 'D' + gcol_output['Main Rebar(DXX)'].astype(str)
         gcol_output.loc[:,'Hoop Rebar(DXX)'] = 'D' + gcol_output['Hoop Rebar(DXX)'].astype(str)
+        gcol_output.loc[:,'Main Rebar(DXX)_after'] = 'D' + gcol_output['Main Rebar(DXX)_after'].astype(str)
+        gcol_output.loc[:,'Hoop Rebar(DXX)_after'] = 'D' + gcol_output['Hoop Rebar(DXX)_after'].astype(str)
         
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
         gcol_output = gcol_output.replace(np.nan, '', regex=True)
@@ -1946,12 +1961,22 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
         cbeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,20,21,7,8,9,10,11,12,13,14,15,16,17,18,19,13,14,15,16,17,18,19]]  
+        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,20,21,7,8,9,10,11,12,13,14,15,16,17,18,19]]  
+        
+        # gcol_output에 붙이기 위한 보강 후(after) dataframe
+        rebar_after = cbeam_ongoing.iloc[:,[10,11,12,13,14,15,16,17,18,19]]
+        rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
+        
+        # (gcol_output) + (보강 후 df) concat
+        cbeam_output = pd.concat([cbeam_output, rebar_after], axis=1)
     
         # 철근지름에 다시 D붙이기
         cbeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + cbeam_output['Main Rebar(DXX)'].astype(str)
         cbeam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + cbeam_output['Stirrup Rebar(DXX)'].astype(str)
         cbeam_output.loc[:,'X-Bracing Rebar'] = 'D' + cbeam_output['X-Bracing Rebar'].astype(str)
+        cbeam_output.loc[:,'Main Rebar(DXX)_after'] = 'D' + cbeam_output['Main Rebar(DXX)_after'].astype(str)
+        cbeam_output.loc[:,'Stirrup Rebar(DXX)_after'] = 'D' + cbeam_output['Stirrup Rebar(DXX)_after'].astype(str)
+        cbeam_output.loc[:,'X-Bracing Rebar_after'] = 'D' + cbeam_output['X-Bracing Rebar_after'].astype(str)
         cbeam_output = cbeam_output.replace('D9999', '', regex=True)
         
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
@@ -2154,11 +2179,20 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
         gbeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        gbeam_output = gbeam_ongoing.iloc[:,[0,4,5,6,19,7,8,9,10,11,12,13,14,15,16,17,18,11,12,13,14,15,16,17,18]]  
+        gbeam_output = gbeam_ongoing.iloc[:,[0,4,5,6,19,7,8,9,10,11,12,13,14,15,16,17,18]] 
+        
+        # gcol_output에 붙이기 위한 보강 후(after) dataframe
+        rebar_after = gbeam_ongoing.iloc[:,[9,10,11,12,13,14,15,16,17,18]]
+        rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
+        
+        # (gcol_output) + (보강 후 df) concat
+        gbeam_output = pd.concat([gbeam_output, rebar_after], axis=1)
     
         # 철근지름에 다시 D붙이기
         gbeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + gbeam_output['Main Rebar(DXX)'].astype(str)
         gbeam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + gbeam_output['Stirrup Rebar(DXX)'].astype(str)
+        gbeam_output.loc[:,'Main Rebar(DXX)_after'] = 'D' + gbeam_output['Main Rebar(DXX)_after'].astype(str)
+        gbeam_output.loc[:,'Stirrup Rebar(DXX)_after'] = 'D' + gbeam_output['Stirrup Rebar(DXX)_after'].astype(str)
         gbeam_output = gbeam_output.replace('D9999', '', regex=True)
         
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
@@ -2430,10 +2464,10 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
     if get_cbeam == True: 
         while True:
             # Read Hoop Space
-            h_space = ws_cbeam.Range('X%s:X%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            h_space = ws_cbeam.Range('AA%s:AA%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
             # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_cbeam.Range('AD%s:AD%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn = ws_cbeam.Range('AG%s:AG%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             vy_vn_array = np.array([1 if 'N.G' in i[0] else 0 for i in vy_vn]) # (NG = 1, OK = 0)
             
             # If there is no NG element or Hoop space is less than 0, break
@@ -2444,7 +2478,7 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
             h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
             
             # Input updated Hoop Space to Excel
-            ws_cbeam.Range('X%s:X%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value\
+            ws_cbeam.Range('AA%s:AA%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value\
             = [[i] for i in h_space_array]    
         
         # # Create a list of indices where Hoop space is changed
@@ -2459,16 +2493,19 @@ def convert_property(input_xlsx_path, get_wall=True, get_cbeam=True
     
 #%% insert_forces
 
-def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
-                 , get_gcol=True, get_ecol=True):
+def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=False
+                 , get_gcol=False, get_ecol=False):
 
     ##### Load Excel Files (Analysis Result Sheets)
     to_load_list = result_xlsx_path
     
     ##### Excel 파일 읽는 Function (w/ Xlsx2csv & joblib)
     def read_excel(path:str, sheet_name:str, skip_rows:list=[0,2]) -> pd.DataFrame:
+        import pandas as pd
+        from io import StringIO # if not import, error occurs when using multiprocessing
+        from xlsx2csv import Xlsx2csv
         data_buffer = StringIO()
-        Xlsx2csv(path, outputencoding="utf-8").convert(data_buffer, sheetname=sheet_name)
+        Xlsx2csv(path, outputencoding="utf-8", ignore_formats='float').convert(data_buffer, sheetname=sheet_name)
         data_buffer.seek(0)
         data_df = pd.read_csv(data_buffer, low_memory=False, skiprows=skip_rows)
         return data_df
@@ -2479,7 +2516,6 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
     gbeam = gbeam.iloc[:,0]
     gbeam.dropna(inplace=True, how='all')
     gbeam.name = 'Property Name'
-
     # Input_G.Column
     gcol = read_excel(input_xlsx_path, sheet_name='Input_G.Column', skip_rows=[0,1,2])
     gcol = gcol.iloc[:,0]
@@ -2497,12 +2533,52 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
     element_data = element_data.loc[:, column_name_to_slice]    
 
     # Forces (Vu, Nu)
+    
+    # Using nothing
+    # beam_force_data = []
+    # for file_path in to_load_list:
+    #     data = pd.read_excel(file_path, sheet_name='Frame Results - End Forces', skiprows=[0,2])
+    #     beam_force_data.append(data)
+    # beam_force_data = pd.concat(beam_force_data, ignore_index=True)
+    # column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
+    # beam_force_data = beam_force_data.loc[:, column_name_to_slice]
+    
+    # Using only Xlsx2csv
+    # beam_force_data = []
+    # for file_path in to_load_list:
+    #     data = read_excel(file_path, sheet_name='Frame Results - End Forces')
+    #     beam_force_data.append(data)
+    # beam_force_data = pd.concat(beam_force_data, ignore_index=True)
+    # column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
+    # beam_force_data = beam_force_data.loc[:, column_name_to_slice]
+    
     # Using joblib (occurs an error "NoneType has no attribute 'write'")
+    # from joblib import Parallel, delayed
     # beam_force_data = Parallel(n_jobs=-1, verbose=10)(delayed(read_excel)(file_path, 'Frame Results - End Forces') for file_path in to_load_list)
+    # beam_force_data = pd.concat(beam_force_data, ignore_index=True)
+    # column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
+    # beam_force_data = beam_force_data.loc[:, column_name_to_slice]
+    
     # Using dask
+    # import dask.dataframe as dd
+    # import dask.delayed as delayed
+    # beam_force_parts = [delayed(read_excel)(file_path, 'Frame Results - End Forces') 
+    #           for file_path in to_load_list]
+    # column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
+    # beam_force_parts = [i[column_name_to_slice] for i in beam_force_parts]
+    # beam_force_data = pd.concat([i.compute() for i in beam_force_parts])
+    
+    # Using multiprocess (library which overcomes the issue made by using 'pickle' in 'multiprocessing' library)
+    import multiprocess as mp
+    cpu_num = mp.cpu_count() # Count the # of CPU
+    pool = mp.Pool(processes=cpu_num) # Create a Pool equal to the # of CPU
+    # Pool.starmap : map a function that takes multiple arguments
+    beam_force_data = pool.starmap(read_excel, [[file_path, 'Frame Results - End Forces'] for file_path in to_load_list])
     beam_force_data = pd.concat(beam_force_data, ignore_index=True)
     column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'P J-End', 'V2 I-End', 'V2 J-End']
     beam_force_data = beam_force_data.loc[:, column_name_to_slice]
+    # pool.close()
+    # pool.join()
 
     ##### Create Seismic Loads List
     load_name_list = []
@@ -2521,7 +2597,6 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
     ##### Slice only Data from Gravitaional Loads
     beam_force_data = beam_force_data[beam_force_data['Load Case'].str.contains(gravity_load_name[0])]
     beam_force_data.reset_index(inplace=True, drop=True)
-
 
 #%% Get Force Results (in each case)
     if get_gbeam == True:
@@ -2619,16 +2694,16 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
 
     if get_gbeam == True:
         # Insert Result Forces (Vu)
-        ws_gbeam.Range('Z%s:Z%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
+        ws_gbeam.Range('AB%s:AB%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
         = [[i] for i in gbeam_output['V2 Max']]
 
         # Reduce Hoop space of NG elements(Autocompletion)
         while True:
             # Read Hoop Space
-            h_space = ws_gbeam.Range('Y%s:Y%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
+            h_space = ws_gbeam.Range('AA%s:AA%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
             # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_gbeam.Range('AD%s:AG%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn = ws_gbeam.Range('AF%s:AI%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
             vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
             
             # If there is no NG element or Hoop space is less than 0, break
@@ -2639,21 +2714,21 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
             h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
             
             # Input updated Hoop Space to Excel
-            ws_gbeam.Range('Y%s:Y%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
+            ws_gbeam.Range('AA%s:AA%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
             = [[i] for i in h_space_array]
         
     if get_gcol == True:        
         # Insert Result Forces (Nu)
-        ws_gcol.Range('X%s:X%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
+        ws_gcol.Range('Z%s:Z%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
         = [[i] for i in gcol_output['P J-End']]
 
         # Reduce Hoop space of NG elements(Autocompletion)
         while True:
             # Read Hoop Space
-            h_space = ws_gcol.Range('W%s:W%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
+            h_space = ws_gcol.Range('Y%s:Y%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
             # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_gcol.Range('AC%s:AF%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
+            vy_vn = ws_gcol.Range('AE%s:AH%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
             vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
             
             # If there is no NG element or Hoop space is less than 0, break
@@ -2664,7 +2739,7 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=True
             h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
             
             # Input updated Hoop Space to Excel
-            ws_gcol.Range('W%s:W%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
+            ws_gcol.Range('Y%s:Y%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
             = [[i] for i in h_space_array]
 
     if get_ecol == True:        

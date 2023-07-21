@@ -1,4 +1,5 @@
 import time
+import pickle
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
@@ -52,7 +53,7 @@ class ImportWorker(QObject):
             
         except Exception as e:
             self.finished.emit()
-            self.msg.emit('%s' %e)
+            self.msg.emit('Error : %s' %e)
         
 # Print Name Worker 만들기   
 class NameWorker(QObject):   
@@ -81,7 +82,7 @@ class NameWorker(QObject):
         
         except Exception as e:
             self.finished.emit()
-            self.msg.emit('%s' %e)
+            self.msg.emit('Error : %s' %e)
         
 # Convert Properties Worker 만들기   
 class ConvertWorker(QObject):   
@@ -117,7 +118,7 @@ class ConvertWorker(QObject):
             
         except Exception as e:
             self.finished.emit()
-            self.msg.emit('%s' %e)
+            self.msg.emit('Error : %s' %e)
 
 # Insert Properties Worker 만들기   
 class InsertWorker(QObject):   
@@ -150,33 +151,72 @@ class InsertWorker(QObject):
             
         except Exception as e:
             self.finished.emit()
-            self.msg.emit('%s' %e)
+            self.msg.emit('Error : %s' %e)
 
             
 # Print Results Worker 만들기
-class ExportWorker(QObject):               
+class LoadWorker(QObject):               
     # Create signals
     finished = pyqtSignal()
-    msg = pyqtSignal(str)    
+    msg = pyqtSignal(str)
+    result_data = pyqtSignal(object)
     def __init__(self, *args):
         super().__init__()
         
         # 변수 정리
+        self.input_xlsx_path = args[0]
+        self.result_xlsx_path = args[1]
+        self.get_base_SF = args[2]
+        self.get_story_SF = args[3]
+        self.get_IDR = args[4]
+        self.get_BR = args[5]
+        self.get_BSF = args[6]
+        self.get_E_BSF = args[7]
+        self.get_CR = args[8]
+        self.get_CSF = args[9]
+        self.get_E_CSF = args[10]
+        self.get_WAS = args[11]
+        self.get_WR = args[12]
+        self.get_WSF = args[13]
+        self.story_gap = args[14]
+        self.max_shear = args[15]
         self.time_start = args[16]
     
     # Properties 변환 function
-    def initialize_fn(self):   
+    def load_result_fn(self):   
         try:
-            # 시작 메세지
-            time_start = time.time()
-            self.status_browser.append('Running.....')
-
-            # Disable the Button
-            self.show_result_btn.setEnabled(False)
-            self.print_result_btn.setEnabled(False)    
+            # 함수 실행
+            result = pbd.PostProc(self.input_xlsx_path, self.result_xlsx_path
+                                  , self.get_base_SF, self.get_story_SF
+                                  , self.get_IDR, self.get_BR, self.get_BSF
+                                  , self.get_E_BSF, self.get_CR, self.get_CSF
+                                  , self.get_E_CSF, self.get_WAS, self.get_WR
+                                  , self.get_WSF)
             
-            # Emit
+            # 결과 데이터를 pickle로 출력&저장
+            result_dict = {}
+            if self.get_base_SF == True:
+                result.base_SF(self.max_shear)  
+                # pickle 파일 읽기
+                with open('pkl/base_SF.pkl', 'rb') as f:
+                    result_dict['base_SF'] = pickle.load(f)
+            if self.get_story_SF == True:
+                result.story_SF(self.story_gap, self.max_shear)
+                # pickle 파일 읽기
+                with open('pkl/story_SF.pkl', 'rb') as f:
+                    result_dict['story_SF'] = pickle.load(f)
+            if self.get_IDR == True:
+                result.IDR(yticks=self.story_gap)
+                # pickle 파일 읽기
+                with open('pkl/IDR.pkl', 'rb') as f:
+                    result_dict['IDR'] = pickle.load(f)
+            
+            # 데이터 emit
+            self.result_data.emit(result_dict)
+            # 종료여부 emit
             self.finished.emit()
+            # self.msg.emit('Completed!' + '  (total time = %0.3f min)' %(time_run)) # 실행 시간 계산은 class 외부에서 진행
             
         except Exception as e:
             self.finished.emit()
+            self.msg.emit('Error : %s' %e)

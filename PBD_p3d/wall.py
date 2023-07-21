@@ -855,8 +855,6 @@ def WSF(self, input_xlsx_path, graph=True, DCR_criteria=1, yticks=2, xlim=3):
     node_data = self.node_data
     element_data = self.wall_data
     wall_SF_data = self.shear_force_data
-    gage_data = self.wall_rot_gage_data
-    wall_rot_data = self.wall_rot_result_data
 
     # Seismic Loads List
     load_name_list = self.load_name_list

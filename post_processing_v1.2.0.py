@@ -16,9 +16,9 @@ time_start = time.time()
 
 ###########################   FILE 경로    ####################################
 # Analysis Result
-result_xlsx_1 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\101\KHSM_101_2_Analysis Result_1.xlsx'"
-result_xlsx_2 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\101\KHSM_101_2_Analysis Result_2.xlsx'"
-result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\101\KHSM_101_2_Analysis Result_3.xlsx'"
+result_xlsx_1 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\105\KHSM_105_8_Analysis Result_1.xlsx'"
+result_xlsx_2 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\105\KHSM_105_8_Analysis Result_2.xlsx'"
+result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\Results\105\KHSM_105_8_Analysis Result_3.xlsx'"
 result_xlsx_path = result_xlsx_1 + ',' + result_xlsx_2 + ',' + result_xlsx_3  # + ',' + result_xlsx_4 + ',' + result_xlsx_5
 result_xlsx_path = result_xlsx_path.split(',')
 result_xlsx_path = [i.strip("'") for i in result_xlsx_path]
@@ -27,7 +27,7 @@ to_load_list = result_xlsx_path
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
 # input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\101\KHSM_101_Data Conversion_Ver.1.3M_내진상세_변경.xlsx'
-input_xlsx_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\101\Data Conversion_Ver.1.3M_101D.xlsx'
+input_xlsx_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\비선형해석모델\105\KHSM_105_Data Conversion_Ver.1.3M_내진상세_변경.xlsx'
 retrofit_xlsx_path = r'D:\이형우\성능기반 내진설계\22-GR-167 김해 신문1지구 도시개발사업 A1블록 공동주택 신축 성능기반내진설계\최종보강안\04-벽체\230530-GIMHAE-101D-WALL LIST-0005.xlsx'
 #########################   DOCX 출력 변수    ##################################
 bldg_name = '101동'
@@ -66,10 +66,10 @@ col_group = 'COLUMN'
 
 #%% Post Processing - TOTAL (Word로 출력)
 
-result = pbd.PostProc(input_xlsx_path, result_xlsx_path)
+result = pbd.PostProc(input_xlsx_path, result_xlsx_path, get_base_SF=True)
 
 # Execute functions for data analysis
-# base_SF = result.base_SF(ylim=max_shear) # 밑면 전단력
+base_SF = result.base_SF(ylim=max_shear) # 밑면 전단력
 # story_SF = result.story_SF(yticks=story_gap, xlim=max_shear) # 층 전단력
 IDR = result.IDR(yticks=story_gap) # 층간변위비
 

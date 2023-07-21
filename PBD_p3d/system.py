@@ -75,12 +75,21 @@ def base_SF(self, ylim=70000):
     shear_force_H2_max.index = shear_force_data['Name'].drop_duplicates()
     
     #%% Base Shear 그래프 그리기
-# Base Shear
+    # Base Shear
     base_shear_H1 = shear_force_H1_max.copy()
     base_shear_H2 = shear_force_H2_max.copy()
     
+    # 결과 dataframe -> pickle
+    base_SF_result = []
+    base_SF_result.append(base_shear_H1)
+    base_SF_result.append(base_shear_H2)
+    base_SF_result.append(DE_load_name_list)
+    base_SF_result.append(MCE_load_name_list)
+    with open('pkl/base_SF.pkl', 'wb') as f:
+        pickle.dump(base_SF_result, f)
+
     count = 1
-    
+'''    
 # DE Plot
   
     if len(DE_load_name_list) != 0:
@@ -193,7 +202,7 @@ def base_SF(self, ylim=70000):
         
         # Marker 출력
         yield 'MCE'
-
+'''
 #%% Story SF
 
 def story_SF(self, yticks=2, xlim=70000):
@@ -274,8 +283,17 @@ def story_SF(self, yticks=2, xlim=70000):
     shear_force_H1_max.index = shear_force_data['Name'].drop_duplicates()
     shear_force_H2_max.index = shear_force_data['Name'].drop_duplicates()
 
-#%% Story Shear 그래프 그리기
+    # 결과 dataframe -> pickle
+    story_SF_result = []
+    story_SF_result.append(shear_force_H1_max)
+    story_SF_result.append(shear_force_H2_max)
+    story_SF_result.append(DE_load_name_list)
+    story_SF_result.append(MCE_load_name_list)
+    with open('pkl/story_SF.pkl', 'wb') as f:
+        pickle.dump(story_SF_result, f)
 
+#%% Story Shear 그래프 그리기
+'''
     count = 1
     
     # DE Plot    
@@ -407,7 +425,7 @@ def story_SF(self, yticks=2, xlim=70000):
 
         # Marker 출력
         yield 'MCE'
-
+'''
 #%% IDR
 def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):   
     ''' 
@@ -579,6 +597,15 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         IDR_x_min_MCE_avg = IDR_x_min_MCE_total.mean(axis=1)
         IDR_y_max_MCE_avg = IDR_y_max_MCE_total.mean(axis=1)
         IDR_y_min_MCE_avg = IDR_y_min_MCE_total.mean(axis=1)
+
+    # 결과 dataframe -> pickle
+    IDR_result = []
+    IDR_result.append(shear_force_H1_max)
+    IDR_result.append(shear_force_H2_max)
+    IDR_result.append(DE_load_name_list)
+    IDR_result.append(MCE_load_name_list)
+    with open('pkl/IDR.pkl', 'wb') as f:
+        pickle.dump(IDR_result, f)
     
 #%% 그래프 (방향에 따른)
 

@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import pandas as pd
+import pickle
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt
 from PyQt5.QtGui import QIcon, QPixmap
@@ -14,6 +15,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvas as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
+from GUI_workers import *
 import PBD_p3d as pbd
 
 #%% Tab1 - Import
@@ -36,6 +38,13 @@ def run_worker1(self):
     import_I_beam = self.import_I_beam_checkbox.isChecked()
     import_mass = self.import_mass_checkbox.isChecked()
     import_nodal_load = self.import_nodal_load_checkbox.isChecked()
+    
+    # 아무것도 check 안되어있는 경우 break
+    if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
+        & (E_BSF == False) & (E_CSF == False) & (WAS == False) & (WR == False)\
+        & (WSF == False) & (WSF_each == False):
+        self.status_browser.append('Nothing Checked')
+        return
     
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self)
@@ -197,15 +206,91 @@ def run_worker5(self):
     # 시작 메세지
     time_start = time.time()
     self.status_browser.append('Running.....')
-
-    # Disable the Button
-    self.show_result_btn.setEnabled(False)
-    self.print_result_btn.setEnabled(False)
     
     # 변수 정리
     result_xlsx_path = self.result_path_editbox.text()
-    # result_xlsx_path = result_xlsx_path.split(',')
-    # result_xlsx_path = [i.strip("'") for i in result_xlsx_path]
+    result_xlsx_path = result_xlsx_path.split('"')
+    result_xlsx_path = [i for i in result_xlsx_path if len(i) > 2]
+    input_xlsx_path = self.data_conv_path_editbox.text()
+    # output_docx = self.output_docx_editbox.text()
+    # bldg_name = self.bldg_name_editbox.text()
+    story_gap = self.story_gap_editbox.text()
+    max_shear = self.max_shear_editbox.text()
+    get_base_SF = self.base_SF_checkbox.isChecked()
+    get_story_SF = self.story_SF_checkbox.isChecked()
+    get_IDR = self.IDR_checkbox.isChecked()
+    get_BR = self.BR_checkbox.isChecked()
+    get_BSF = self.BSF_checkbox.isChecked()
+    get_E_BSF = self.E_BSF_checkbox.isChecked()
+    get_CR = self.CR_checkbox.isChecked()
+    get_CSF = self.CSF_checkbox.isChecked()
+    get_E_CSF = self.E_CSF_checkbox.isChecked()
+    get_WAS = self.WAS_checkbox.isChecked()
+    get_WR = self.WR_checkbox.isChecked()
+    get_WSF = self.WSF_checkbox.isChecked()
+    # get_WSF_each = self.WSF_each_checkbox.isChecked()
+    
+    # 아무것도 check 안되어있는 경우 break
+    # if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
+    #     & (E_BSF == False) & (E_CSF == False) & (WAS == False) & (WR == False)\
+    #     & (WSF == False) & (WSF_each == False):
+    #     self.status_browser.append('Nothing Checked')
+    #     return
+
+    story_gap = int(story_gap)
+    max_shear = int(max_shear)
+
+    # QThread 오브젝트 생성
+    self.thread = QThread(parent=self) # Create a QThread object
+    # InsertWorker 오브젝트 생성
+    self.worker = LoadWorker(input_xlsx_path, result_xlsx_path, get_base_SF
+                                 , get_story_SF, get_IDR, get_BR, get_BSF
+                                 , get_E_BSF, get_CR, get_CSF, get_E_CSF
+                                 , get_WAS, get_WR, get_WSF, story_gap
+                                 , max_shear, time_start) # Create a worker object
+    self.worker.moveToThread(self.thread) # Move worker to the thread
+    
+    # Connect signals and slots
+    self.thread.started.connect(self.worker.load_result_fn)
+    self.worker.finished.connect(self.thread.quit)
+    self.worker.finished.connect(self.worker.deleteLater)
+    self.thread.finished.connect(self.thread.deleteLater)
+    
+    # Start the thread
+    self.thread.start()
+    
+    # Send Signals(incl. result data) to plot_display function
+    self.worker.result_data.connect(self.plot_display)
+    
+    # Enable/Disable the Button
+    # self.import_midas_btn.setEnabled(False)
+    # self.print_name_btn.setEnabled(False)
+    # self.convert_prop_btn.setEnabled(False)
+    # self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True))
+    # self.thread.finished.connect(lambda: self.print_name_btn.setEnabled(True))
+    # self.thread.finished.connect(lambda: self.convert_prop_btn.setEnabled(True))
+    
+    # 실행 시간 계산
+    time_end = time.time()
+    time_run = (time_end-time_start)/60
+    
+    # 완료 메세지 print
+    msg = 'Completed!' + '  (total time = %0.3f min)' %(time_run)
+    msg_colored = '<span style=\" color: #0000ff;\">%s</span>' % msg
+    self.status_browser.append(msg_colored)    
+    
+    # 실패할 경우, 그냥 msg_fn 이용해서 오류 메세지 내보내기
+    # (단, 여기서 오류가 발생하는 경우, loadworker에서 데이터 처리하는 과정에서의 오류밖에 캐치 안됨)
+    self.worker.msg.connect(self.msg_fn)
+
+#%% Tab3 - Load
+def run_worker6(self):
+    # 시작 메세지
+    time_start = time.time()
+    self.status_browser.append('Running.....')
+    
+    # 변수 정리
+    result_xlsx_path = self.result_path_editbox.text()
     result_xlsx_path = result_xlsx_path.split('"')
     result_xlsx_path = [i for i in result_xlsx_path if len(i) > 2]
     input_xlsx_path = self.data_conv_path_editbox.text()
@@ -229,8 +314,8 @@ def run_worker5(self):
     
     # 아무것도 check 안되어있는 경우 break
     # if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
-    #    & (E_BSF == False) & (E_CSF == False) & (WAS == False) & (WR == False)\
-    #    & (WSF == False) & (WSF_each == False):
+    #     & (E_BSF == False) & (E_CSF == False) & (WAS == False) & (WR == False)\
+    #     & (WSF == False) & (WSF_each == False):
     #     self.status_browser.append('Nothing Checked')
     #     return
 

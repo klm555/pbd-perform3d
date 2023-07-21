@@ -1,24 +1,12 @@
 import sys
 import os
-import time
-import pandas as pd
+import shutil
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt
+from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt, pyqtSlot
 from PyQt5.QtGui import QIcon, QPixmap
+
 from PyQt5 import uic # ui 파일을 사용하기 위한 모듈
-
-import PBD_p3d as pbd
-
-import pyautogui
-
-#%% Matplotlib object
-# class MplCanvas(FigureCanvasQTAgg):
-    
-#     def __init__(self, parent=None, width=5, height=4, dpi=150):
-#         fig = Figure(figsize=(width, height), dpi=dpi)
-#         self.axes = fig.add_subplot(111)
-#         super(MplCanvas, self).__init__(fig)
-        
+import multiprocess as mp
 
 #%% UI
 ui_class = uic.loadUiType('PBD_p3d.ui')[0]
@@ -26,8 +14,9 @@ ui_class = uic.loadUiType('PBD_p3d.ui')[0]
 class MainWindow(QMainWindow, ui_class):
 
     # Import external classes/functions
-    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker
+    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker
     from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5
+    from GUI_plots import plot_display
 
     def __init__(self):
         super().__init__()
@@ -123,7 +112,8 @@ class MainWindow(QMainWindow, ui_class):
         self.insert_force_btn.clicked.connect(self.run_worker4)
         # Tab 3
         self.load_result_btn.clicked.connect(self.run_worker5)
-        # self.print_result_btn.clicked.connect(self.run_worker4)
+        # self.load_result_btn.clicked.connect(self.plot_display)
+        # self.print_result_btn.clicked.connect(self.run_worker6)
          
         # Icon 설정
         self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
@@ -162,7 +152,11 @@ class MainWindow(QMainWindow, ui_class):
 
     # 로그(실행 시간, 오류) print function
     def msg_fn(self, msg):
-        self.status_browser.append(msg)
+        if 'Completed' in msg: # pyqt signal에 'Completed' 들어있는 경우, 파란색으로 표시
+            msg_colored = '<span style=\" color: #0000ff;\">%s</span>' % msg
+        else: # 에러 생길 경우, 빨간색으로 표시
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+        self.status_browser.append(msg_colored)
 
     # 실행해야할 명령 전달 when Qt receives a window close request        
     def closeEvent(self, event):            
@@ -223,6 +217,15 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.endGroup()
 
         else: self.setting.clear()
+        
+        # pkl 폴더 삭제
+        def delete_dir(directory):
+            try:
+                if os.path.exists(directory):
+                    shutil.rmtree(directory)
+            except OSError:
+                print("Error: Failed to delete the directory.")
+        delete_dir('pkl')
 
 # =============================================================================
 #         # Properties Assign 매크로 Option
@@ -238,6 +241,7 @@ class MainWindow(QMainWindow, ui_class):
 #%% 실행
 
 if __name__ == '__main__':
+    mp.freeze_support() # multiprocessing fix
     app = QApplication(sys.argv) # QApplication : 프로그램을 실행시켜주는 class
     mywindow = MainWindow() # WindowClass의 인스턴스 생성   
     mywindow.show() # 프로그램 보여주기
