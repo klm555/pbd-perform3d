@@ -133,8 +133,12 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     
         # Nodal Load 정보 load
         nodal_load = pd.read_excel(input_xlsx_path, sheet_name = nodal_load_raw_xlsx_sheet
-                                   , skiprows = 3, usecols=[0,1,2,3,4,5,6,7], index_col = 0)
-        nodal_load.columns = ['Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)', 'MX(kN-mm)', 'MY(kN-mm)', 'MZ(kN-mm)']
+                                   , skiprows = 3, usecols=[0,1,2,3,4], index_col = 0)
+        nodal_load.columns = ['Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)']
+        
+        nodal_load['MX(kN-mm)'] = 0
+        nodal_load['MY(kN-mm)'] = 0
+        nodal_load['MZ(kN-mm)'] = 0
         
         # Nodal Load를 DL과 LL로 분리
         DL = []
@@ -1093,9 +1097,11 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     if get_wall == True:
         
         # Wall 정보 load
-        wall = input_data_sheets['Prop_S.Wall'].iloc[:,np.r_[0:11, 21,22]]
-        wall.columns = ['Name', 'Story(from)', 'Story(to)', 'Thickness', 'Vertical Rebar(DXX)',\
-                        'V. Rebar Space', 'Horizontal Rebar(DXX)', 'H. Rebar Space', 'Type', 'Length', 'Element length', 'Fibers(Concrete)', 'Fibers(Rebar)']
+        wall = input_data_sheets['Prop_S.Wall'].iloc[:,np.r_[0,27,28,14:22,13,23,24]]
+        wall.columns = ['Name', 'Story(from)', 'Story(to)', 'Thickness'
+                        , 'V.Rebar Type', 'Vertical Rebar(DXX)', 'V.Rebar Space'
+                        , 'V.Rebar EA', 'H.Rebar Type', 'Horizontal Rebar(DXX)'
+                        , 'H.Rebar Space', 'Length', 'Fibers(Concrete)', 'Fibers(Rebar)']
 
         wall = wall.dropna(axis=0, how='all')
         wall.reset_index(inplace=True, drop=True)
@@ -1104,7 +1110,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         saved_wall_story_from = wall['Story(from)']
         saved_wall_story_to = wall['Story(to)']
         
-        wall = wall.fillna(method='ffill')
+        wall['Name'] = wall['Name'].fillna(method='ffill')
         
         wall['Story(from)'] = saved_wall_story_from
         wall['Story(to)'] = saved_wall_story_to
@@ -1121,20 +1127,11 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         # wall['Vertical Rebar(DXX)'] = v_rebar_div[0]
         # wall['V. Rebar Space'] = v_rebar_div[1]
         # wall['V. Rebar EA'] = v_rebar_div[2]        
-        wall_rebar = input_data_sheets['Prop_S.Wall'].iloc[:,[15,16,17,18,19]]
-        wall_rebar = wall_rebar.dropna(axis=0, how='all')
-        wall_rebar.reset_index(inplace=True, drop=True)
-        wall_rebar.columns = ['V.Rebar Type', 'V.Rebar Spacing', 'V.Rebar EA', 'H.Rebar Type', 'H.Rebar Spacing']
-        wall['Vertical Rebar(DXX)'] = wall_rebar.loc[:,'V.Rebar Type']
-        wall['V. Rebar Space'] = wall_rebar.loc[:,'V.Rebar Spacing']
-        wall['V. Rebar EA'] = wall_rebar.loc[:,'V.Rebar EA']
     
         # H. Rebar 나누기 (DCS_v1.4부터는 엑셀에서 나뉨)
         # h_rebar_div = rebar_div(wall['Horizontal Rebar(DXX)'], wall['H. Rebar Space'])
         # wall['Horizontal Rebar(DXX)'] = h_rebar_div[0]
         # wall['H. Rebar Space'] = h_rebar_div[1]
-        wall['Horizontal Rebar(DXX)'] = wall_rebar.loc[:,'H.Rebar Type']
-        wall['H. Rebar Space'] = wall_rebar.loc[:,'H.Rebar Spacing']
     
         # 철근의 앞에붙은 D 떼어주기
         new_v_rebar = []
@@ -1160,7 +1157,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         h_rebar_spacing_float = []
         v_rebar_ea_float = []
     
-        for i, j, k in zip(wall['V. Rebar Space'], wall['H. Rebar Space'], wall['V. Rebar EA']):
+        for i, j, k in zip(wall['V.Rebar Space'], wall['H.Rebar Space'], wall['V.Rebar EA']):
             
             if not isinstance(i, float):
                 v_rebar_spacing_float.append(float(i))
@@ -1177,9 +1174,9 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
                 
             else: v_rebar_ea_float.append(k)
             
-        wall['V. Rebar Space'] = v_rebar_spacing_float
-        wall['H. Rebar Space'] = h_rebar_spacing_float
-        wall['V. Rebar EA'] = v_rebar_ea_float
+        wall['V.Rebar Space'] = v_rebar_spacing_float
+        wall['H.Rebar Space'] = h_rebar_spacing_float
+        wall['V.Rebar EA'] = v_rebar_ea_float
     
         #%% 이름 구분 조건 load & 정리
     
@@ -1322,7 +1319,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         wall_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        wall_output = wall_ongoing.iloc[:,[0,10,4,15,9,5,6,14,7,8,12,13]]  
+        wall_output = wall_ongoing.iloc[:,np.r_[0,12,4,15,5:12,13,14]]  
     
         # 철근지름에 다시 D붙이기
         wall_output.loc[:,'Vertical Rebar(DXX)'] = 'D' + wall_output['Vertical Rebar(DXX)'].astype(str)
@@ -1759,10 +1756,11 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     # 불러온 Beam 정보 정리
     if get_cbeam == True:
         # Beam 정보 load
-        cbeam = input_data_sheets['Prop_C.Beam'].iloc[:,0:20]
+        cbeam = input_data_sheets['Prop_C.Beam'].iloc[:,0:22]
         cbeam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
-                        'h(mm)', 'Type', '배근', '내진상세 여부',\
-                        'Main Rebar(DXX)', 'Stirrup Rebar(DXX)', 'X-Bracing Rebar', 'Top(1)', 'Top(2)',\
+                        'h(mm)', '배근', '내진상세 여부', 'Main Rebar Type', 'Main Rebar(DXX)'\
+                        , 'Stirrup Type', 'Stirrup Rebar(DXX)', 'X-Bracing Type'
+                        , 'X-Bracing Rebar(DXX)', 'Top(1)', 'Top(2)',\
                         'Top(3)', 'EA(Stirrup)', 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'D(mm)']
 
         cbeam = cbeam.dropna(axis=0, how='all')
@@ -1771,13 +1769,13 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
         saved_cbeam_story_from = cbeam['Story(from)']
         saved_cbeam_story_to = cbeam['Story(to)']
-        saved_cbeam_rebar = cbeam.iloc[:,[12,13,14,15,16,17,18]]
+        saved_cbeam_rebar = cbeam.iloc[:,[14,15,16,17,18,19,20]]
         
         cbeam = cbeam.fillna(method='ffill')
         
         cbeam['Story(from)'] = saved_cbeam_story_from
         cbeam['Story(to)'] = saved_cbeam_story_to
-        cbeam.iloc[:,[12,13,14,15,16,17,18]] = saved_cbeam_rebar
+        cbeam.iloc[:,[14,15,16,17,18,19,20]] = saved_cbeam_rebar
         
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
         new_story = cbeam[['Story(from)', 'Story(to)']]
@@ -1803,7 +1801,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
             else:
                 new_s_rebar.append(str_extract(j))
                 
-        for k in cbeam['X-Bracing Rebar']:
+        for k in cbeam['X-Bracing Rebar(DXX)']:
             # print(str_extract(k), type(str_extract(k)))
             if isinstance(k, int):
                 new_x_rebar.append(k)
@@ -1812,7 +1810,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
                 
         cbeam['Main Rebar(DXX)'] = new_m_rebar
         cbeam['Stirrup Rebar(DXX)'] = new_s_rebar
-        cbeam['X-Bracing Rebar'] = new_x_rebar
+        cbeam['X-Bracing Rebar(DXX)'] = new_x_rebar
     
         #%% 이름 구분 조건 load & 정리
     
@@ -1961,10 +1959,10 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         cbeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,20,21,7,8,9,10,11,12,13,14,15,16,17,18,19]]  
+        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,22,23,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]]  
         
         # gcol_output에 붙이기 위한 보강 후(after) dataframe
-        rebar_after = cbeam_ongoing.iloc[:,[10,11,12,13,14,15,16,17,18,19]]
+        rebar_after = cbeam_ongoing.iloc[:,[10,12,14,15,16,17,18,19,20,21]]
         rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
         
         # (gcol_output) + (보강 후 df) concat
@@ -1973,10 +1971,10 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         # 철근지름에 다시 D붙이기
         cbeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + cbeam_output['Main Rebar(DXX)'].astype(str)
         cbeam_output.loc[:,'Stirrup Rebar(DXX)'] = 'D' + cbeam_output['Stirrup Rebar(DXX)'].astype(str)
-        cbeam_output.loc[:,'X-Bracing Rebar'] = 'D' + cbeam_output['X-Bracing Rebar'].astype(str)
+        cbeam_output.loc[:,'X-Bracing Rebar(DXX)'] = 'D' + cbeam_output['X-Bracing Rebar(DXX)'].astype(str)
         cbeam_output.loc[:,'Main Rebar(DXX)_after'] = 'D' + cbeam_output['Main Rebar(DXX)_after'].astype(str)
         cbeam_output.loc[:,'Stirrup Rebar(DXX)_after'] = 'D' + cbeam_output['Stirrup Rebar(DXX)_after'].astype(str)
-        cbeam_output.loc[:,'X-Bracing Rebar_after'] = 'D' + cbeam_output['X-Bracing Rebar_after'].astype(str)
+        cbeam_output.loc[:,'X-Bracing Rebar(DXX)_after'] = 'D' + cbeam_output['X-Bracing Rebar(DXX)_after'].astype(str)
         cbeam_output = cbeam_output.replace('D9999', '', regex=True)
         
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
@@ -1986,10 +1984,10 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     # 불러온 Beam 정보 정리
     if get_gbeam == True:
         # Beam 정보 load
-        gbeam = input_data_sheets['Prop_G.Beam'].iloc[:,0:18]
-        gbeam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
-                        'h(mm)', 'Type', '내진상세 여부', 'Main Rebar(DXX)'
-                        , 'Stirrup Rebar(DXX)', 'Top(1)', 'Top(2)', 'Top(3)'
+        gbeam = input_data_sheets['Prop_G.Beam'].iloc[:,0:19]
+        gbeam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)'\
+                        , 'h(mm)', '내진상세 여부', 'Main Rebar Type', 'Main Rebar(DXX)'
+                        , 'Stirrup Type', 'Stirrup Rebar(DXX)', 'Top(1)', 'Top(2)', 'Top(3)'
                         , 'Bot(3)', 'Bot(2)', 'Bot(1)', 'EA(Stirrup)', 'Spacing(Stirrup)']
     
         gbeam = gbeam.dropna(axis=0, how='all')
@@ -1998,13 +1996,13 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         # 정보가 없는 층정보, 배근정보는 바로 위의 층정보, 배근정보로 채워넣기
         saved_gbeam_story_from = gbeam['Story(from)']
         saved_gbeam_story_to = gbeam['Story(to)']
-        saved_gbeam_rebar = gbeam.iloc[:,[10,11,12,13,14,15,16,17]]
+        saved_gbeam_rebar = gbeam.iloc[:,[11,12,13,14,15,16,17,18]]
         
         gbeam = gbeam.fillna(method='ffill')
         
         gbeam['Story(from)'] = saved_gbeam_story_from
         gbeam['Story(to)'] = saved_gbeam_story_to
-        gbeam.iloc[:,[10,11,12,13,14,15,16,17]] = saved_gbeam_rebar
+        gbeam.iloc[:,[11,12,13,14,15,16,17,18]] = saved_gbeam_rebar
         
         # 글자가 합쳐져 있을 경우 글자 나누기 - 층 (12F~15F, D10@300)
         new_story = gbeam[['Story(from)', 'Story(to)']]
@@ -2179,10 +2177,10 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         gbeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        gbeam_output = gbeam_ongoing.iloc[:,[0,4,5,6,19,7,8,9,10,11,12,13,14,15,16,17,18]] 
+        gbeam_output = gbeam_ongoing.iloc[:,[0,4,5,6,20,7,8,9,10,11,12,13,14,15,16,17,18,19]] 
         
         # gcol_output에 붙이기 위한 보강 후(after) dataframe
-        rebar_after = gbeam_ongoing.iloc[:,[9,10,11,12,13,14,15,16,17,18]]
+        rebar_after = gbeam_ongoing.iloc[:,[9,11,12,13,14,15,16,17,18,19]]
         rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
         
         # (gcol_output) + (보강 후 df) concat
@@ -2395,7 +2393,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         ebeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        ebeam_output = ebeam_ongoing.iloc[:,[0,4,5,18,6,7,8,9,10,11,12,13,14,15,16,17,18,11,12,13,14,15,16,17]]  
+        ebeam_output = ebeam_ongoing.iloc[:,[0,4,5,18,6,7,8,9,10,11,12,13,14,15,16,17]]  
     
         # 철근지름에 다시 D붙이기
         ebeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + ebeam_output['Main Rebar(DXX)'].astype(str)
@@ -2464,10 +2462,10 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     if get_cbeam == True: 
         while True:
             # Read Hoop Space
-            h_space = ws_cbeam.Range('AA%s:AA%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            h_space = ws_cbeam.Range('AC%s:AC%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
             # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_cbeam.Range('AG%s:AG%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn = ws_cbeam.Range('AI%s:AI%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             vy_vn_array = np.array([1 if 'N.G' in i[0] else 0 for i in vy_vn]) # (NG = 1, OK = 0)
             
             # If there is no NG element or Hoop space is less than 0, break
@@ -2478,7 +2476,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
             h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
             
             # Input updated Hoop Space to Excel
-            ws_cbeam.Range('AA%s:AA%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value\
+            ws_cbeam.Range('AC%s:AC%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value\
             = [[i] for i in h_space_array]    
         
         # # Create a list of indices where Hoop space is changed
@@ -2694,16 +2692,16 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=False
 
     if get_gbeam == True:
         # Insert Result Forces (Vu)
-        ws_gbeam.Range('AB%s:AB%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
+        ws_gbeam.Range('AA%s:AA%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
         = [[i] for i in gbeam_output['V2 Max']]
 
         # Reduce Hoop space of NG elements(Autocompletion)
         while True:
             # Read Hoop Space
-            h_space = ws_gbeam.Range('AA%s:AA%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
+            h_space = ws_gbeam.Range('AB%s:AB%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
             # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_gbeam.Range('AF%s:AI%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn = ws_gbeam.Range('AG%s:AJ%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value # list of tuples
             vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
             
             # If there is no NG element or Hoop space is less than 0, break
@@ -2714,7 +2712,7 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=False
             h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
             
             # Input updated Hoop Space to Excel
-            ws_gbeam.Range('AA%s:AA%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
+            ws_gbeam.Range('AB%s:AB%s' %(startrow, startrow + gbeam_output.shape[0]-1)).Value\
             = [[i] for i in h_space_array]
         
     if get_gcol == True:        

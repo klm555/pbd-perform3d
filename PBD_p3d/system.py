@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from collections import deque  # Double-ended Queue : 자료의 앞, 뒤 양 방향에서 자료를 추가하거나 제거가능
 import matplotlib.pyplot as plt
-from decimal import Decimal, ROUND_UP
+from decimal import *
 import io
 import pickle
 from collections import deque
@@ -114,8 +114,8 @@ def base_SF(self, ylim=70000):
         count += 1        
         yield fig1
         
-        base_SF_avg_DE_x = Decimal(str(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
+        getcontext().rounding = ROUND_HALF_UP
+        base_SF_avg_DE_x = round(Decimal(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()), 2)
         yield base_SF_avg_DE_x       
         
         # H2_DE
@@ -137,8 +137,7 @@ def base_SF(self, ylim=70000):
         count += 1
         yield fig2
         
-        base_SF_avg_DE_y = Decimal(str(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
+        base_SF_avg_DE_y = round(Decimal(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()), 2)
         yield base_SF_avg_DE_y
         
         # Marker 출력
@@ -170,8 +169,8 @@ def base_SF(self, ylim=70000):
         count += 1
         yield fig3
         
-        base_SF_avg_MCE_x = Decimal(str(base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
+        getcontext().rounding = ROUND_HALF_UP
+        base_SF_avg_MCE_x = round(Decimal(base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()), 2)
         yield base_SF_avg_MCE_x
 
         # H2_MCE
@@ -196,8 +195,7 @@ def base_SF(self, ylim=70000):
         count += 1
         yield fig4
         
-        base_SF_avg_MCE_y = Decimal(str(base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
+        base_SF_avg_MCE_y = round(Decimal(base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()), 2)
         yield base_SF_avg_MCE_y
         
         # Marker 출력
@@ -555,6 +553,7 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
                                     if x in story_name_window.tolist()]  # story name를 reference로 해서 정렬
     
     # 정렬된 Story에 따라 IDR값도 정렬
+    result_each = []
     for load_name in seismic_load_name_list:   
         globals()['IDR_x_max_{}_avg'.format(load_name)]['Name'] = pd.Categorical(globals()['IDR_x_max_{}_avg'.format(load_name)]['Name'], story_name[::-1])
         globals()['IDR_x_max_{}_avg'.format(load_name)].sort_values('Name', inplace=True)
@@ -572,8 +571,13 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         globals()['IDR_y_min_{}_avg'.format(load_name)].sort_values('Name', inplace=True)
         globals()['IDR_y_min_{}_avg'.format(load_name)].reset_index(inplace=True, drop=True)
         
+        result_each.append(globals()['IDR_x_max_{}_avg'.format(load_name)])
+        result_each.append(globals()['IDR_x_min_{}_avg'.format(load_name)])
+        result_each.append(globals()['IDR_y_max_{}_avg'.format(load_name)])
+        result_each.append(globals()['IDR_y_min_{}_avg'.format(load_name)])
+        
 #%% IDR값(방향에 따른) 전체 평균 (여기부터 2023.03.20 수정)
-    
+    result_avg = []
     if len(DE_load_name_list) != 0:
             
         IDR_x_max_DE_total = pd.concat([globals()['IDR_x_max_{}_avg'.format(x)].iloc[:,-1] for x in DE_load_name_list], axis=1)
@@ -585,6 +589,10 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         IDR_x_min_DE_avg = IDR_x_min_DE_total.mean(axis=1)
         IDR_y_max_DE_avg = IDR_y_max_DE_total.mean(axis=1)
         IDR_y_min_DE_avg = IDR_y_min_DE_total.mean(axis=1)
+        
+        # x,y 방향 min,max 값들을 하나의 dataframe으로 합치기
+        IDR_DE_avg = pd.concat([IDR_x_max_DE_avg, IDR_x_min_DE_avg, IDR_y_max_DE_avg, IDR_y_min_DE_avg], axis=1)
+        result_avg.append(IDR_DE_avg)
     
     if len(MCE_load_name_list) != 0:
         
@@ -597,18 +605,22 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         IDR_x_min_MCE_avg = IDR_x_min_MCE_total.mean(axis=1)
         IDR_y_max_MCE_avg = IDR_y_max_MCE_total.mean(axis=1)
         IDR_y_min_MCE_avg = IDR_y_min_MCE_total.mean(axis=1)
+        
+        IDR_MCE_avg = pd.concat([IDR_x_max_MCE_avg, IDR_x_min_MCE_avg, IDR_y_max_MCE_avg, IDR_y_min_MCE_avg], axis=1)
+        result_avg.append(IDR_MCE_avg)
 
     # 결과 dataframe -> pickle
     IDR_result = []
-    IDR_result.append(shear_force_H1_max)
-    IDR_result.append(shear_force_H2_max)
+    IDR_result.append(result_each)
+    IDR_result.append(result_avg)
     IDR_result.append(DE_load_name_list)
     IDR_result.append(MCE_load_name_list)
+    IDR_result.append(story_name_window_reordered)
     with open('pkl/IDR.pkl', 'wb') as f:
         pickle.dump(IDR_result, f)
     
 #%% 그래프 (방향에 따른)
-
+'''
     count = 1
 
     # DE Plot
@@ -758,7 +770,7 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         
         # Marker 출력
         yield 'MCE'
-        
+'''        
 #%% Pushover
 
 def Pushover(result_xlsx_path, x_result_txt, y_result_txt, base_SF_design=None, pp_x=None, pp_y=None):
@@ -780,8 +792,6 @@ def Pushover(result_xlsx_path, x_result_txt, y_result_txt, base_SF_design=None, 
     Returns
     -------
     '''
-    
-#%%
 
     # 설계밑면전단력 값 입력
     x_result_txt = 'N1_PO_X.txt'
@@ -855,221 +865,3 @@ def Pushover(result_xlsx_path, x_result_txt, y_result_txt, base_SF_design=None, 
     
     print(max(data_X['Base Shear']), design_base_shear_x, max(data_X['Base Shear'])/design_base_shear_x)
     print(max(data_Y['Base Shear']), design_base_shear_y, max(data_Y['Base Shear'])/design_base_shear_y)
-    
-#%% Base SF_test
-
-def base_SF_pkl_test(result_xlsx_path, ylim=70000):
-    ''' 
-
-    Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)
-    
-    Parameters
-    ----------
-    result_path : str
-                  Perform-3D에서 나온 해석 파일의 경로.
-                  
-    result_xlsx : str, optional, default='Analysis Result'
-                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
-                  
-    ylim : int, optional, default=70000
-           그래프의 y축 limit 값. y축 limit 안의 값만 표기되므로, limit를 넘어가는 값을 확인하고 싶을 시에는 ylim 값을 더 크게 설정하면 된다.
-    
-    Returns
-    -------
-    '''
-#%% Analysis Result 불러오기
-    to_load_list = result_xlsx_path
-    
-    # 전단력 불러오기
-    shear_force_data = pd.DataFrame()
-    
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(i)
-        result_data_sheets = pd.read_excel(result_data_raw, ['Structure Section Forces'], skiprows=[0,2])
-        
-        column_name_to_slice = ['StrucSec Name', 'Load Case', 'Step Type', 'FH1', 'FH2']
-        shear_force_data_temp = result_data_sheets['Structure Section Forces'].loc[:,column_name_to_slice]
-        shear_force_data = pd.concat([shear_force_data, shear_force_data_temp])
-        
-    shear_force_data.columns = ['Name', 'Load Case', 'Step Type', 'H1(kN)', 'H2(kN)']
-    
-    # Base 전단력 추출
-    shear_force_data = shear_force_data[shear_force_data['Name'].str.contains('base', case=False)]
-      
-    shear_force_data.reset_index(inplace=True, drop=True)
-    
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in shear_force_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x] # base shear로 사용할 지진파 개수 산정을 위함
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-    
-#%% 데이터 Grouping
-    shear_force_H1_data_grouped = pd.DataFrame()
-    shear_force_H2_data_grouped = pd.DataFrame()
-    
-    for load_name in seismic_load_name_list:
-        shear_force_H1_data_grouped['{}_H1_max'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
-                                                                      (shear_force_data['Step Type'] == 'Max')]['H1(kN)'].values
-            
-        shear_force_H1_data_grouped['{}_H1_min'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
-                                                                      (shear_force_data['Step Type'] == 'Min')]['H1(kN)'].values
-    
-    for load_name in seismic_load_name_list:
-        shear_force_H2_data_grouped['{}_H2_max'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
-                                                                      (shear_force_data['Step Type'] == 'Max')]['H2(kN)'].values
-            
-        shear_force_H2_data_grouped['{}_H2_min'.format(load_name)] = shear_force_data[(shear_force_data['Load Case'].str.contains('{}'.format(load_name))) &\
-                                                                      (shear_force_data['Step Type'] == 'Min')]['H2(kN)'].values   
-    
-    # all 절대값
-    shear_force_H1_abs = shear_force_H1_data_grouped.abs()
-    shear_force_H2_abs = shear_force_H2_data_grouped.abs()
-    
-    # Min, Max 중 최대값
-    shear_force_H1_max = shear_force_H1_abs.groupby([[i//2 for i in range(0,len(seismic_load_name_list)*2)]], axis=1).max()
-    shear_force_H2_max = shear_force_H2_abs.groupby([[i//2 for i in range(0,len(seismic_load_name_list)*2)]], axis=1).max()
-    
-    shear_force_H1_max.columns = seismic_load_name_list
-    shear_force_H2_max.columns = seismic_load_name_list
-    
-    shear_force_H1_max.index = shear_force_data['Name'].drop_duplicates()
-    shear_force_H2_max.index = shear_force_data['Name'].drop_duplicates()
-
-#%% Base Shear 그래프 그리기
-# ax 생성 -> pickle하여 파일에 저장 -> 다른 함수에서 output 방식에 맞게 출력
-
-    pickle_plot = deque()
-    pickle_value = deque()
-    pickle_marker = []
-
-    # Base Shear
-    base_shear_H1 = shear_force_H1_max.copy()
-    base_shear_H2 = shear_force_H2_max.copy()
-    
-    # DE Plot  
-    if len(DE_load_name_list) != 0:
-    
-        # H1_DE
-        fig1, ax1 = plt.subplots(1,1)
-        ax1.set_ylim(0, ylim)
-        
-        ax1.bar(range(len(DE_load_name_list)), base_shear_H1.iloc[0, 0:len(DE_load_name_list)]\
-                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        ax1.axhline(y= base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
-        ax1.set_xticks(range(14), range(1,15))
-        
-        ax1.set_xlabel('Ground Motion No.')
-        ax1.set_ylabel('Base Shear(kN)')
-        ax1.legend(loc = 2)
-        ax1.set_title('X DE')
-        
-        base_SF_avg_DE_x = Decimal(str(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)        
-        
-        pickle_plot.append(fig1)
-        pickle_value.append(base_SF_avg_DE_x)
-        with open('memfile_ax1.dat', 'wb') as f_ax1:
-            pickle.dump(ax1, f_ax1)
-        plt.close()
-        
-        # H2_DE
-        fig2, ax2 = plt.subplots(1,1)
-        ax2.set_ylim(0, ylim)
-        
-        ax2.bar(range(len(DE_load_name_list)), base_shear_H2.iloc[0, 0:len(DE_load_name_list)], color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        ax2.axhline(y= base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
-        ax2.set_xticks(range(14), range(1,15))
-        
-        ax2.set_xlabel('Ground Motion No.')
-        ax2.set_ylabel('Base Shear(kN)')
-        ax2.legend(loc = 2)
-        ax2.set_title('Y DE')
-        
-        base_SF_avg_DE_y = Decimal(str(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
-        
-        pickle_plot.append(fig2)
-        pickle_value.append(base_SF_avg_DE_y)
-        with open('memfile_ax2.dat', 'wb') as f_ax2:
-            pickle.dump(ax2, f_ax2)
-        plt.close()
-        
-        # plot, value, marker를 각각의 리스트에 include
-        pickle_marker.append('DE')
-
-    # MCE Plot  
-    if len(MCE_load_name_list) != 0:
-    
-        # H1_MCE
-        fig3, ax3 = plt.subplots(1,1)
-        ax3.set_ylim(0, ylim)
-        
-        ax3.bar(range(len(MCE_load_name_list)), base_shear_H1\
-                .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        ax3.axhline(y= base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                    .mean(), color='r', linestyle='-', label='Average')
-        ax3.set_xticks(range(14), range(1,15))
-        
-        ax3.set_xlabel('Ground Motion No.')
-        ax3.set_ylabel('Base Shear(kN)')
-        ax3.legend(loc = 2)
-        ax3.set_title('X MCE')
-        print('그래프 완성')
-        
-        base_SF_avg_MCE_x = Decimal(str(base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
-        print(base_SF_avg_MCE_x)
-        pickle_plot.append(fig3)
-        pickle_value.append(base_SF_avg_MCE_x)
-        print('pickle append 완료')
-        with open('memfile_ax3.dat', 'wb') as f_ax3:
-            pickle.dump(ax3, f_ax3)
-        print('pickle dump 완료')
-        
-        plt.close()
-
-        # H2_MCE
-        fig4, ax4 = plt.subplots(1,1)
-        ax4.set_ylim(0, ylim)
-        
-        plt.bar(range(len(MCE_load_name_list)), base_shear_H2\
-                .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        plt.axhline(y= base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                    .mean(), color='r', linestyle='-', label='Average')
-        ax4.set_xticks(range(14), range(1,15))
-        
-        ax4.set_xlabel('Ground Motion No.')
-        ax4.set_ylabel('Base Shear(kN)')
-        ax4.legend(loc = 2)
-        ax4.set_title('Y MCE')
-        
-        base_SF_avg_MCE_y = Decimal(str(base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
-              .quantize(Decimal('.01'), rounding=ROUND_UP)
-        
-        pickle_plot.append(fig4)
-        pickle_value.append(base_SF_avg_MCE_y)
-        with open('memfile_ax4.dat', 'wb') as f_ax4:
-            pickle.dump(ax4, f_ax4)
-        
-        # plot, value, marker를 각각의 리스트에 include
-        pickle_marker.append('MCE')
-        
-    # 출력할 리스트를 memfile.dat에 pickle하기
-    with open('memfile_plot.dat', 'wb') as f1, open('memfile_value.dat', 'wb') as f2, open('memfile_marker.dat', 'wb') as f3:
-        pickle.dump(pickle_plot, f1)
-        pickle.dump(pickle_value, f2)
-        pickle.dump(pickle_marker, f3)
-        
-    print('Pickled Done')

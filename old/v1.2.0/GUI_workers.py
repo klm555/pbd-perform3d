@@ -154,7 +154,7 @@ class InsertWorker(QObject):
             self.msg.emit('Error : %s' %e)
 
             
-# Load Results Worker 만들기
+# Print Results Worker 만들기
 class LoadWorker(QObject):               
     # Create signals
     finished = pyqtSignal()
@@ -166,24 +166,21 @@ class LoadWorker(QObject):
         # 변수 정리
         self.input_xlsx_path = args[0]
         self.result_xlsx_path = args[1]
-        self.wall_design_xlsx_path = args[2]
-        self.beam_design_xlsx_path = args[3]
-        self.col_design_xlsx_path = args[4]
-        self.get_base_SF = args[5]
-        self.get_story_SF = args[6]
-        self.get_IDR = args[7]
-        self.get_BR = args[8]
-        self.get_BSF = args[9]
-        self.get_E_BSF = args[10]
-        self.get_CR = args[11]
-        self.get_CSF = args[12]
-        self.get_E_CSF = args[13]
-        self.get_WAS = args[14]
-        self.get_WR = args[15]
-        self.get_WSF = args[16]
-        self.story_gap = args[17]
-        self.max_shear = args[18]
-        self.time_start = args[19]
+        self.get_base_SF = args[2]
+        self.get_story_SF = args[3]
+        self.get_IDR = args[4]
+        self.get_BR = args[5]
+        self.get_BSF = args[6]
+        self.get_E_BSF = args[7]
+        self.get_CR = args[8]
+        self.get_CSF = args[9]
+        self.get_E_CSF = args[10]
+        self.get_WAS = args[11]
+        self.get_WR = args[12]
+        self.get_WSF = args[13]
+        self.story_gap = args[14]
+        self.max_shear = args[15]
+        self.time_start = args[16]
     
     # Properties 변환 function
     def load_result_fn(self):   
@@ -214,27 +211,22 @@ class LoadWorker(QObject):
                 with open('pkl/IDR.pkl', 'rb') as f:
                     result_dict['IDR'] = pickle.load(f)
             if self.get_BR == True:
-                result.BR(self.input_xlsx_path, self.beam_design_xlsx_path, yticks=self.story_gap)
+                result.BR(yticks=self.story_gap)
                 # pickle 파일 읽기
                 with open('pkl/BR.pkl', 'rb') as f:
                     result_dict['BR'] = pickle.load(f)
-            if self.get_BSF == True:
-                result.BSF(self.input_xlsx_path, self.beam_design_xlsx_path, yticks=self.story_gap)
-                # pickle 파일 읽기
-                with open('pkl/BSF.pkl', 'rb') as f:
-                    result_dict['BSF'] = pickle.load(f)
             if self.get_WAS == True:
                 result.WAS(yticks=self.story_gap)
                 # pickle 파일 읽기
                 with open('pkl/WAS.pkl', 'rb') as f:
                     result_dict['WAS'] = pickle.load(f)                    
             if self.get_WR == True:
-                result.WR(self.input_xlsx_path, self.wall_design_xlsx_path, yticks=self.story_gap)
+                result.WR(self.input_xlsx_path, yticks=self.story_gap)
                 # pickle 파일 읽기
                 with open('pkl/WR.pkl', 'rb') as f:
                     result_dict['WR'] = pickle.load(f)
             if self.get_WSF == True:
-                result.WSF(self.input_xlsx_path, self.wall_design_xlsx_path, yticks=self.story_gap)
+                result.WSF(self.input_xlsx_path, yticks=self.story_gap)
                 # pickle 파일 읽기
                 with open('pkl/WSF.pkl', 'rb') as f:
                     result_dict['WSF'] = pickle.load(f)
@@ -245,34 +237,6 @@ class LoadWorker(QObject):
             # 종료여부 emit
             self.finished.emit()
             # self.msg.emit('Completed!' + '  (total time = %0.3f min)' %(time_run)) # 실행 시간 계산은 class 외부에서 진행
-            
-        except Exception as e:
-            self.finished.emit()
-            self.msg.emit('Error : %s' %e)
-            
-# Design Wall Worker 만들기
-class RedesignWorker(QObject):               
-    # Create signals
-    finished = pyqtSignal()
-    msg = pyqtSignal(str)
-    def __init__(self, *args):
-        super().__init__()
-        
-        # 변수 정리
-        self.wall_design_xlsx_path = args[0]
-        self.time_start = args[1]
-    
-    # 벽체 수평배근 function
-    def redesign_wall_fn(self):   
-        try:
-            # 함수 실행
-            pbd.WSF_redesign(self.wall_design_xlsx_path, rebar_limit=[None,None])      
-            # 실행 시간 계산
-            time_end = time.time()
-            time_run = (time_end-self.time_start)/60            
-            # Emit
-            self.finished.emit()
-            self.msg.emit('Completed!' + '  (total time = %0.3f min)' %(time_run))
             
         except Exception as e:
             self.finished.emit()

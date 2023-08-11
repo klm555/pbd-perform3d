@@ -213,9 +213,6 @@ def run_worker5(self):
     result_xlsx_path = result_xlsx_path.split('"')
     result_xlsx_path = [i for i in result_xlsx_path if len(i) > 2]
     input_xlsx_path = self.data_conv_path_editbox.text()
-    wall_design_xlsx_path = self.wall_design_path_editbox.text()
-    beam_design_xlsx_path = self.beam_design_path_editbox.text()
-    col_design_xlsx_path = self.col_design_path_editbox.text()
     # output_docx = self.output_docx_editbox.text()
     # bldg_name = self.bldg_name_editbox.text()
     story_gap = self.story_gap_editbox.text()
@@ -232,6 +229,7 @@ def run_worker5(self):
     get_WAS = self.WAS_checkbox.isChecked()
     get_WR = self.WR_checkbox.isChecked()
     get_WSF = self.WSF_checkbox.isChecked()
+    # get_WSF_each = self.WSF_each_checkbox.isChecked()
     
     # 아무것도 check 안되어있는 경우 break
     # if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
@@ -246,13 +244,11 @@ def run_worker5(self):
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self) # Create a QThread object
     # InsertWorker 오브젝트 생성
-    self.worker = LoadWorker(input_xlsx_path, result_xlsx_path, wall_design_xlsx_path
-                             , beam_design_xlsx_path, col_design_xlsx_path
-                             , get_base_SF
-                             , get_story_SF, get_IDR, get_BR, get_BSF
-                             , get_E_BSF, get_CR, get_CSF, get_E_CSF
-                             , get_WAS, get_WR, get_WSF, story_gap
-                             , max_shear, time_start) # Create a worker object
+    self.worker = LoadWorker(input_xlsx_path, result_xlsx_path, get_base_SF
+                                 , get_story_SF, get_IDR, get_BR, get_BSF
+                                 , get_E_BSF, get_CR, get_CSF, get_E_CSF
+                                 , get_WAS, get_WR, get_WSF, story_gap
+                                 , max_shear, time_start) # Create a worker object
     self.worker.moveToThread(self.thread) # Move worker to the thread
     
     # Connect signals and slots
@@ -266,7 +262,7 @@ def run_worker5(self):
     
     # Send Signals(incl. result data) to plot_display/load_time_count functions
     self.worker.result_data.connect(self.plot_display)
-    # self.worker.msg.connect(self.load_time_count)
+    self.worker.msg.connect(self.load_time_count)
     
     # Enable/Disable the Button
     # self.import_midas_btn.setEnabled(False)
@@ -1048,38 +1044,3 @@ def run_worker6(self):
     # self.print_result_btn.setEnabled(False)
     # self.thread.finished.connect(lambda: self.show_result_btn.setEnabled(True))
     # self.thread.finished.connect(lambda: self.print_result_btn.setEnabled(True))
-
-#%% Tab3 - Design
-def run_worker7(self):
-    # 시작 메세지
-    time_start = time.time()
-    self.status_browser.append('Running.....')
-    
-    # 변수 정리
-    wall_design_xlsx_path = self.wall_design_path_editbox.text()
-
-    # QThread 오브젝트 생성
-    self.thread = QThread(parent=self) # Create a QThread object
-    # InsertWorker 오브젝트 생성
-    self.worker = RedesignWorker(wall_design_xlsx_path, time_start) # Create a worker object
-    self.worker.moveToThread(self.thread) # Move worker to the thread
-    
-    # Connect signals and slots
-    self.thread.started.connect(self.worker.redesign_wall_fn)
-    self.worker.finished.connect(self.thread.quit)
-    self.worker.finished.connect(self.worker.deleteLater)
-    self.thread.finished.connect(self.thread.deleteLater)
-    
-    # Start the thread
-    self.thread.start()
-    
-    # Enable/Disable the Button
-    # self.import_midas_btn.setEnabled(False)
-    # self.print_name_btn.setEnabled(False)
-    # self.convert_prop_btn.setEnabled(False)
-    # self.thread.finished.connect(lambda: self.import_midas_btn.setEnabled(True))
-    # self.thread.finished.connect(lambda: self.print_name_btn.setEnabled(True))
-    # self.thread.finished.connect(lambda: self.convert_prop_btn.setEnabled(True))
-    
-    # 완료 메세지 print
-    self.worker.msg.connect(self.msg_fn)

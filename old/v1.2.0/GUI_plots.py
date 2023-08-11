@@ -17,14 +17,14 @@ class MplCanvas(FigureCanvasQTAgg):
         FigureCanvasQTAgg.setMinimumSize(self, self.size())
         # super(ShowResult, self).__init__(self.fig)
 
-# def load_time_count(self, time_start):
-#     time_end = time.time()
-#     time_run = (time_end-float(time_start))/60
+def load_time_count(self, time_start):
+    time_end = time.time()
+    time_run = (time_end-time_start)/60
 
-#     # 완료 메세지 print
-#     msg = 'Completed!' + '  (total time = %0.3f min)' %(time_run)
-#     msg_colored = '<span style=\" color: #0000ff;\">%s</span>' % msg
-#     self.status_browser.append(msg_colored)    
+    # 완료 메세지 print
+    msg = 'Completed!' + '  (total time = %0.3f min)' %(time_run)
+    msg_colored = '<span style=\" color: #0000ff;\">%s</span>' % msg
+    self.status_browser.append(msg_colored)    
 
     # 실패할 경우, 그냥 msg_fn 이용해서 오류 메세지 내보내기
     # (단, 여기서 오류가 발생하는 경우, loadworker에서 데이터 처리하는 과정에서의 오류밖에 캐치 안됨)
@@ -711,12 +711,12 @@ def plot_display(self, result_dict):
     #%% Wall Rotation 그래프
     if get_WR == True:
         # WR 결과값 가져오기    
-        WR_result = result_dict['WR']
+        WAS_result = result_dict['WAS']
         # 결과값 classify & assign
-        WR_plot = WR_result[0]
-        story_info = WR_result[1]
-        DE_load_name_list = WR_result[2]
-        MCE_load_name_list = WR_result[3]
+        SWR_avg_total = WAS_result[0]
+        story_info = WAS_result[1]
+        DE_load_name_list = WAS_result[2]
+        MCE_load_name_list = WAS_result[3]
         
         # WR 그래프 그리기
         # DE Plot
@@ -726,14 +726,13 @@ def plot_display(self, result_dict):
             sc21 = pbd.ShowResult(self, width=5, height=6)
 
             # WR plot
-            sc21.axes.scatter(WR_plot['DCR(DE_pos)'], WR_plot['Height(mm)'], color='k', s=1)
-            sc21.axes.scatter(WR_plot['DCR(DE_neg)'], WR_plot['Height(mm)'], color='k', s=1)
+            sc21.axes.scatter(SWR_avg_total['DCR_DE_min'], SWR_avg_total['Height'], color='k', s=1)
+            sc21.axes.scatter(SWR_avg_total['DCR_DE_max'], SWR_avg_total['Height'], color='k', s=1)
 
             # 허용치 기준선
             sc21.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
-            sc21.axes.axvline(x = -DCR_criteria, color='r', linestyle='--')
 
-            sc21.axes.set_xlim(-xlim, xlim)
+            sc21.axes.set_xlim(0, xlim)
             sc21.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
             
             # 기타
@@ -751,8 +750,8 @@ def plot_display(self, result_dict):
             row_count += 2
 
             # 기준 넘는 벽체 확인
-            error_wall_DE = WR_plot[['Name', 'DCR(DE_pos)', 'DCR(DE_neg)']]
-            [(WR_plot['DCR(DE_pos)'] >= DCR_criteria) | (WR_plot['DCR(DE_neg)'] <= -DCR_criteria)]
+            error_wall_DE = SWR_avg_total[['gage_name', 'DCR_DE_min', 'DCR_DE_max']]
+            [(SWR_avg_total['DCR_DE_min']>= DCR_criteria) | (SWR_avg_total['DCR_DE_max']>= DCR_criteria)]
 
         if len(MCE_load_name_list) != 0:
             # MCE
@@ -760,14 +759,13 @@ def plot_display(self, result_dict):
             sc22 = pbd.ShowResult(self, width=5, height=6)
 
             # WR plot
-            sc22.axes.scatter(WR_plot['DCR(MCE_pos)'], WR_plot['Height(mm)'], color='k', s=1)
-            sc22.axes.scatter(WR_plot['DCR(MCE_neg)'], WR_plot['Height(mm)'], color='k', s=1)
+            sc22.axes.scatter(SWR_avg_total['DCR_MCE_min'], SWR_avg_total['Height'], color='k', s=1)
+            sc22.axes.scatter(SWR_avg_total['DCR_MCE_max'], SWR_avg_total['Height'], color='k', s=1)
 
             # 허용치 기준선
             sc22.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
-            sc22.axes.axvline(x = -DCR_criteria, color='r', linestyle='--')
 
-            sc22.axes.set_xlim(-xlim, xlim)
+            sc22.axes.set_xlim(0, xlim)
             sc22.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
 
             # 기타
@@ -785,74 +783,5 @@ def plot_display(self, result_dict):
             row_count += 2
 
             # 기준 넘는 벽체 확인
-            error_wall_MCE = WR_plot[['Name', 'DCR(MCE_pos)', 'DCR(MCE_neg)']]
-            [(WR_plot['DCR(MCE_pos)'] >= DCR_criteria) | (WR_plot['DCR(MCE_neg)'] <= -DCR_criteria)]
-    
-    #%% Wall Shear Force 그래프
-    if get_WSF == True:
-        # WSF 결과값 가져오기    
-        WSF_result = result_dict['WSF']
-        # 결과값 classify & assign
-        wall_result = WSF_result[0]
-        story_info = WSF_result[1]
-        DE_load_name_list = WSF_result[2]
-        MCE_load_name_list = WSF_result[3]
-
-        # WSF 그래프 그리기
-        # DE Plot
-        if len(DE_load_name_list) != 0:
-            # DE
-            # MplCanvas 생성
-            sc23 = pbd.ShowResult(self, width=5, height=6)
-
-            # WSF plot
-            sc23.axes.scatter(wall_result['DE'], wall_result['Height(mm)'], color = 'k', s=1)
-
-            # 허용치 기준선
-            sc23.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
-
-            sc23.axes.set_xlim(0, xlim)
-            sc23.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
-
-            # 기타
-            sc23.axes.grid(linestyle='-.')
-            sc23.axes.set_xlabel('D/C Ratios')
-            sc23.axes.set_ylabel('Story')
-            sc23.axes.set_title('Shear Strength (DE)')
-
-            # toolbar 생성
-            toolbar23 = NavigationToolbar2QT(sc23, self)
-            
-            # layout에 toolbar, canvas 추가
-            layout.addWidget(toolbar23, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc23, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
-
-        # MCE Plot
-        if len(MCE_load_name_list) != 0:
-            # MCE
-            # MplCanvas 생성
-            sc24 = pbd.ShowResult(self, width=5, height=6)
-
-            # WSF plot
-            sc24.axes.scatter(wall_result['MCE'], wall_result['Height(mm)'], color = 'k', s=1)
-
-            # 허용치 기준선
-            sc24.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
-
-            sc24.axes.set_xlim(0, xlim)
-            sc24.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
-
-            # 기타
-            sc24.axes.grid(linestyle='-.')
-            sc24.axes.set_xlabel('D/C Ratios')
-            sc24.axes.set_ylabel('Story')
-            sc24.axes.set_title('Shear Strength (MCE)')
-
-            # toolbar 생성
-            toolbar24 = NavigationToolbar2QT(sc24, self)
-
-            # layout에 toolbar, canvas 추가
-            layout.addWidget(toolbar24, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc24, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            error_wall_MCE = SWR_avg_total[['gage_name', 'DCR_MCE_min', 'DCR_MCE_max']]
+            [(SWR_avg_total['DCR_MCE_min']>= DCR_criteria) | (SWR_avg_total['DCR_MCE_max']>= DCR_criteria)]

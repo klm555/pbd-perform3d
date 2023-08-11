@@ -14,9 +14,9 @@ ui_class = uic.loadUiType('PBD_p3d.ui')[0]
 class MainWindow(QMainWindow, ui_class):
 
     # Import external classes/functions
-    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker
-    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker7
-    from GUI_plots import plot_display
+    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker
+    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5
+    from GUI_plots import plot_display, load_time_count
 
     def __init__(self):
         super().__init__()
@@ -47,9 +47,6 @@ class MainWindow(QMainWindow, ui_class):
         result_xlsx_path = self.result_path_editbox.text().split('"')
         result_xlsx_path = [i for i in result_xlsx_path if len(i) > 4]
         self.display_selected_result_path.setText('%i files selected' %len(result_xlsx_path))
-        self.wall_design_path_editbox.setText(self.setting.value('wall_design_file_path', 'C:\\'))
-        self.beam_design_path_editbox.setText(self.setting.value('beam_design_file_path', 'C:\\'))
-        self.col_design_path_editbox.setText(self.setting.value('column_design_file_path', 'C:\\'))
         self.setting.endGroup()
         
         # Tab 1
@@ -95,6 +92,7 @@ class MainWindow(QMainWindow, ui_class):
         self.WAS_checkbox.setChecked(self.setting.value('WAS', True, type=bool))
         self.WR_checkbox.setChecked(self.setting.value('WR', True, type=bool))
         self.WSF_checkbox.setChecked(self.setting.value('WSF', True, type=bool))
+        self.WSF_each_checkbox.setChecked(self.setting.value('WSF_each', True, type=bool))
         self.bldg_name_editbox.setText(self.setting.value('bldg_name', '101동'))
         self.story_gap_editbox.setText(self.setting.value('story_gap', '2'))
         self.max_shear_editbox.setText(self.setting.value('max_shear', '60000'))
@@ -105,7 +103,6 @@ class MainWindow(QMainWindow, ui_class):
         # Load File
         self.find_file_btn.clicked.connect(self.find_input_xlsx)
         self.find_file_btn_2.clicked.connect(self.find_result_xlsx)
-        self.find_file_btn_3.clicked.connect(self.find_wall_design_xlsx)
         
         # Tab 1
         self.import_midas_btn.clicked.connect(self.run_worker1)
@@ -117,7 +114,6 @@ class MainWindow(QMainWindow, ui_class):
         self.load_result_btn.clicked.connect(self.run_worker5)
         # self.load_result_btn.clicked.connect(self.plot_display)
         # self.print_result_btn.clicked.connect(self.run_worker6)
-        self.design_wall_btn.clicked.connect(self.run_worker7)
          
         # Icon 설정
         self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
@@ -142,29 +138,6 @@ class MainWindow(QMainWindow, ui_class):
         joined_result_xlsx_path = ','.join(all_result_xlsx_path)
         self.result_path_editbox.setText(joined_result_xlsx_path)
         self.display_selected_result_path.setText('%i files selected' %len(result_xlsx_path))
-        
-    def find_wall_design_xlsx(self): # Wall Results Sheets
-        # global input_xlsx_path
-        wall_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
-                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.wall_design_path_editbox.setText(wall_design_xlsx_path)
-        
-    def find_beam_design_xlsx(self): # Beam Results Sheets
-        # global input_xlsx_path
-        beam_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
-                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.beam_design_path_editbox.setText(beam_design_xlsx_path)
-    
-    def find_col_design_xlsx(self): # Column Results Sheets
-        # global input_xlsx_path
-        col_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
-                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.col_design_path_editbox.setText(col_design_xlsx_path)
-    
-    
     
     # Macro 사용을 위한 function
     def mouseMoveEvent(self, event):
@@ -193,9 +166,6 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.beginGroup('file_path')
             self.setting.setValue('data_conversion_file_path', self.data_conv_path_editbox.text())
             self.setting.setValue('result_file_path', self.result_path_editbox.text())
-            self.setting.setValue('wall_design_file_path', self.wall_design_path_editbox.text())
-            self.setting.setValue('beam_design_file_path', self.beam_design_path_editbox.text())
-            self.setting.setValue('column_design_file_path', self.col_design_path_editbox.text())
             self.setting.endGroup()
             
             self.setting.beginGroup('setting_tab1')
@@ -239,6 +209,7 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.setValue('WAS', self.WAS_checkbox.isChecked())
             self.setting.setValue('WR', self.WR_checkbox.isChecked())
             self.setting.setValue('WSF', self.WSF_checkbox.isChecked())
+            self.setting.setValue('WSF_each', self.WSF_each_checkbox.isChecked())
             self.setting.setValue('bldg_name', self.bldg_name_editbox.text())
             self.setting.setValue('story_gap', self.story_gap_editbox.text())
             self.setting.setValue('max_shear', self.max_shear_editbox.text())

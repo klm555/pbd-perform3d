@@ -6,30 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1124</width>
-    <height>891</height>
+    <width>1093</width>
+    <height>845</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>PBD with PERFORM-3D</string>
   </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
-  </property>
   <widget class="QTabWidget" name="tab">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>280</y>
-     <width>631</width>
-     <height>531</height>
+     <y>210</y>
+     <width>601</width>
+     <height>551</height>
     </rect>
    </property>
    <property name="tabShape">
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="documentMode">
     <bool>false</bool>
@@ -49,7 +46,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>261</width>
+       <width>251</width>
        <height>441</height>
       </rect>
      </property>
@@ -359,10 +356,10 @@
     <widget class="QGroupBox" name="groupBox">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>270</x>
        <y>20</y>
-       <width>331</width>
-       <height>201</height>
+       <width>321</width>
+       <height>221</height>
       </rect>
      </property>
      <property name="title">
@@ -419,7 +416,7 @@
         <x>30</x>
         <y>100</y>
         <width>271</width>
-        <height>81</height>
+        <height>101</height>
        </rect>
       </property>
       <property name="font">
@@ -432,7 +429,10 @@
        <string>* ex) (2,5,7,11), (2,5,7,11,total), (NE,NW,SE,SW)
 * 반드시 쉼표(,)로 구분할 것
 * 띄어쓰기, 밑줄(_) 사용 금지
-* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것</string>
+* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것
+* Data Conversion 시트에서 해당하는 기존 입력값을
+  지우고 실행하는 것을 권장함 (입력할 부재의 개수가
+  입력되어있는 부재의 개수보다 적을 시)</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -445,9 +445,9 @@
     <widget class="QGroupBox" name="groupBox_6">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>230</y>
-       <width>331</width>
+       <x>270</x>
+       <y>250</y>
+       <width>321</width>
        <height>271</height>
       </rect>
      </property>
@@ -638,7 +638,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>261</width>
+       <width>251</width>
        <height>401</height>
       </rect>
      </property>
@@ -752,9 +752,9 @@
     <widget class="QGroupBox" name="groupBox_10">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>270</x>
        <y>20</y>
-       <width>321</width>
+       <width>311</width>
        <height>411</height>
       </rect>
      </property>
@@ -1044,10 +1044,10 @@
     <widget class="QGroupBox" name="groupBox_7">
      <property name="geometry">
       <rect>
-       <x>270</x>
-       <y>270</y>
-       <width>321</width>
-       <height>181</height>
+       <x>10</x>
+       <y>320</y>
+       <width>571</width>
+       <height>151</height>
       </rect>
      </property>
      <property name="title">
@@ -1152,8 +1152,8 @@
      <widget class="QPushButton" name="print_result_btn">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>150</y>
+        <x>330</x>
+        <y>80</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -1165,8 +1165,8 @@
      <widget class="QLineEdit" name="output_docx_editbox">
       <property name="geometry">
        <rect>
-        <x>130</x>
-        <y>120</y>
+        <x>410</x>
+        <y>30</y>
         <width>121</width>
         <height>20</height>
        </rect>
@@ -1181,8 +1181,8 @@
      <widget class="QLabel" name="label_17">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>120</y>
+        <x>300</x>
+        <y>30</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -1200,8 +1200,8 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>581</width>
-       <height>241</height>
+       <width>571</width>
+       <height>291</height>
       </rect>
      </property>
      <property name="title">
@@ -1458,6 +1458,38 @@
        <string>...</string>
       </property>
      </widget>
+     <widget class="QLabel" name="label_23">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>190</y>
+        <width>51</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>부재별</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="WSF_each_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>220</y>
+        <width>161</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wall Shear Force (DCR)</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
      <widget class="QCheckBox" name="BSF_checkbox">
       <property name="geometry">
        <rect>
@@ -1522,7 +1554,7 @@
      <widget class="QPushButton" name="load_result_btn">
       <property name="geometry">
        <rect>
-        <x>240</x>
+        <x>330</x>
         <y>200</y>
         <width>75</width>
         <height>23</height>
@@ -1532,72 +1564,49 @@
        <string>Load</string>
       </property>
      </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_11">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>270</y>
-       <width>251</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Design Horizontal Rebars (Wall)</string>
-     </property>
-     <widget class="QPushButton" name="design_wall_btn">
+     <widget class="QLineEdit" name="output_docx_editbox_2">
       <property name="geometry">
        <rect>
-        <x>60</x>
-        <y>30</y>
+        <x>200</x>
+        <y>250</y>
+        <width>121</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>해석 결과</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="print_result_btn_2">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>250</y>
         <width>75</width>
         <height>23</height>
        </rect>
       </property>
       <property name="text">
-       <string>Design</string>
+       <string>벽체 배근</string>
       </property>
      </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_12">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>350</y>
-       <width>251</width>
-       <height>101</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Print to PDF (.pdf)</string>
-     </property>
-     <widget class="QPushButton" name="print_result_btn_4">
+     <widget class="QLabel" name="label_20">
       <property name="geometry">
        <rect>
-        <x>60</x>
-        <y>70</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Print</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="wall_each_checkbox">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>40</y>
-        <width>161</width>
+        <x>90</x>
+        <y>250</y>
+        <width>101</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Wall</string>
+       <string>벽체 수평배근</string>
       </property>
-      <property name="checked">
-       <bool>true</bool>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </widget>
@@ -1607,7 +1616,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>840</y>
+     <y>790</y>
      <width>581</width>
      <height>20</height>
     </rect>
@@ -1692,7 +1701,7 @@
    <property name="geometry">
     <rect>
      <x>520</x>
-     <y>840</y>
+     <y>790</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -1724,8 +1733,8 @@
   <widget class="QTextBrowser" name="status_browser">
    <property name="geometry">
     <rect>
-     <x>650</x>
-     <y>720</y>
+     <x>620</x>
+     <y>580</y>
      <width>461</width>
      <height>91</height>
     </rect>
@@ -1753,10 +1762,10 @@
   <widget class="QScrollArea" name="plot_display_area">
    <property name="geometry">
     <rect>
-     <x>650</x>
+     <x>620</x>
      <y>80</y>
      <width>461</width>
-     <height>631</height>
+     <height>491</height>
     </rect>
    </property>
    <property name="widgetResizable">
@@ -1768,7 +1777,7 @@
       <x>0</x>
       <y>0</y>
       <width>459</width>
-      <height>629</height>
+      <height>489</height>
      </rect>
     </property>
    </widget>
@@ -1777,7 +1786,7 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>830</y>
+     <y>780</y>
      <width>151</width>
      <height>16</height>
     </rect>
@@ -1794,459 +1803,17 @@
     <rect>
      <x>10</x>
      <y>70</y>
-     <width>631</width>
-     <height>201</height>
+     <width>581</width>
+     <height>131</height>
     </rect>
    </property>
-   <property name="palette">
-    <palette>
-     <active>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Light">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Midlight">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>242</red>
-         <green>247</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Dark">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>115</red>
-         <green>120</green>
-         <blue>113</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Mid">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>153</red>
-         <green>160</green>
-         <blue>151</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="BrightText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Shadow">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="AlternateBase">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>242</red>
-         <green>247</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ToolTipBase">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>220</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ToolTipText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="PlaceholderText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="128">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </active>
-     <inactive>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Light">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Midlight">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>242</red>
-         <green>247</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Dark">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>115</red>
-         <green>120</green>
-         <blue>113</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Mid">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>153</red>
-         <green>160</green>
-         <blue>151</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="BrightText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Shadow">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="AlternateBase">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>242</red>
-         <green>247</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ToolTipBase">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>220</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ToolTipText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="PlaceholderText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="128">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </inactive>
-     <disabled>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>115</red>
-         <green>120</green>
-         <blue>113</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Button">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Light">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Midlight">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>242</red>
-         <green>247</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Dark">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>115</red>
-         <green>120</green>
-         <blue>113</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Mid">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>153</red>
-         <green>160</green>
-         <blue>151</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Text">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>115</red>
-         <green>120</green>
-         <blue>113</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="BrightText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ButtonText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>115</red>
-         <green>120</green>
-         <blue>113</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Shadow">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="AlternateBase">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>229</red>
-         <green>240</green>
-         <blue>226</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ToolTipBase">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>220</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="ToolTipText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="PlaceholderText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="128">
-         <red>0</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </disabled>
-    </palette>
-   </property>
    <property name="title">
-    <string>File Paths (.xlsx)</string>
+    <string>File Paths</string>
    </property>
    <widget class="QLabel" name="label_11">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>20</x>
       <y>30</y>
       <width>101</width>
       <height>16</height>
@@ -2262,7 +1829,7 @@
    <widget class="QLineEdit" name="data_conv_path_editbox">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>130</x>
       <y>30</y>
       <width>351</width>
       <height>20</height>
@@ -2275,10 +1842,26 @@
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>50</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>(Excel Sheets)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
    <widget class="QPushButton" name="find_file_btn">
     <property name="geometry">
      <rect>
-      <x>530</x>
+      <x>490</x>
       <y>28</y>
       <width>71</width>
       <height>23</height>
@@ -2291,8 +1874,8 @@
    <widget class="QLineEdit" name="result_path_editbox">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>62</y>
+      <x>130</x>
+      <y>70</y>
       <width>351</width>
       <height>20</height>
      </rect>
@@ -2307,8 +1890,8 @@
    <widget class="QPushButton" name="find_file_btn_2">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>60</y>
+      <x>490</x>
+      <y>68</y>
       <width>71</width>
       <height>23</height>
      </rect>
@@ -2317,11 +1900,27 @@
      <string>파일 선택</string>
     </property>
    </widget>
+   <widget class="QLabel" name="label_18">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>90</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>(Excel Sheets)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_19">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>62</y>
+      <x>20</x>
+      <y>70</y>
       <width>101</width>
       <height>16</height>
      </rect>
@@ -2336,8 +1935,8 @@
    <widget class="QLabel" name="display_selected_result_path">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>90</y>
+      <x>280</x>
+      <y>100</y>
       <width>201</width>
       <height>20</height>
      </rect>
@@ -2347,141 +1946,6 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_21">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>112</y>
-      <width>121</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Seismic Design Wall</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="wall_design_path_editbox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>112</y>
-      <width>351</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>C:\</string>
-    </property>
-    <property name="clearButtonEnabled">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="find_file_btn_3">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>110</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>파일 선택</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="beam_design_path_editbox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>142</y>
-      <width>351</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>C:\</string>
-    </property>
-    <property name="clearButtonEnabled">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_22">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>142</y>
-      <width>131</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Seismic Design Beam</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="find_file_btn_4">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>140</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>파일 선택</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="col_design_path_editbox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>170</y>
-      <width>351</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>C:\</string>
-    </property>
-    <property name="clearButtonEnabled">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="find_file_btn_5">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>168</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>파일 선택</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_24">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>170</y>
-      <width>141</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Seismic Design Column</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>
