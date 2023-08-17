@@ -493,11 +493,10 @@ def plot_display(self, result_dict):
         # BR 결과값 가져오기    
         BR_result = result_dict['BR']
         # 결과값 classify & assign
-        beam_rot_data_total_DE = BR_result[0]
-        beam_rot_data_total_MCE = BR_result[1]
-        story_info = BR_result[2]
-        DE_load_name_list = BR_result[3]
-        MCE_load_name_list = BR_result[4]
+        BR_plot = BR_result[0]
+        story_info = BR_result[1]
+        DE_load_name_list = BR_result[2]
+        MCE_load_name_list = BR_result[3]
 
         # BR 그래프 그리기
         # DE Plot
@@ -506,13 +505,14 @@ def plot_display(self, result_dict):
             sc13 = pbd.ShowResult(self, width=5, height=6)
 
             # DCR plot                
-            sc13.axes.scatter(beam_rot_data_total_DE['DE Max avg'], beam_rot_data_total_DE.loc[:,'V'], color='k', s=1)
-            sc13.axes.scatter(beam_rot_data_total_DE['DE Min avg'], beam_rot_data_total_DE.loc[:,'V'], color='k', s=1)
+            sc13.axes.scatter(BR_plot['DCR(DE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
+            sc13.axes.scatter(BR_plot['DCR(DE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
 
             # 허용치(DCR) 기준선
-            sc13.axes.axvline(x=DCR_criteria, color='r', linestyle='--')
+            sc13.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+            sc13.axes.axvline(x = -DCR_criteria, color='r', linestyle='--')
 
-            sc13.axes.set_xlim(0, xlim)
+            sc13.axes.set_xlim(-xlim, xlim)
             sc13.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
 
             # 기타
@@ -520,12 +520,6 @@ def plot_display(self, result_dict):
             sc13.axes.set_xlabel('D/C Ratios')
             sc13.axes.set_ylabel('Story')
             sc13.axes.set_title('Beam Rotation (DE)')
-
-            # 기준 넘는 점 확인
-            error_beam_DE = beam_rot_data_total_DE[['Element Name', 'Property Name', 'Story Name', 'DE Max avg', 'DE Min avg']]\
-                            [(beam_rot_data_total_DE['DE Max avg'] >= DCR_criteria) | (beam_rot_data_total_DE['DE Min avg'] >= DCR_criteria)]
-            
-            # self.status_browser.append(str(error_beam_DE['Property Name']))
 
             # toolbar 생성
             toolbar13 = NavigationToolbar2QT(sc13, self)
@@ -540,13 +534,14 @@ def plot_display(self, result_dict):
             sc14 = pbd.ShowResult(self, width=5, height=6)
 
             # DCR plot                
-            sc14.axes.scatter(beam_rot_data_total_MCE['MCE Max avg'], beam_rot_data_total_MCE.loc[:,'V'], color='k', s=1)
-            sc14.axes.scatter(beam_rot_data_total_MCE['MCE Min avg'], beam_rot_data_total_MCE.loc[:,'V'], color='k', s=1)
+            sc14.axes.scatter(BR_plot['DCR(MCE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
+            sc14.axes.scatter(BR_plot['DCR(MCE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
 
             # 허용치(DCR) 기준선
-            sc14.axes.axvline(x=DCR_criteria, color='r', linestyle='--')
+            sc14.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+            sc14.axes.axvline(x = -DCR_criteria, color='r', linestyle='--')
 
-            sc14.axes.set_xlim(0, xlim)
+            sc14.axes.set_xlim(-xlim, xlim)
             sc14.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
 
             # 기타
@@ -555,12 +550,6 @@ def plot_display(self, result_dict):
             sc14.axes.set_ylabel('Story')
             sc14.axes.set_title('Beam Rotation (MCE)')
 
-            # 기준 넘는 점 확인
-            error_beam_MCE = beam_rot_data_total_MCE[['Element Name', 'Property Name', 'Story Name', 'MCE Max avg', 'MCE Min avg']]\
-                            [(beam_rot_data_total_MCE['MCE Max avg'] >= DCR_criteria) | (beam_rot_data_total_MCE['MCE Min avg'] >= DCR_criteria)]
-            
-            # self.status_browser.append(str(error_beam_MCE['Property Name']))
-            
             # toolbar 생성
             toolbar14 = NavigationToolbar2QT(sc14, self)
 
@@ -568,7 +557,73 @@ def plot_display(self, result_dict):
             layout.addWidget(toolbar14, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
             layout.addWidget(sc14, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
             row_count += 2
- 
+
+    #%% C.Beam Shear Force 그래프
+    if get_BSF == True:
+        # BR 결과값 가져오기    
+        BSF_result = result_dict['BSF']
+        # 결과값 classify & assign
+        BSF_plot = BSF_result[0]
+        story_info = BSF_result[1]
+        DE_load_name_list = BSF_result[2]
+        MCE_load_name_list = BSF_result[3]
+    
+        # BSF 그래프 그리기
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            # MplCanvas 생성
+            sc15 = pbd.ShowResult(self, width=5, height=6)
+    
+            # DCR plot                
+            sc15.axes.scatter(BSF_plot['DE'], BSF_plot['Height(mm)'], color='k', s=1)
+    
+            # 허용치(DCR) 기준선
+            sc15.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+    
+            sc15.axes.set_xlim(0, xlim)
+            sc15.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+    
+            # 기타
+            sc15.axes.grid(linestyle='-.')
+            sc15.axes.set_xlabel('D/C Ratios')
+            sc15.axes.set_ylabel('Story')
+            sc15.axes.set_title('Shear Strength (DE)')
+    
+            # toolbar 생성
+            toolbar15 = NavigationToolbar2QT(sc15, self)
+    
+            # layout에 toolbar, canvas 추가
+            layout.addWidget(toolbar15, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc15, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 2
+            
+        if len(MCE_load_name_list) != 0:
+            # MplCanvas 생성
+            sc16 = pbd.ShowResult(self, width=5, height=6)
+    
+            # DCR plot                
+            sc16.axes.scatter(BSF_plot['MCE'], BSF_plot['Height(mm)'], color='k', s=1)
+    
+            # 허용치(DCR) 기준선
+            sc16.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+    
+            sc16.axes.set_xlim(0, xlim)
+            sc16.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+    
+            # 기타
+            sc16.axes.grid(linestyle='-.')
+            sc16.axes.set_xlabel('D/C Ratios')
+            sc16.axes.set_ylabel('Story')
+            sc16.axes.set_title('Shear Strength (MCE)')
+    
+            # toolbar 생성
+            toolbar16 = NavigationToolbar2QT(sc16, self)
+    
+            # layout에 toolbar, canvas 추가
+            layout.addWidget(toolbar16, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc16, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 2
+
     #%% Wall Axial Strain 그래프
     if get_WAS == True:
         # WAS 결과값 가져오기    

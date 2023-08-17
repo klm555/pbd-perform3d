@@ -130,7 +130,7 @@ class PostProc():
         if get_BSF == True:
             self.beam_shear_force_data = pool.starmap(read_excel, [[file_path, 'Frame Results - End Forces'] for file_path in to_load_list])
             self.beam_shear_force_data = pd.concat(self.beam_shear_force_data, ignore_index=True)
-            column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'V2 I-End', 'V3 I-End']
+            column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'V2 I-End', 'V2 J-End']
             self.beam_shear_force_data = self.beam_shear_force_data.loc[:, column_name_to_slice]
 
         ##### Create Seismic Loads List

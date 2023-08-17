@@ -13,8 +13,10 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
 
 #%% Load Data
     # Data Conversion Sheets
+    print(self.beam_info.shape[1])
     story_info = self.story_info
-    beam_info = self.beam_info
+    beam_info = self.beam_info.copy()
+
 
     # Analysis Result Sheets
     node_data = self.node_data
@@ -48,9 +50,6 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     # node, element data에서 필요한 정보만 추출
     node_data = node_data.iloc[:,[0,3]]    
     element_data = element_data.iloc[:,[0,1,2]]
-
-    # temporary ((L), (R) 등 지우기)
-    element_data.loc[:, 'Property Name'] = element_data.loc[:, 'Property Name'].str.split('(').str[0]
 
     # 필요한 부재만 선별
     prop_name = beam_info.iloc[:,0]
@@ -100,8 +99,11 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
                     if (load_name in BR_grouped[0][0]) & (BR_grouped[0][1] == int(point_id)) & (BR_grouped[0][2] == max_min):
                         # 같은 결과가 2개씩 있어서 drop_duplicates
                         BR_grouped_df = BR_grouped[1].drop_duplicates()
-                        # Element Name이 같은 경우, 큰 값만 선택
-                        # BR_grouped_df = BR_grouped_df
+                        # Element Name이 같은 경우(부재가 잘려서 모델링 된 경우 등), 큰 값만 선택
+                        BR_grouped_df['Absolute Rotation(rad)'] = BR_grouped_df['Major Rotation(rad)'].abs()
+                        BR_grouped_df = BR_grouped_df.sort_values(by='Absolute Rotation(rad)')
+                        BR_grouped_df = BR_grouped_df.drop_duplicates(subset=['Element Name'], keep='last')
+                        # Input 시트의 부재 순서대로 재정렬
                         BR_grouped_df = pd.merge(prop_name, BR_grouped_df, how='left')
                         BR_grouped_df.reset_index(inplace=True, drop=True)
                         BR_output = pd.concat([BR_output, BR_grouped_df['Major Rotation(rad)']], axis=1)
@@ -113,17 +115,28 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
                     
 #%% 결과 정리 후 Input Sheets에 넣기
 
-# 출력용 Dataframe 만들기
+    # 출력용 Dataframe 만들기
     # Design_C.Beam 시트
     steel_design_df = beam_info.iloc[:,21:31]
     beam_output = pd.concat([beam_info, steel_design_df], axis=1)
     
     # Table_C.Beam_DE 시트
-    beam_info[['Beam Name', 'Beam Number', 'Floor']] = beam_info['Name'].str.split('_', expand=True)
+    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+    # story_info의 Index열을 1부터 시작하도록 재지정
+    story_info['Index'] = range(story_info.shape[0], 0, -1)
+    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 4에 배정
+    add_num_new_story = 4 - story_info.iloc[ground_level_idx, 0]
+    story_info['Index'] = story_info['Index'] + add_num_new_story
+    
+    # Beam 이름 split
+    beam_info[['Beam Name', 'Beam Number', 'Story Name']] = beam_info['Name'].str.split('_', expand=True)
+    beam_info = pd.merge(beam_info, story_info, how='left')
     # 벽체 이름, 번호에 따라 grouping
     beam_name_list = list(beam_info.groupby(['Beam Name', 'Beam Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
     name_empty = pd.DataFrame(np.nan, index=range(55), columns=range(len(beam_name_list)))
+    
     # dataframe에 이름 채워넣기
     count = 0
     while True:
@@ -131,7 +144,9 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
         num_iter = beam_name_list[count][0][1]
         total_iter = beam_info['Name'][(beam_info['Beam Name'] == name_iter) 
                                        & (beam_info['Beam Number'] == num_iter)]
-        name_empty.iloc[range(len(total_iter)), count] = total_iter
+        idx_range = beam_info['Index'][(beam_info['Beam Name'] == name_iter) 
+                                       & (beam_info['Beam Number'] == num_iter)]
+        name_empty.iloc[idx_range, count] = total_iter    
         
         count += 1
         if count == len(beam_name_list):
@@ -140,28 +155,6 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     name_output_arr = np.array(name_empty)
     name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
     name_output = pd.DataFrame(name_output_arr)
-    
-    # Plot_C.Beam_DE 시트
-    plot_num = pd.DataFrame()
-    # 첫번째 부재(Beam)의 이름 추출
-    plot_num['Name'] = beam_info['Name'][(beam_info['Beam Name'] == beam_name_list[0][0][0]) 
-                                 & (beam_info['Beam Number'] == beam_name_list[0][0][1])]    
-    plot_num[['Beam Name', 'Beam Number', 'Story Name']] = plot_num['Name'].str.split('_', expand=True)
-    # story_info의 Index열을 1부터 시작하도록 재지정
-    story_info['Index'] = range(story_info.shape[0], 0, -1)
-    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
-    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
-    # Ground Level(0mm, 1F)에 가장 가까운 층에 59번 row 배정
-    plot_place_arr = np.zeros(story_info.shape[0], dtype=int)
-    for idx, x in enumerate(plot_place_arr): # 59 + index 는 일정하다는 사실을 이용
-        plot_place_arr[idx] = 59 + ground_level_idx - idx
-    story_info['Place'] = plot_place_arr
-    
-    # Story 정보 merge
-    plot_num = pd.merge(plot_num, story_info, how='left')
-    
-    # Reverse the order of row
-    plot_num = plot_num.iloc[::-1]
 
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     BR_output = BR_output.replace(np.nan, '', regex=True)
@@ -189,7 +182,6 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     ws1 = wb.Sheets('Results_C.Beam_Rotation')
     ws2 = wb.Sheets('Design_C.Beam')
     ws3 = wb.Sheets('Table_C.Beam_DE')
-    ws4 = wb.Sheets('Plot_C.Beam_DE')
     
     startrow, startcol = 5, 1
     
@@ -206,10 +198,6 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(beam_name_list) # series -> list 형식만 입력가능
-        
-    # Plot_S.Wall_DE 시트 입력
-    ws4.Range('A%s:A%s' %(plot_num['Place'].min(), plot_num['Place'].max())).Value\
-        = [[i] for i in plot_num['Index']] # series -> list 형식만 입력가능
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
@@ -241,6 +229,17 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
         
         BR_plot['Name'] = name_output.copy()
         
+        # 벽체 해당하는 층 높이 할당
+        story = []
+        for i in BR_plot['Name']:
+            if i == '':
+                story.append(np.nan)
+            else:
+                story.append(i.split('_')[-1])        
+        BR_plot['Story Name'] = story
+        
+        BR_plot = pd.merge(BR_plot, story_info.iloc[:,[1,2]], how='left')
+        
         # 결과 dataframe -> pickle
         BR_result = []
         BR_result.append(BR_plot)
@@ -265,9 +264,10 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     
     '''
 #%% Load Data
-    # Data Conversion Sheets        
+    # Data Conversion Sheets     
+    print(self.beam_info.shape[1])
     story_info = self.story_info
-    deform_cap = self.beam_deform_cap
+    beam_info = self.beam_info.copy()
 
     # Analysis Result Sheets
     node_data = self.node_data
@@ -281,13 +281,31 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
 
+    # Data Conversion Sheets        
+    # story_info = result.story_info
+    # beam_info = result.beam_info
+
+    # # Analysis Result Sheets
+    # node_data = result.node_data
+    # element_data = result.frame_data
+    # SF_info_data = result.beam_shear_force_data
+
+    # # Seismic Loads List
+    # load_name_list = result.load_name_list
+    # gravity_load_name = result.gravity_load_name
+    # seismic_load_name_list = result.seismic_load_name_list
+    # DE_load_name_list = result.DE_load_name_list
+    # MCE_load_name_list = result.MCE_load_name_list
+
 #%% Process Data
+
     # 필요한 부재만 선별
-    prop_name = deform_cap.iloc[:,0]
+    prop_name = beam_info.iloc[:,0]
     prop_name.name = 'Property Name'
     element_data = element_data[element_data['Property Name'].isin(prop_name)]
 
     element_data = element_data.drop_duplicates()
+    node_data = node_data.drop_duplicates()   
     
     # Analysis Result에 Element, Node 정보 매칭
     element_data = pd.merge(element_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
@@ -296,63 +314,114 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
 
 #%% V값의 절대값, 최대값, 평균값 뽑기
 
-    # 절대값
-    SF_ongoing['V2 I-End'] = SF_ongoing['V2 I-End'].abs()
-
-    # V2의 최대값을 저장하기 위해 필요한 데이터 slice
-    SF_ongoing_max = SF_ongoing.iloc[[2*x for x in range(int(SF_ongoing.shape[0]/2))]]
-    SF_ongoing_max = SF_ongoing_max.loc[:, ['Element Name', 'Property Name', 'V', 'Load Case']]                       
-    # [2*x for x in range(int(SF_ongoing.shape[0]/2] -> [짝수 index]
+    # 필요한 정보들만 다시 모아서 new dataframe
+    SF_ongoing = SF_ongoing.iloc[:, [1,0,7,9,10,11,12]]
     
-    # V2, V3의 최대값을 저장
-    SF_ongoing_max['V2 max'] = SF_ongoing.groupby(SF_ongoing.index // 2)['V2 I-End'].max().tolist()
-
     # 필요한 하중만 포함된 데이터 slice (MCE)
-    SF_ongoing_max_MCE = SF_ongoing_max[SF_ongoing_max['Load Case']\
-                                        .str.contains('|'.join(MCE_load_name_list))]
-    SF_ongoing_max_G = SF_ongoing_max[SF_ongoing_max['Load Case']\
-                                      .str.contains('|'.join(gravity_load_name))]
+    SF_ongoing_seismic = SF_ongoing[SF_ongoing['Load Case'].str.contains('|'.join(seismic_load_name_list))]
+    SF_ongoing_grav = SF_ongoing[SF_ongoing['Load Case'].str.contains('|'.join(gravity_load_name))]
     # function equivalent of a combination of df.isin() and df.str.contains()
-    
-    # 부재별(Element Name) 평균값을 저장하기 위해 필요한 데이터프레임 생성
-    SF_ongoing_max_avg = SF_ongoing_max_MCE.iloc[:,[0,1,2]]
-    SF_ongoing_max_avg = SF_ongoing_max_avg.drop_duplicates()
-    SF_ongoing_max_avg.set_index('Element Name', inplace=True)    
-    # 부재별(Element Name) 평균값 뽑기
-    SF_ongoing_max_avg['V2 max(MCE)'] = SF_ongoing_max_MCE.groupby(['Element Name'])['V2 max'].mean()
-    SF_ongoing_max_avg['V2 max(G)'] = SF_ongoing_max_G.groupby(['Element Name'])['V2 max'].mean()
-    
-    # 이름별(Property Name) 최대값을 저장하기 위해 필요한 데이터프레임 생성
-    SF_ongoing_max_avg_max = SF_ongoing_max_avg.copy()
-    SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.drop_duplicates(subset=['Property Name'], ignore_index=True)
-    SF_ongoing_max_avg_max.set_index('Property Name', inplace=True) 
-    # 같은 부재(그러나 잘려있는) 경우(Property Name) 최대값 뽑기
-    SF_ongoing_max_avg_max = pd.merge(SF_ongoing_max_avg_max
-                                      , SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(MCE)'].max()
-                                      , left_on='Property Name', right_index=True, suffixes=('_before', '_after'))
-    SF_ongoing_max_avg_max = pd.merge(SF_ongoing_max_avg_max
-                                      , SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(G)'].max()
-                                      , left_on='Property Name', right_index=True, suffixes=('_before', '_after'))
-    
-    # MCE에 대해 1.2배, G에 대해 0.2배
-    SF_ongoing_max_avg_max['V2 max(MCE)_after'] = SF_ongoing_max_avg_max['V2 max(MCE)_after'] * 1.2
-    SF_ongoing_max_avg_max['V2 max(G)_after'] = SF_ongoing_max_avg_max['V2 max(G)_after'] * 0.2
-    
-    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=False)
 
-#%% 결과값 정리
+    # 지진하중에 따라 Shear Force 데이터 Grouping
+    SF_grouped_list = list(SF_ongoing_seismic.groupby('Load Case'))    
+
+    # 해석 결과 상관없이 Full 지진하중 이름 list 만들기
+    full_DE_load_name_list = 'DE' + pd.Series([11,12,21,22,31,32,41,42,51,52,61,62,71,72]).astype(str)
+    full_MCE_load_name_list = 'MCE' + pd.Series([11,12,21,22,31,32,41,42,51,52,61,62,71,72]).astype(str)
+    full_load_name_list = pd.concat([full_DE_load_name_list, full_MCE_load_name_list])
     
-    SF_output = pd.merge(prop_name, SF_ongoing_max_avg_max, how='left')
+    # 이름만 들어간 Dataframe 만들기
+    BSF_output = pd.DataFrame(prop_name)
+    # 중력하중 결과 넣기(아래 for loop에서 지진하중 결과 넣는 방법과 동일함)
+    SF_ongoing_grav = SF_ongoing_grav.drop_duplicates()
+    SF_ongoing_grav['Absolute V2 I-End'] = SF_ongoing_grav['V2 I-End'].abs()
+    SF_ongoing_grav = SF_ongoing_grav.sort_values(by='Absolute V2 I-End')
+    SF_ongoing_grav = SF_ongoing_grav.drop_duplicates(subset=['Element Name', 'Step Type'], keep='last')
+    SF_ongoing_grav_max = SF_ongoing_grav[SF_ongoing_grav['Step Type'] == 'Max']
+    SF_ongoing_grav_min = SF_ongoing_grav[SF_ongoing_grav['Step Type'] == 'Min']
+    SF_ongoing_grav_max = pd.merge(prop_name, SF_ongoing_grav_max, how='left')
+    SF_ongoing_grav_min = pd.merge(prop_name, SF_ongoing_grav_min, how='left')
+    SF_ongoing_grav_max.reset_index(inplace=True, drop=True)
+    SF_ongoing_grav_min.reset_index(inplace=True, drop=True)
+    BSF_output = pd.concat([BSF_output, SF_ongoing_grav_max['V2 I-End']
+                           , SF_ongoing_grav_min['V2 I-End'], SF_ongoing_grav_max['V2 J-End']
+                           , SF_ongoing_grav_min['V2 J-End']], axis=1)
+    
+    # 지진하중, i,j 노드, Max,Min loop 돌리기
+    for load_name in full_load_name_list:
+        # 만들어진 Group List loop 돌리기
+        for SF_grouped in SF_grouped_list:
+            if load_name in SF_grouped[0]:
+                # 같은 결과가 2개씩 있어서 drop_duplicates
+                SF_grouped_df = SF_grouped[1].drop_duplicates()
+                # Element Name이 같은 경우(부재가 잘려서 모델링 된 경우 등), 큰 값만 선택
+                SF_grouped_df['Absolute V2 I-End'] = SF_grouped_df['V2 I-End'].abs()
+                SF_grouped_df = SF_grouped_df.sort_values(by='Absolute V2 I-End')
+                SF_grouped_df = SF_grouped_df.drop_duplicates(subset=['Element Name', 'Step Type'], keep='last')
+                # Max, Min으로 나누기
+                SF_grouped_df_max = SF_grouped_df[SF_grouped_df['Step Type'] == 'Max']
+                SF_grouped_df_min = SF_grouped_df[SF_grouped_df['Step Type'] == 'Min']
+                # Input 시트의 부재 순서대로 재정렬
+                SF_grouped_df_max = pd.merge(prop_name, SF_grouped_df_max, how='left')
+                SF_grouped_df_min = pd.merge(prop_name, SF_grouped_df_min, how='left')
+                SF_grouped_df_max.reset_index(inplace=True, drop=True)
+                SF_grouped_df_min.reset_index(inplace=True, drop=True)
+                BSF_output = pd.concat([BSF_output, SF_grouped_df_max['V2 I-End']
+                                       , SF_grouped_df_min['V2 I-End'], SF_grouped_df_max['V2 J-End']
+                                       , SF_grouped_df_min['V2 J-End']], axis=1)
+            
+        # 해당 지진하중의 해석결과가 없는 경우 Blank Column 생성
+        if load_name not in seismic_load_name_list: 
+            blank_col = pd.Series([''] * len(prop_name))
+            BSF_output = pd.concat([BSF_output, blank_col], axis=1)       
+
+#%% 결과 정리 후 Input Sheets에 넣기
+
+    # 출력용 Dataframe 만들기
+    # Design_C.Beam 시트
+    steel_design_df = beam_info.iloc[:,21:31]
+    beam_output = pd.concat([beam_info, steel_design_df], axis=1)
+    
+    # Table_C.Beam_DE 시트
+    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+    # story_info의 Index열을 1부터 시작하도록 재지정
+    story_info['Index'] = range(story_info.shape[0], 0, -1)
+    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 4에 배정
+    add_num_new_story = 4 - story_info.iloc[ground_level_idx, 0]
+    story_info['Index'] = story_info['Index'] + add_num_new_story
+    
+    # Beam 이름 split
+    beam_info[['Beam Name', 'Beam Number', 'Story Name']] = beam_info['Name'].str.split('_', expand=True)
+    beam_info = pd.merge(beam_info, story_info, how='left')
+    # 벽체 이름, 번호에 따라 grouping
+    beam_name_list = list(beam_info.groupby(['Beam Name', 'Beam Number'], sort=False))
+    # 55 row짜리 empty dataframe 만들기
+    name_empty = pd.DataFrame(np.nan, index=range(55), columns=range(len(beam_name_list)))
+    
+    # dataframe에 이름 채워넣기
+    count = 0
+    while True:
+        name_iter = beam_name_list[count][0][0]
+        num_iter = beam_name_list[count][0][1]
+        total_iter = beam_info['Name'][(beam_info['Beam Name'] == name_iter) 
+                                       & (beam_info['Beam Number'] == num_iter)]
+        idx_range = beam_info['Index'][(beam_info['Beam Name'] == name_iter) 
+                                       & (beam_info['Beam Number'] == num_iter)]
+        name_empty.iloc[idx_range, count] = total_iter    
         
-    SF_output = SF_output.dropna()
-    SF_output.reset_index(inplace=True, drop=True)
-        
+        count += 1
+        if count == len(beam_name_list):
+            break
+    # dataframe을 1열로 만들기
+    name_output_arr = np.array(name_empty)
+    name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
+    name_output = pd.DataFrame(name_output_arr)
+
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-    SF_output = SF_output.replace(np.nan, '', regex=True)
-    
-    # 기존 시트에 V값 넣기
-    SF_output1 = SF_output.iloc[:,0]
-    SF_output2 = SF_output.iloc[:,[4,5]]
+    BSF_output = BSF_output.replace(np.nan, '', regex=True)
+    beam_output = beam_output.replace(np.nan, '', regex=True)
+    name_output = name_output.replace(np.nan, '', regex=True)
 
 #%% 출력 (Using win32com...)
     
@@ -361,24 +430,74 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
 
-    wb = excel.Workbooks.Open(input_xlsx_path)
-    ws = wb.Sheets('Results_C.Beam')
+    wb = excel.Workbooks.Open(beam_design_xlsx_path)
+    ws1 = wb.Sheets('Results_C.Beam_Shear')
+    ws2 = wb.Sheets('Design_C.Beam')
+    ws3 = wb.Sheets('Table_C.Beam_DE')
     
-    startrow, startcol = 5, 1    
-    ws.Range(ws.Cells(startrow, startcol),\
-              ws.Cells(startrow+SF_output1.shape[0]-1, startcol)).Value\
-    = [[i] for i in SF_output1]
+    startrow, startcol = 5, 1
     
-    startrow, startcol = 5, 20    
-    ws.Range(ws.Cells(startrow, startcol),\
-              ws.Cells(startrow+SF_output2.shape[0]-1,\
-                      startcol+SF_output2.shape[1]-1)).Value\
-    = list(SF_output2.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
+    # Results_C.Beam_Rotation 시트 입력
+    ws1.Range('A%s:DM%s' %(startrow, startrow + BSF_output.shape[0] - 1)).Value\
+        = list(BSF_output.itertuples(index=False, name=None))
+        
+    # Design_C.Beam 시트 입력
+    ws2.Range('A%s:AO%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
+        = list(beam_output.itertuples(index=False, name=None))
     
-    wb.Save()            
+    # Table_C.Beam_DE 시트 입력
+    ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
+        = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
+    ws3.Range('A4:A4').Value\
+        = len(beam_name_list) # series -> list 형식만 입력가능
+    
+    wb.Save()           
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application
 
+#%% 그래프
+    if graph == True:
+        # Beam 정보 load
+        ws_DE = wb.Sheets('Table_C.Beam_DE')
+        ws_MCE = wb.Sheets('Table_C.Beam_MCE')
+        
+        DE_result = ws_DE.Range('U%s:U%s' %(startrow, startrow + name_output.shape[0] - 1)).Value
+        DE_result_arr = np.array(DE_result)[:,0]
+        MCE_result = ws_MCE.Range('U%s:U%s' %(startrow, startrow + name_output.shape[0] - 1)).Value
+        MCE_result_arr = np.array(MCE_result)[:,0]
+        
+        beam_result = name_output.copy()
+        beam_result['DE'] = DE_result_arr
+        beam_result['MCE'] = MCE_result_arr
+        beam_result.columns = ['Name', 'DE', 'MCE']
+        
+        # 벽체 해당하는 층 높이 할당
+        story = []
+        for i in beam_result['Name']:
+            if i == '':
+                story.append(np.nan)
+            else:
+                story.append(i.split('_')[-1])        
+        beam_result['Story Name'] = story
+        
+        beam_result = pd.merge(beam_result, story_info.iloc[:,[1,2]], how='left')
+        
+        # Change non-numeric objects(e.g. str) into int or float as appropriate.
+        beam_result['DE'] = pd.to_numeric(beam_result['DE'])
+        beam_result['MCE'] = pd.to_numeric(beam_result['MCE'])
+        # Delete rows with missing name or DCR over 1.0e+09
+        beam_result = beam_result[beam_result['Name'] != '']
+        beam_result = beam_result[beam_result['DE'].abs() < 1.0e+09]
+        
+        # 결과 dataframe -> pickle
+        BSF_result = []
+        BSF_result.append(beam_result)
+        BSF_result.append(story_info)
+        BSF_result.append(DE_load_name_list)
+        BSF_result.append(MCE_load_name_list)
+        with open('pkl/BSF.pkl', 'wb') as f:
+            pickle.dump(BSF_result, f)
+            
 #%% Elastic Beam SF (DCR)
 
 def E_BSF(input_xlsx_path, result_xlsx_path, contour=True):

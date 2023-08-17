@@ -106,6 +106,8 @@ class MainWindow(QMainWindow, ui_class):
         self.find_file_btn.clicked.connect(self.find_input_xlsx)
         self.find_file_btn_2.clicked.connect(self.find_result_xlsx)
         self.find_file_btn_3.clicked.connect(self.find_wall_design_xlsx)
+        self.find_file_btn_4.clicked.connect(self.find_beam_design_xlsx)
+        self.find_file_btn_5.clicked.connect(self.find_col_design_xlsx)
         
         # Tab 1
         self.import_midas_btn.clicked.connect(self.run_worker1)
