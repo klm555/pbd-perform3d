@@ -13,7 +13,6 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
 
 #%% Load Data
     # Data Conversion Sheets
-    print(self.beam_info.shape[1])
     story_info = self.story_info
     beam_info = self.beam_info.copy()
 
@@ -265,7 +264,6 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     '''
 #%% Load Data
     # Data Conversion Sheets     
-    print(self.beam_info.shape[1])
     story_info = self.story_info
     beam_info = self.beam_info.copy()
 
@@ -315,7 +313,7 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
 #%% V값의 절대값, 최대값, 평균값 뽑기
 
     # 필요한 정보들만 다시 모아서 new dataframe
-    SF_ongoing = SF_ongoing.iloc[:, [1,0,7,9,10,11,12]]
+    SF_ongoing = SF_ongoing.iloc[:, [1,0,7,9,10,12,13]]
     
     # 필요한 하중만 포함된 데이터 slice (MCE)
     SF_ongoing_seismic = SF_ongoing[SF_ongoing['Load Case'].str.contains('|'.join(seismic_load_name_list))]

@@ -238,6 +238,11 @@ class LoadWorker(QObject):
                 # pickle 파일 읽기
                 with open('pkl/WSF.pkl', 'rb') as f:
                     result_dict['WSF'] = pickle.load(f)
+            if self.get_E_CSF == True:
+                result.E_CSF(self.input_xlsx_path, self.col_design_xlsx_path, yticks=self.story_gap)
+                # pickle 파일 읽기
+                with open('pkl/WSF.pkl', 'rb') as f:
+                    result_dict['WSF'] = pickle.load(f)
             
             
             # 데이터 emit
@@ -267,6 +272,40 @@ class RedesignWorker(QObject):
         try:
             # 함수 실행
             pbd.WSF_redesign(self.wall_design_xlsx_path, rebar_limit=[None,None])      
+            # 실행 시간 계산
+            time_end = time.time()
+            time_run = (time_end-self.time_start)/60            
+            # Emit
+            self.finished.emit()
+            self.msg.emit('Completed!' + '  (total time = %0.3f min)' %(time_run))
+            
+        except Exception as e:
+            self.finished.emit()
+            self.msg.emit('Error : %s' %e)
+            
+# Design Wall Worker 만들기
+class PdfWorker(QObject):               
+    # Create signals
+    finished = pyqtSignal()
+    msg = pyqtSignal(str)
+    def __init__(self, *args):
+        super().__init__()
+        
+        # 변수 정리
+        self.beam_design_xlsx_path = args[0]
+        self.col_design_xlsx_path = args[1]
+        self.wall_design_xlsx_path = args[2]
+        self.get_cbeam = args[3]
+        self.get_ecol = args[4]
+        self.get_wall = args[5]
+        self.time_start = args[6]
+    
+    # 벽체 수평배근 function
+    def print_pdf_fn(self):   
+        try:
+            # 함수 실행
+            pbd.print_pdf(self.beam_design_xlsx_path, self.col_design_xlsx_path
+                          , self.wall_design_xlsx_path, self.get_cbeam, self.get_ecol, self.get_wall)      
             # 실행 시간 계산
             time_end = time.time()
             time_run = (time_end-self.time_start)/60            

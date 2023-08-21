@@ -68,7 +68,7 @@ col_group = 'COLUMN'
 
 #%% Post Processing - TOTAL (Word로 출력)
 
-result = pbd.PostProc(input_xlsx_path, result_xlsx_path, get_BR=True, get_BSF=True)
+result = pbd.PostProc(input_xlsx_path, result_xlsx_path, get_BSF=True, get_E_CSF=True)
 
 # Execute functions for data analysis
 base_SF = result.base_SF(ylim=max_shear) # 밑면 전단력

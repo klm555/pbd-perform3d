@@ -14,8 +14,8 @@ ui_class = uic.loadUiType('PBD_p3d.ui')[0]
 class MainWindow(QMainWindow, ui_class):
 
     # Import external classes/functions
-    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker
-    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker7
+    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker, PdfWorker
+    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker7, run_worker8
     from GUI_plots import plot_display
 
     def __init__(self):
@@ -95,6 +95,9 @@ class MainWindow(QMainWindow, ui_class):
         self.WAS_checkbox.setChecked(self.setting.value('WAS', True, type=bool))
         self.WR_checkbox.setChecked(self.setting.value('WR', True, type=bool))
         self.WSF_checkbox.setChecked(self.setting.value('WSF', True, type=bool))
+        self.cbeam_pdf_checkbox.setChecked(self.setting.value('cbeam_to_pdf', True, type=bool))
+        self.ecol_pdf_checkbox.setChecked(self.setting.value('ecolumn_to_pdf', True, type=bool))
+        self.wall_pdf_checkbox.setChecked(self.setting.value('wall_to_pdf', True, type=bool))
         self.bldg_name_editbox.setText(self.setting.value('bldg_name', '101동'))
         self.story_gap_editbox.setText(self.setting.value('story_gap', '2'))
         self.max_shear_editbox.setText(self.setting.value('max_shear', '60000'))
@@ -120,6 +123,7 @@ class MainWindow(QMainWindow, ui_class):
         # self.load_result_btn.clicked.connect(self.plot_display)
         # self.print_result_btn.clicked.connect(self.run_worker6)
         self.design_wall_btn.clicked.connect(self.run_worker7)
+        self.print_pdf_btn.clicked.connect(self.run_worker8)
          
         # Icon 설정
         self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
@@ -241,6 +245,9 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.setValue('WAS', self.WAS_checkbox.isChecked())
             self.setting.setValue('WR', self.WR_checkbox.isChecked())
             self.setting.setValue('WSF', self.WSF_checkbox.isChecked())
+            self.setting.setValue('cbeam_to_pdf', self.cbeam_pdf_checkbox.isChecked())
+            self.setting.setValue('ecolumn_to_pdf', self.ecol_pdf_checkbox.isChecked())
+            self.setting.setValue('wall_to_pdf', self.wall_pdf_checkbox.isChecked())
             self.setting.setValue('bldg_name', self.bldg_name_editbox.text())
             self.setting.setValue('story_gap', self.story_gap_editbox.text())
             self.setting.setValue('max_shear', self.max_shear_editbox.text())

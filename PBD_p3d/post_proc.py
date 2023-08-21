@@ -1,7 +1,11 @@
 import pandas as pd
+import numpy as np
 import os
 import pickle
 import multiprocess as mp
+import win32com.client
+import pythoncom
+from PyPDF2 import PdfMerger, PdfFileReader
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt
@@ -35,6 +39,12 @@ class PostProc():
         self.story_info = self.story_info.iloc[:,[0,1,2]]
         self.story_info.dropna(how='all', inplace=True)
         self.story_info.columns = ['Index', 'Story Name', 'Height(mm)']
+        # Rebar Info
+        if get_E_CSF == True:
+            self.rebar_info = read_excel(input_xlsx_path, sheet_name='ETC', skip_rows=[0,1,2])
+            self.rebar_info = self.rebar_info.iloc[:,[0,3,4]]
+            self.rebar_info.dropna(how='all', inplace=True)
+            self.rebar_info.columns = ['Type', '일반용', '내진용']
         # Output_Wall Properties
         if (get_WR == True) | (get_WSF == True):
             self.wall_info = read_excel(input_xlsx_path, sheet_name='Input_S.Wall', skip_rows=[0,1,2])
@@ -42,12 +52,7 @@ class PostProc():
             self.wall_info.dropna(how='all', inplace=True)
             self.wall_info.columns = ['Name', 'Length(mm)', 'Thickness(mm)', 'Concrete Grade', 'V.Rebar Type', 'V.Rebar(DXX)'
                                       , 'V.Rebar Spacing(mm)', 'V.Rebar EA', 'H.Rebar Type', 'H.Rebar(DXX)', 'H.Rebar Spacing(mm)']
-        # Wall Deformation Capacities
-        # self.wall_deform_cap = read_excel(input_xlsx_path, sheet_name='Results_Wall', skip_rows=[0,1,2])
-        # self.wall_deform_cap = self.wall_deform_cap.iloc[:,[0,11,12,13,14,48,49,54,55]]
-        # self.wall_deform_cap.columns = ['Name', 'Vu_DE_H1', 'Vu_DE_H2', 'Vu_MCE_H1', 'Vu_MCE_H2'
-        #                                 , 'LS(H1)', 'LS(H2)', 'CP(H1)', 'CP(H2)']
-        # C.Beam Deformation Capacities
+        # C.Beam Info
         if (get_BR == True) | (get_BSF == True):
             self.beam_info = read_excel(input_xlsx_path, sheet_name='Input_C.Beam', skip_rows=[0,1,2])
             self.beam_info = self.beam_info.iloc[:,0:31]
@@ -59,15 +64,19 @@ class PostProc():
                                       , 'X-Bracing EA', 'X-Bracing deg', 'Main Rebar(DXX)_after', 'Stirrup(DXX)_after'
                                       , 'X-Bracing(DXX)_after', 'Top(1)_after', 'Top(2)_after', 'Top(3)_after'
                                       , 'Stirrup EA_after', 'Stirrup Space(mm)_after', 'X-Bracing EA_after', 'X-Bracing deg_after']
-        # G.Column Deformation Capacities
-        if get_CR == True:
-            self.col_deform_cap = read_excel(input_xlsx_path, sheet_name='Input_G.Column', skip_rows=[0,1,2])
-            self.col_deform_cap = self.col_deform_cap.iloc[:,[0,93,94,95,96]]
-            self.col_deform_cap.dropna(how='all', inplace=True)
-            self.col_deform_cap.columns = ['Name', 'LS(X)', 'LS(Y)', 'CP(X)', 'CP(Y)']
+        # E.Column Info
+        if get_E_CSF == True:
+            self.ecol_info = read_excel(input_xlsx_path, sheet_name='Input_E.Column', skip_rows=[0,1,2])
+            self.ecol_info = self.ecol_info.iloc[:,np.r_[0:15,18]]
+            self.ecol_info.dropna(how='all', inplace=True)
+            self.ecol_info.columns = ['Name', 'b(mm)', 'h(mm)', 'Concrete Grade'
+                                      , 'Main Rebar Type', 'Main Rebar(DXX)', 'Hoop Type'
+                                      , 'Hoop(DXX)', 'Layer1 EA', 'Layer1 Row', 'Layer2 EA'
+                                      , 'Layer2 Row', 'Hoop X', 'Hoop Y', 'Hoop Space(mm)', 'Direction']
 
         # Nodes
-        if (get_BR == True) | (get_BSF == True) | (get_WAS == True) | (get_WR == True) | (get_WSF == True):
+        if (get_BR == True) | (get_BSF == True) | (get_WAS == True) | (get_WR == True) | (get_WSF == True)\
+            | (get_E_CSF == True):
             self.node_data = read_excel(to_load_list[0], 'Node Coordinate Data')
             column_name_to_slice = ['Node ID', 'H1', 'H2', 'V']
             self.node_data = self.node_data.loc[:, column_name_to_slice]
@@ -77,7 +86,7 @@ class PostProc():
             column_name_to_slice = ['Element Name', 'Property Name', 'I-Node ID', 'J-Node ID', 'K-Node ID', 'L-Node ID']
             self.wall_data = self.wall_data.loc[:, column_name_to_slice]
         # Elements(Frame)
-        if (get_BR == True) | (get_BSF == True):
+        if (get_BR == True) | (get_BSF == True) | (get_E_CSF == True):
             self.frame_data = read_excel(to_load_list[0], 'Element Data - Frame Types')
             column_name_to_slice = ['Element Name', 'Property Name', 'I-Node ID', 'J-Node ID']
             self.frame_data = self.frame_data.loc[:, column_name_to_slice]
@@ -127,10 +136,11 @@ class PostProc():
             self.beam_rot_data = self.beam_rot_data.loc[:, column_name_to_slice]
             self.beam_rot_data.columns = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'Point ID', 'H2 Rotation(rad)', 'H3 Rotation(rad)']
         # Beam Shear Force
-        if get_BSF == True:
+        if (get_BSF == True) | (get_E_CSF == True):
             self.beam_shear_force_data = pool.starmap(read_excel, [[file_path, 'Frame Results - End Forces'] for file_path in to_load_list])
             self.beam_shear_force_data = pd.concat(self.beam_shear_force_data, ignore_index=True)
-            column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'V2 I-End', 'V2 J-End']
+            column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type'
+                                    , 'P I-End', 'V2 I-End', 'V2 J-End', 'V3 I-End', 'M2 I-End', 'M3 I-End']
             self.beam_shear_force_data = self.beam_shear_force_data.loc[:, column_name_to_slice]
 
         ##### Create Seismic Loads List
@@ -164,4 +174,124 @@ class PostProc():
     from .system import base_SF, story_SF, IDR
     from .wall import WAS, WR, WSF
     from .beam import BR, BSF
-    from .column import CR, CSF
+    from .column import CR, CSF, E_CSF
+
+#%% Function to Print the Result into PDF
+
+def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
+              , wall_design_xlsx_path, get_cbeam=False, get_ecol=False, get_wall=False):  
+
+    # Call CoInitialize function before using any COM object
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = False # 엑셀창 안보이게
+
+    if get_ecol == True:
+        wb_ecol = excel.Workbooks.Open(col_design_xlsx_path)
+        ws = wb_ecol.Sheets('Design_E.Column')        
+        startrow, startcol = 5, 1
+        
+        # 부재 개수(for iterration) 구하기
+        ws_row_num = ws.UsedRange.Rows.Count        
+        element_name = ws.Range('B%s:B%s' %(startrow, ws_row_num)).Value
+        element_name_df = pd.DataFrame(element_name)
+
+        # Drop NoneType object & Rebar Diameter in the end of Data
+        element_name_df.iloc[:,0] = element_name_df[element_name_df.iloc[:,0].str.count('_') == 2]
+        element_name_df = element_name_df.dropna()
+        
+        # 부재개수
+        element_num = element_name_df.shape[0]
+        
+        # Path 지정
+        result_path = os.path.splitext(col_design_xlsx_path)[0] # 확장자명(extension) 제거
+        
+        # pdf Merge를 위한 PdfMerger 클래스 생성
+        merger = PdfMerger()
+
+        for i in range(element_num):
+
+            wb_ecol.Worksheets(3).Select()            
+            wb_ecol.Worksheets(3).Name = '({})'.format(i+1)
+
+            # wb_ecol.SaveAs(pdf_file_path, FileFormat=57)
+
+            xlTypePDF = 0
+            xlQualityStandard = 0
+            
+            # 왜인지 모르겠지만 result_path에 suffix 붙이면 \가 /로 바뀜... 그래서 다시 바꿔주기
+            pdf_file_path = result_path + '({}).pdf'.format(i+1)
+            pdf_file_path = pdf_file_path.replace('/', '\\')            
+            wb_ecol.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path\
+                                                , xlQualityStandard, True, False)    
+
+            merger.append(pdf_file_path)
+            
+        merger.write(result_path + '.pdf')
+        merger.close()
+        
+        # Merge한 후 개별 파일들 지우기    
+        for i in range(element_num):
+            pdf_file_path = result_path + '({}).pdf'.format(i+1)
+            pdf_file_path = pdf_file_path.replace('/', '\\')
+            os.remove(pdf_file_path)
+
+        # wb_ecol.Close(SaveChanges=False)
+        # wb_ecol.Save()
+        
+    if get_wall == True:
+        wb_wall = excel.Workbooks.Open(wall_design_xlsx_path)
+        ws_DE = wb_wall.Sheets('Plot_S.Wall_DE')
+        ws_MCE = wb_wall.Sheets('Plot_S.Wall_MCE')
+        ws_row_num = wb_wall.Sheets('Table_S.Wall_DE')
+        startrow, startcol = 5, 1
+        
+        # 부재 개수(for iterration) 구하기
+        element_num = ws_row_num.Range('A4:A4').Value
+        
+        # Path 지정
+        result_path = os.path.splitext(wall_design_xlsx_path)[0] # 확장자명(extension) 제거
+        
+        # pdf Merge를 위한 PdfMerger 클래스 생성
+        merger = PdfMerger()
+
+        for i in range(element_num):
+
+            xlTypePDF = 0
+            xlQualityStandard = 0
+            
+            ws_DE.Range('A8:A8').Value = i + 1
+            
+            # 왜인지 모르겠지만 result_path에 suffix 붙이면 \가 /로 바뀜... 그래서 다시 바꿔주기
+            pdf_file_path = result_path + '_DE({}).pdf'.format(i + 1)
+            pdf_file_path = pdf_file_path.replace('/', '\\')
+            wb_wall.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path\
+                                                , xlQualityStandard, True, False)    
+
+            merger.append(pdf_file_path)
+            
+        for i in range(element_num):
+
+            xlTypePDF = 0
+            xlQualityStandard = 0
+            
+            ws_MCE.Range('A8:A8').Value = i + 1
+            
+            # 왜인지 모르겠지만 result_path에 suffix 붙이면 \가 /로 바뀜... 그래서 다시 바꿔주기
+            pdf_file_path = result_path + '_MCE({}).pdf'.format(i + 1)
+            pdf_file_path = pdf_file_path.replace('/', '\\')
+            wb_wall.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path\
+                                                , xlQualityStandard, True, False)    
+
+            merger.append(pdf_file_path)
+            
+        merger.write(result_path + '.pdf')
+        merger.close()
+        
+        # Merge한 후 개별 파일들 지우기    
+        for i in range(element_num):
+            DE_pdf_file_path = result_path + '_DE({}).pdf'.format(i + 1)
+            MCE_pdf_file_path = result_path + '_MCE({}).pdf'.format(i + 1)
+            DE_pdf_file_path = DE_pdf_file_path.replace('/', '\\')
+            MCE_pdf_file_path = MCE_pdf_file_path.replace('/', '\\')
+            os.remove(DE_pdf_file_path)
+            os.remove(MCE_pdf_file_path)

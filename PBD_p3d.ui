@@ -22,7 +22,7 @@
      <x>10</x>
      <y>280</y>
      <width>631</width>
-     <height>531</height>
+     <height>541</height>
     </rect>
    </property>
    <property name="tabShape">
@@ -431,8 +431,7 @@
       <property name="text">
        <string>* ex) (2,5,7,11), (2,5,7,11,total), (NE,NW,SE,SW)
 * 반드시 쉼표(,)로 구분할 것
-* 띄어쓰기, 밑줄(_) 사용 금지
-* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것</string>
+* 띄어쓰기, 밑줄(_) 사용 금지</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -448,7 +447,7 @@
        <x>280</x>
        <y>230</y>
        <width>331</width>
-       <height>271</height>
+       <height>251</height>
       </rect>
      </property>
      <property name="title">
@@ -513,31 +512,6 @@
       </property>
       <property name="checked">
        <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_14">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>240</y>
-        <width>261</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>8</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>* 열려있는 엑셀 파일들을 반드시 저장하고 실행할 것</string>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
      <widget class="QCheckBox" name="convert_ecol_checkbox">
@@ -1565,17 +1539,17 @@
        <x>10</x>
        <y>350</y>
        <width>251</width>
-       <height>101</height>
+       <height>161</height>
       </rect>
      </property>
      <property name="title">
       <string>Print to PDF (.pdf)</string>
      </property>
-     <widget class="QPushButton" name="print_result_btn_4">
+     <widget class="QPushButton" name="print_pdf_btn">
       <property name="geometry">
        <rect>
         <x>60</x>
-        <y>70</y>
+        <y>100</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -1584,12 +1558,44 @@
        <string>Print</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="wall_each_checkbox">
+     <widget class="QCheckBox" name="cbeam_pdf_checkbox">
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>40</y>
-        <width>161</width>
+        <y>30</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>C.Beam</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="ecol_pdf_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>50</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>E.Column</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="wall_pdf_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>70</y>
+        <width>101</width>
         <height>16</height>
        </rect>
       </property>
@@ -1759,8 +1765,26 @@
      <height>631</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>461</width>
+     <height>631</height>
+    </size>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAsNeeded</enum>
+   </property>
    <property name="widgetResizable">
     <bool>true</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
    <widget class="QWidget" name="scrollAreaWidgetContents">
     <property name="geometry">
@@ -1776,8 +1800,8 @@
   <widget class="QCheckBox" name="rmb_setting_checkbox">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>830</y>
+     <x>70</x>
+     <y>840</y>
      <width>151</width>
      <height>16</height>
     </rect>
@@ -2336,7 +2360,7 @@
    <widget class="QLabel" name="display_selected_result_path">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>310</x>
       <y>90</y>
       <width>201</width>
       <height>20</height>
@@ -2349,56 +2373,11 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_21">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>112</y>
-      <width>121</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Seismic Design Wall</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="wall_design_path_editbox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>112</y>
-      <width>351</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>C:\</string>
-    </property>
-    <property name="clearButtonEnabled">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="find_file_btn_3">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>110</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>파일 선택</string>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="beam_design_path_editbox">
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>142</y>
+      <y>114</y>
       <width>351</width>
       <height>20</height>
      </rect>
@@ -2414,7 +2393,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>142</y>
+      <y>114</y>
       <width>131</width>
       <height>16</height>
      </rect>
@@ -2430,7 +2409,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>140</y>
+      <y>112</y>
       <width>71</width>
       <height>23</height>
      </rect>
@@ -2443,7 +2422,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>170</y>
+      <y>142</y>
       <width>351</width>
       <height>20</height>
      </rect>
@@ -2459,7 +2438,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>168</y>
+      <y>140</y>
       <width>71</width>
       <height>23</height>
      </rect>
@@ -2472,7 +2451,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>170</y>
+      <y>142</y>
       <width>141</width>
       <height>16</height>
      </rect>
@@ -2482,6 +2461,51 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="wall_design_path_editbox">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>172</y>
+      <width>351</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>C:\</string>
+    </property>
+    <property name="clearButtonEnabled">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_21">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>172</y>
+      <width>121</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Seismic Design Wall</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="find_file_btn_3">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>170</y>
+      <width>71</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>파일 선택</string>
     </property>
    </widget>
   </widget>

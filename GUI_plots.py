@@ -11,7 +11,7 @@ from matplotlib.figure import Figure
 class MplCanvas(FigureCanvasQTAgg):
     
     def __init__(self, parent=None, width=5, height=4):
-        self.fig = Figure(figsize=(width, height), layout='tight')
+        self.fig = Figure(figsize=(width, height), tight_layout=True)
         self.axes = self.fig.add_subplot(111)
         FigureCanvasQTAgg.__init__(self, self.fig)
         FigureCanvasQTAgg.setMinimumSize(self, self.size())
