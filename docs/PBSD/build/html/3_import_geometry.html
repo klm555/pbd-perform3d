@@ -1,0 +1,673 @@
+
+<!DOCTYPE html>
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>탄성설계 모델 Import &#8212;  성능기반 내진설계 업무절차서 </title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/translations.js"></script>
+    <script src="_static/design-tabs.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '3_import_geometry';</script>
+    <link rel="index" title="색인" href="genindex.html" />
+    <link rel="search" title="검색" href="search.html" />
+    <link rel="next" title="Frame 생성" href="3_create_frames.html" />
+    <link rel="prev" title="모델링" href="3_modelling.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="ko">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fa-solid fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+    <p class="title logo__title"> 성능기반 내진설계 업무절차서 </p>
+  
+</a>
+    
+  </div>
+
+  
+  <div class="col-lg-9 navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
+                        성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="release_note.html">
+                        Release Note
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+        <div class="navbar-end-item navbar-persistent--container">
+          
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="검색" aria-label="검색" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+        </div>
+      
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+
+
+  
+  
+    <div class="navbar-persistent--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="검색" aria-label="검색" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+    </div>
+  
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
+                        성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="release_note.html">
+                        Release Note
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+  <div class="sidebar-start-items sidebar-primary__section">
+    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Section navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">
+    Section Navigation
+  </p>
+  <div class="bd-toc-item navbar-nav">
+    <p aria-level="2" class="caption" role="heading"><span class="caption-text">STEPS</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">탄성설계 모델 Import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_import_property.html">Properties Import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
+</ul>
+
+  </div>
+</nav>
+    </div>
+  </div>
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+  
+  <div id="rtd-footer-container"></div>
+
+      </div>
+      <main id="main-content" class="bd-main">
+        
+        
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+            </div>
+            
+            
+            <article class="bd-article" role="main">
+              
+  <section id="import">
+<h1>탄성설계 모델 Import<a class="headerlink" href="#import" title="이 제목에 대한 퍼머링크">#</a></h1>
+<p>성능설계 모델은 Perform-3D로 직접 모델링할 수 있지만,
+빠르고 편리한 모델링을 위하여 Midas Gen 모델(레퍼런스 모델)과 Data Conversion Sheets의 정보를 Import하여 모델링할 수 있습니다.</p>
+<section id="csv">
+<h2>파일 변환 (csv 파일 생성)<a class="headerlink" href="#csv" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p>첫 번째 절차는 Midas Gen 모델의 정보를 Perform-3D에서 읽어들일 수 있는 파일로 변환하는 것입니다.
+변환이 가능한 정보는 <a class="reference internal" href="1_material_setting.html"><span class="doc">Data Conversion Sheets 작성</span></a> 장에서 모두 입력되었으므로,
+PBD_p3d를 통해 Data Conversion Sheets의 정보를 Perform-3D에서 읽을 수 있는 파일 형식인 <code class="docutils literal notranslate"><span class="pre">.csv</span></code>으로 변환합니다.</p>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p>PBD_p3d를 실행합니다.</p></li>
+<li><p>Data Conversion (Excel Sheets)에 Data Conversion Sheets의 경로를 입력합니다.</p></li>
+<li><p>아래의 빨간 상자에 있는 체크박스들 중에서 Import를 원하는 항목들을 체크합니다.
+Nodal Loads를 Import하는 경우, Dead Load Name과 Live Load Name에 각각 Midas Gen에서 사용하였던 고정하중, 활하중 이름을 입력합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_csv_%EC%84%A4%EC%A0%95.png" src="_images/3_import_csv_%EC%84%A4%EC%A0%95.png" />
+</figure>
+</li>
+<li><p>Import를 클릭합니다. Import가 완료되면 옆의 상태창에 <code class="docutils literal notranslate"><span class="pre">Completed!</span></code>가 표시됩니다.
+또한 Data Conversion Sheets가 위치하는 경로에 아래와 같이 선택한 항목들의 <code class="docutils literal notranslate"><span class="pre">.csv</span></code> 형식 파일이 생성됩니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_csv_생성.png"><img alt="_images/3_import_csv_%EC%83%9D%EC%84%B1.png" src="_images/3_import_csv_%EC%83%9D%EC%84%B1.png" style="width: 544.5px; height: 176.4px;" /></a>
+</figure>
+</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">경고</p>
+<ul class="simple">
+<li><p>Analysis Results (Excel Sheets)는 Import 단계에서는 사용되지 않으므로 입력하지 않아도 무방합니다.</p></li>
+<li><p>Nodal Loads를 Import할 때, 입력된 고정하중과 활하중 이름을 포함하는 모든 하중을 불러온다는 사실에 유의합니다.
+(ex. 입력된 하중 이름을 포함하지만 Import할 필요가 없는 하중은 Midas Gen에서 미리 이름을 변경합니다.)</p></li>
+<li><p>고정하중과 활하중 이름에는 띄어쓰기를 사용할 수 없습니다.</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="perform-3d">
+<h2>Perform-3D 실행<a class="headerlink" href="#perform-3d" title="이 제목에 대한 퍼머링크">#</a></h2>
+<p>Perform-3D로 새 성능설계 모델 파일을 만들고, 앞서 생성한 csv 파일을 Import합니다.
+새 성능설계 모델 파일은 새 파일을 생성하여 성능설계 모델의 모델링을 시작할 수도 있지만,</p>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>Perform-3D는 Midas Gen과 같이 단일 파일( <code class="docutils literal notranslate"><span class="pre">.mgb</span></code> )로 생성 또는 저장되는 것이 아니라, 폴더 형태로 생성 또는 저장됩니다.
+따라서 Perform-3D 파일을 Load하는 경우, 파일이 아닌 폴더를 선택하여 Load합니다.</p>
+</div>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p>Perform-3D를 실행한 후, <span class="guilabel">Start a New Structure</span>를 클릭합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_p3d_실행.png"><img alt="_images/3_p3d_%EC%8B%A4%ED%96%89.png" src="_images/3_p3d_%EC%8B%A4%ED%96%89.png" style="width: 442.8px; height: 297.90000000000003px;" /></a>
+</figure>
+</li>
+<li><p>Structure Name(파일명), Location of STRUCTURES folder(파일 경로), Structure Description(파일 설명) 등을 입력합니다.
+파일명은 <strong>영문 또는 숫자로, 띄어쓰기 없이</strong> 입력해야 합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_p3d_%EC%8B%A4%ED%96%89_2.png" src="_images/3_p3d_%EC%8B%A4%ED%96%89_2.png" />
+</figure>
+<p>단위는 <a class="reference internal" href="1_unit_setting.html"><span class="doc">단위 설정</span></a> 장에 따라 <span class="math notranslate nohighlight">\(kN, mm\)</span>로 설정합니다.</p>
+<p>Minimum spacing between nodes는 <span class="math notranslate nohighlight">\(50 mm\)</span>로 설정합니다.</p>
+<p>설정이 완료되면 <kbd class="kbd docutils literal notranslate">OK</kbd>를 클릭합니다.</p>
+</li>
+</ol>
+</div>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>일반적으로는 이와 같이 <span class="guilabel">Start a New Structure</span>를 클릭하여 새 성능설계 모델 파일을 생성하지만, 공동주택 성능설계 프로젝트와 같이 여러 동을 모델링해야하는 경우,
+<strong>템플릿을 만들어서 사용하면 더욱 빠르고 편리하게 성능설계 모델 파일을 생성할 수 있습니다.</strong>
+프로젝트에서 공통적으로 적용되는 정보(단위, 노드 간 최소 간격, 재료 정보 등)은 템플릿에 미리 입력할 수 있으므로,
+템플릿을 사용한다면 앞으로 소개될 몇몇 과정은 생략이 가능합니다.</p>
+</div>
+</section>
+<section id="import-nodes">
+<h2>Import Nodes<a class="headerlink" href="#import-nodes" title="이 제목에 대한 퍼머링크">#</a></h2>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p>Nodes를 Import하기 위해 <span class="guilabel">Import/Export Structure Data</span>을 클릭하고, 생성된 창에서 <kbd class="kbd docutils literal notranslate">Import</kbd>를 클릭합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_nodes.gif" src="_images/3_import_nodes.gif" />
+</figure>
+</li>
+<li><p><span class="guilabel">Nodes Only</span> 탭을 클릭한 뒤, Specify name of text file에 앞서 생성한 <code class="docutils literal notranslate"><span class="pre">Node.csv</span></code> 파일의 경로를 입력합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_nodes_설정.png"><img alt="_images/3_import_nodes_%EC%84%A4%EC%A0%95.png" src="_images/3_import_nodes_%EC%84%A4%EC%A0%95.png" style="width: 425.59999999999997px; height: 624.4px;" /></a>
+</figure>
+</li>
+<li><p>입력 후 <kbd class="kbd docutils literal notranslate">Test</kbd> - <kbd class="kbd docutils literal notranslate">확인</kbd>을 클릭하면 아래와 같이 Import할 Nodes가 표시됩니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_nodes_완료.png"><img alt="_images/3_import_nodes_%EC%99%84%EB%A3%8C.png" src="_images/3_import_nodes_%EC%99%84%EB%A3%8C.png" style="width: 432.0px; height: 576.0px;" /></a>
+</figure>
+<p><kbd class="kbd docutils literal notranslate">OK</kbd>를 클릭하여 Import를 완료합니다.</p>
+</li>
+</ol>
+</div>
+</section>
+<section id="import-masses">
+<h2>Import Masses<a class="headerlink" href="#import-masses" title="이 제목에 대한 퍼머링크">#</a></h2>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p><span class="guilabel">Nodes</span>를 클릭하고 생성된 창에서 <span class="guilabel">Masses</span> 탭을 클릭합니다.
+Mass Pattern을 만들기 위해 <kbd class="kbd docutils literal notranslate">New</kbd>를 클릭합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_masses.gif" src="_images/3_import_masses.gif" />
+</figure>
+</li>
+<li><p>Enter pattern name에 <code class="docutils literal notranslate"><span class="pre">Mass</span></code>(또는 사용자가 원하는 이름)를 입력한 후, <kbd class="kbd docutils literal notranslate">OK</kbd>를 눌러 Mass Patter 생성을 완료합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_masses_%ED%8C%A8%ED%84%B4%EC%83%9D%EC%84%B1.png" src="_images/3_import_masses_%ED%8C%A8%ED%84%B4%EC%83%9D%EC%84%B1.png" />
+</figure>
+</li>
+<li><p>Masses를 Import하기 위해 <span class="guilabel">Import/Export Structure Data</span> 탭을 클릭하고, 생성된 창에서 <kbd class="kbd docutils literal notranslate">Import</kbd>를 클릭합니다.</p></li>
+<li><p><span class="guilabel">Masses</span> 탭을 클릭한 뒤, Choose mass pattern에서 방금 생성한(또는 사용자가 원하는) Mass Pattern을 선택합니다.
+Specify name of text file에 앞서 생성한 <code class="docutils literal notranslate"><span class="pre">Mass.csv</span></code> 파일의 경로를 입력합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_masses_설정.png"><img alt="_images/3_import_masses_%EC%84%A4%EC%A0%95.png" src="_images/3_import_masses_%EC%84%A4%EC%A0%95.png" style="width: 427.0px; height: 620.9px;" /></a>
+</figure>
+</li>
+<li><p>입력 후 <kbd class="kbd docutils literal notranslate">Test</kbd> - <kbd class="kbd docutils literal notranslate">확인</kbd>을 클릭하면 아래와 같이 Import할 Masses가 표시됩니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_masses_완료.png"><img alt="_images/3_import_masses_%EC%99%84%EB%A3%8C.png" src="_images/3_import_masses_%EC%99%84%EB%A3%8C.png" style="width: 442.40000000000003px; height: 576.0px;" /></a>
+</figure>
+<p><kbd class="kbd docutils literal notranslate">OK</kbd>를 클릭하여 Import를 완료합니다.</p>
+</li>
+</ol>
+</div>
+</section>
+<section id="import-elements">
+<h2>Import Elements<a class="headerlink" href="#import-elements" title="이 제목에 대한 퍼머링크">#</a></h2>
+<div class="topic">
+<p class="topic-title">What to do</p>
+<ol class="arabic">
+<li><p><span class="guilabel">Elements</span>를 클릭하고, Elements Group을 만들기 위해 생성된 창에서 <kbd class="kbd docutils literal notranslate">New</kbd>를 클릭합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_elements.gif" src="_images/3_import_elements.gif" />
+</figure>
+</li>
+<li><p>먼저 연결보를 Import하기 위해 연결보(Coupling Beam) 그룹을 생성합니다.
+Element Type에서 <code class="docutils literal notranslate"><span class="pre">Beam</span></code>을 선택한 후,
+Group Name에 <code class="docutils literal notranslate"><span class="pre">C.Beam</span></code>(또는 사용자가 원하는 이름)을 입력합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_elements_그룹생성.png"><img alt="_images/3_import_elements_%EA%B7%B8%EB%A3%B9%EC%83%9D%EC%84%B1.png" src="_images/3_import_elements_%EA%B7%B8%EB%A3%B9%EC%83%9D%EC%84%B1.png" style="width: 389.2px; height: 479.49999999999994px;" /></a>
+</figure>
+<p><kbd class="kbd docutils literal notranslate">OK</kbd>를 눌러 연결보 그룹 생성을 완료합니다.</p>
+</li>
+<li><p>같은 방법으로 연결보 외의 Import할 Elements와 Gages 그룹도 생성합니다.</p>
+<dl class="field-list simple">
+<dt class="field-odd">연결보</dt>
+<dd class="field-odd"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Beam</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">C.Beam</span></code></p>
+</dd>
+<dt class="field-even">일반보</dt>
+<dd class="field-even"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Beam</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">G.Beam</span></code></p>
+</dd>
+<dt class="field-odd">탄성보</dt>
+<dd class="field-odd"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Beam</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">E.Beam</span></code></p>
+</dd>
+<dt class="field-even">Imbedded Beam</dt>
+<dd class="field-even"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Beam</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">I.Beam</span></code></p>
+</dd>
+<dt class="field-odd">일반기둥</dt>
+<dd class="field-odd"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Column</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">G.Column</span></code></p>
+</dd>
+<dt class="field-even">탄성기둥</dt>
+<dd class="field-even"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Column</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">E.Column</span></code></p>
+</dd>
+<dt class="field-odd">벽체</dt>
+<dd class="field-odd"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Shear</span> <span class="pre">Wall</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">S.Wall</span></code></p>
+</dd>
+<dt class="field-even">지하외벽</dt>
+<dd class="field-even"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Shear</span> <span class="pre">Wall</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">B.Wall</span></code></p>
+</dd>
+<dt class="field-odd">벽체 회전각 게이지</dt>
+<dd class="field-odd"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Deformation</span> <span class="pre">Gage</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">WR</span></code> / Gage Type: <code class="docutils literal notranslate"><span class="pre">Wall</span> <span class="pre">type,</span> <span class="pre">rotation</span> <span class="pre">or</span> <span class="pre">shear</span></code></p>
+</dd>
+<dt class="field-even">벽체 축변형률 게이지</dt>
+<dd class="field-even"><p>Element Type: <code class="docutils literal notranslate"><span class="pre">Deformation</span> <span class="pre">Gage</span></code> / Group Name: <code class="docutils literal notranslate"><span class="pre">AS</span></code> / Gage Type: <code class="docutils literal notranslate"><span class="pre">Bar</span> <span class="pre">type,</span> <span class="pre">axial</span> <span class="pre">strain</span></code></p>
+</dd>
+</dl>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">버전 Beta부터 폐지됨: </span>보, 기둥 회전각 게이지는 더 이상 모델링하지 않습니다.</p>
+</div>
+</li>
+</ol>
+<ol class="arabic" start="5">
+<li><p><span class="guilabel">Import/Export Structure Data</span> 탭을 클릭하고, 생성된 창에서 <kbd class="kbd docutils literal notranslate">Import</kbd>를 클릭합니다.</p></li>
+<li><p><span class="guilabel">Elements (+ Nodes)</span> 탭을 클릭한 뒤, Choose element group에서 C.Beam(또는 사용자가 지정한 연결보 그룹)을 선택합니다.
+Specify name of text file에 앞서 생성한 <code class="docutils literal notranslate"><span class="pre">Beam.csv</span></code> 파일의 경로를 입력합니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_c_beams_설정.png"><img alt="_images/3_import_c_beams_%EC%84%A4%EC%A0%95.png" src="_images/3_import_c_beams_%EC%84%A4%EC%A0%95.png" style="width: 424.9px; height: 619.5px;" /></a>
+</figure>
+</li>
+<li><p>입력 후 <kbd class="kbd docutils literal notranslate">Test</kbd> - <kbd class="kbd docutils literal notranslate">확인</kbd>을 클릭하면 아래와 같이 Import할 Beams가 표시됩니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_c_beams_완료.png"><img alt="_images/3_import_c_beams_%EC%99%84%EB%A3%8C.png" src="_images/3_import_c_beams_%EC%99%84%EB%A3%8C.png" style="width: 564.0px; height: 700.0px;" /></a>
+</figure>
+<p><kbd class="kbd docutils literal notranslate">OK</kbd>를 클릭하여 Import를 완료합니다.</p>
+</li>
+<li><p>C.Beam 그룹에 <code class="docutils literal notranslate"><span class="pre">Beam.csv</span></code> 파일을 Import 에는 연결보 뿐만아니라 모델에 사용된 모든 보(일반보, 탄성보)에 대한 정보가 포함되어있습니다.
+따라서 처음에 Import한 부재들을 해당하는 각 그룹으로 나누어주는 작업이 필요합니다.</p>
+<p>그룹을 변경하기 위해 <span class="guilabel">Elements</span> 탭을 클릭하고 생성된 창에서 C.Beam 그룹을 선택합니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_elements_change_group.gif" src="_images/3_import_elements_change_group.gif" />
+</figure>
+</li>
+<li><p><span class="guilabel">Change Group</span> 탭을 선택하고, 부재를 이동시킬 그룹을 선택합니다. 해당되는 부재를 선택한 후, <kbd class="kbd docutils literal notranslate">Move</kbd>를 클릭하면 그룹 변경이 완료됩니다.</p></li>
+<li><p>같은 방법으로 나머지 부재들을 Import합니다. 또한 Column과 Wall은 Import 이후에 아래와 같이 그룹을 나누어 줍니다.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Column</dt>
+<dd class="field-odd"><p>G.Column, E.Column</p>
+</dd>
+<dt class="field-even">Wall</dt>
+<dd class="field-even"><p>S.Wall, B.Wall</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
+<div class="admonition note">
+<p class="admonition-title">참고</p>
+<p>Perform-3D에서 뷰를 회전/이동하는 방법은 크게 두 가지가 있습니다.</p>
+<ol class="arabic">
+<li><p><span class="guilabel">Dynamic Rotation</span> <strong>과 마우스 휠</strong>을 사용하여 자유롭게 뷰를 움직일 수 있습니다.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/3_import_dynamic_rotation.png"><img alt="_images/3_import_dynamic_rotation.png" src="_images/3_import_dynamic_rotation.png" style="width: 417.9px; height: 39.199999999999996px;" /></a>
+</figure>
+</li>
+<li><p><strong>View 창</strong>을 이용해 원하는 각도로 뷰를 회전시킬 수 있습니다.</p>
+<figure class="align-center">
+<img alt="_images/3_import_view%EC%B0%BD.png" src="_images/3_import_view%EC%B0%BD.png" />
+</figure>
+</li>
+</ol>
+</div>
+</section>
+</section>
+
+
+            </article>
+            
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="3_modelling.html" title="이전 페이지">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">이전</p>
+          <p class="prev-next-title">모델링</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="3_create_frames.html" title="다음 페이지">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">다음</p>
+      <p class="prev-next-title">Frame 생성</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#csv">
+   파일 변환 (csv 파일 생성)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#perform-3d">
+   Perform-3D 실행
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#import-nodes">
+   Import Nodes
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#import-masses">
+   Import Masses
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#import-elements">
+   Import Elements
+  </a>
+ </li>
+</ul>
+
+</nav>
+</div>
+
+<div class="toc-item">
+  
+<div id="searchbox"></div>
+</div>
+
+<div class="toc-item">
+  
+</div>
+
+<div class="toc-item">
+  
+<div class="tocsection sourcelink">
+    <a href="_sources/3_import_geometry.rst.txt">
+        <i class="fa-solid fa-file-lines"></i> 소스 보기
+    </a>
+</div>
+
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+          </div>
+        </footer>
+        
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+
+  <footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">
+
+    &copy; Copyright 2023, CNP Dongyang.<br>
+
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="theme-version">
+    Built with the
+    <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">
+        PyData Sphinx Theme
+    </a>
+    0.12.0.
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
+</p>
+
+  </div>
+  
+</div>
+  </footer>
+  </body>
+</html>

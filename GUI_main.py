@@ -3,10 +3,12 @@ import os
 import shutil
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt, pyqtSlot
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QFontDatabase, QFont
 
 from PyQt5 import uic # ui 파일을 사용하기 위한 모듈
 import multiprocess as mp
+
+from GUI_second import *
 
 #%% UI
 ui_class = uic.loadUiType('PBD_p3d.ui')[0]
@@ -14,8 +16,8 @@ ui_class = uic.loadUiType('PBD_p3d.ui')[0]
 class MainWindow(QMainWindow, ui_class):
 
     # Import external classes/functions
-    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker, PdfWorker
-    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker7, run_worker8
+    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker, PdfWorker, DocxWorker
+    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker6, run_worker7, run_worker8
     from GUI_plots import plot_display
 
     def __init__(self):
@@ -32,6 +34,12 @@ class MainWindow(QMainWindow, ui_class):
         self.qPixmapVar2 = QPixmap()
         self.qPixmapVar2.load('./images/CNP_logo.png')
         self.CNP_img.setPixmap(self.qPixmapVar2.scaled(self.CNP_img.size()
+                                , transformMode=Qt.SmoothTransformation))
+        
+        # 화살표 image
+        self.qPixmapVar2 = QPixmap()
+        self.qPixmapVar2.load('./images/arrow_ui.png')
+        self.arrow_img.setPixmap(self.qPixmapVar2.scaled(self.arrow_img.size()
                                 , transformMode=Qt.SmoothTransformation))
         
         ##### setting에 저장된 value를 불러와서 입력
@@ -98,10 +106,6 @@ class MainWindow(QMainWindow, ui_class):
         self.cbeam_pdf_checkbox.setChecked(self.setting.value('cbeam_to_pdf', True, type=bool))
         self.ecol_pdf_checkbox.setChecked(self.setting.value('ecolumn_to_pdf', True, type=bool))
         self.wall_pdf_checkbox.setChecked(self.setting.value('wall_to_pdf', True, type=bool))
-        self.bldg_name_editbox.setText(self.setting.value('bldg_name', '101동'))
-        self.story_gap_editbox.setText(self.setting.value('story_gap', '2'))
-        self.max_shear_editbox.setText(self.setting.value('max_shear', '60000'))
-        self.output_docx_editbox.setText(self.setting.value('output_docx', '해석 결과'))
         self.setting.endGroup()
 
         ##### Connect Button
@@ -120,57 +124,76 @@ class MainWindow(QMainWindow, ui_class):
         self.insert_force_btn.clicked.connect(self.run_worker4)
         # Tab 3
         self.load_result_btn.clicked.connect(self.run_worker5)
-        # self.load_result_btn.clicked.connect(self.plot_display)
-        # self.print_result_btn.clicked.connect(self.run_worker6)
+        self.print_docx_btn.clicked.connect(self.run_worker6)
         self.design_wall_btn.clicked.connect(self.run_worker7)
         self.print_pdf_btn.clicked.connect(self.run_worker8)
-         
+        
+        # Child Windows
+        self.BR_setting_btn.clicked.connect(self.open_BRSettingWindow)
+        self.print_setting_btn.clicked.connect(self.open_PrintSettingWindow)
+        
+        # Menu Bar
+        self.action_about.triggered.connect(self.open_about)
+        self.action_release_note.triggered.connect(self.open_release_note)
+        self.action_sheets.triggered.connect(self.open_sheets_folder)
+        
+        ### etc
         # Icon 설정
         self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
         
         # 마우스 좌표 real-time tracking
         self.setMouseTracking(True)
+        
+        # BR Setting 창
+        self.win_BR = QMainWindow()
+        self.win_BR = BRSettingWindow(self.status_browser) # child window의 에러를 status_browser에 입력하기 위해
+        
+        # Print Setting 창
+        self.win_print = QMainWindow()
+        self.win_print = PrintSettingWindow(self.status_browser) # child window의 에러를 status_browser에 입력하기 위해
+
+        # About Setting 창
+        self.win_about = QMainWindow()
+        self.win_about = AboutWindow()
 
     # 파일 선택 function (QFileDialog)
     def find_input_xlsx(self): # Data Conversion Sheets
         # global input_xlsx_path
-        input_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
+        input_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Choose Data Conversion Sheets'
                                     , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.data_conv_path_editbox.setText(input_xlsx_path)
+        if input_xlsx_path != '':
+            self.data_conv_path_editbox.setText(input_xlsx_path)
         
     def find_result_xlsx(self): # Analysis Resutls
         # global input_xlsx_path
-        result_xlsx_path = QFileDialog.getOpenFileNames(parent=self, caption='Open Folder'
+        result_xlsx_path = QFileDialog.getOpenFileNames(parent=self, caption='Choose Analysis Result Sheets (Multiple Files Available)'
                                     , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        all_result_xlsx_path = ['"%s"' %file_name for file_name in result_xlsx_path]
-        joined_result_xlsx_path = ','.join(all_result_xlsx_path)
-        self.result_path_editbox.setText(joined_result_xlsx_path)
-        self.display_selected_result_path.setText('%i files selected' %len(result_xlsx_path))
+        if len(result_xlsx_path) != 0:
+            all_result_xlsx_path = ['"%s"' %file_name for file_name in result_xlsx_path]
+            joined_result_xlsx_path = ','.join(all_result_xlsx_path)
+            self.result_path_editbox.setText(joined_result_xlsx_path)
+            self.display_selected_result_path.setText('%i files selected' %len(result_xlsx_path))
         
     def find_wall_design_xlsx(self): # Wall Results Sheets
         # global input_xlsx_path
-        wall_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
-                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.wall_design_path_editbox.setText(wall_design_xlsx_path)
+        wall_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Choose Seismic Design Sheets (Shear Wall)'
+                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]        
+        if wall_design_xlsx_path != '':
+            self.wall_design_path_editbox.setText(wall_design_xlsx_path)
         
     def find_beam_design_xlsx(self): # Beam Results Sheets
         # global input_xlsx_path
-        beam_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
-                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.beam_design_path_editbox.setText(beam_design_xlsx_path)
+        beam_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Choose Seismic Design Sheets (Coupling Beam)'
+                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]        
+        if beam_design_xlsx_path != '':
+            self.beam_design_path_editbox.setText(beam_design_xlsx_path)
     
     def find_col_design_xlsx(self): # Column Results Sheets
         # global input_xlsx_path
-        col_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Open File'
-                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]
-        
-        self.col_design_path_editbox.setText(col_design_xlsx_path)
-    
-    
+        col_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Choose Seismic Design Sheets (Elastic Column)'
+                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]        
+        if col_design_xlsx_path != '':
+            self.col_design_path_editbox.setText(col_design_xlsx_path)
     
     # Macro 사용을 위한 function
     def mouseMoveEvent(self, event):
@@ -182,6 +205,28 @@ class MainWindow(QMainWindow, ui_class):
 
     def threshold2(self, value):
         self.offset_slider = value
+        
+    def open_BRSettingWindow(self):
+        self.win_BR.show()
+        
+    def open_PrintSettingWindow(self):
+        self.win_print.show()
+        
+    def open_about(self):
+        self.win_about.show()
+        
+    def open_release_note(self):
+        note = os.path.join(os.getcwd(), 'docs/PBSD/build/html/release_note.html')
+        
+        if sys.platform == 'linux2':
+            subprocess.call(["xdg-open", note])
+        else:
+            os.startfile(note)
+            
+    def open_sheets_folder(self):
+       folder = r'K:\2104-박재성\성능기반 내진설계\Excel Sheet'
+       
+       os.startfile(folder)
 
     # 로그(실행 시간, 오류) print function
     def msg_fn(self, msg):
@@ -248,10 +293,6 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.setValue('cbeam_to_pdf', self.cbeam_pdf_checkbox.isChecked())
             self.setting.setValue('ecolumn_to_pdf', self.ecol_pdf_checkbox.isChecked())
             self.setting.setValue('wall_to_pdf', self.wall_pdf_checkbox.isChecked())
-            self.setting.setValue('bldg_name', self.bldg_name_editbox.text())
-            self.setting.setValue('story_gap', self.story_gap_editbox.text())
-            self.setting.setValue('max_shear', self.max_shear_editbox.text())
-            self.setting.setValue('output_docx', self.output_docx_editbox.text())
             self.setting.endGroup()
 
         else: self.setting.clear()

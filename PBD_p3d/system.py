@@ -241,6 +241,16 @@ def story_SF(self, yticks=2, xlim=70000):
     seismic_load_name_list = self.seismic_load_name_list
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
+    
+    # shear_force_data = result.shear_force_data
+    # story_info = result.story_info
+
+    # # Seismic Loads List
+    # load_name_list = result.load_name_list
+    # gravity_load_name = result.gravity_load_name
+    # seismic_load_name_list = result.seismic_load_name_list
+    # DE_load_name_list = result.DE_load_name_list
+    # MCE_load_name_list = result.MCE_load_name_list
 
 #%% Process Data   
     # 필요없는 전단력 제거(층전단력)

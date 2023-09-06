@@ -9,13 +9,13 @@ import win32com.client
 import pythoncom
 
 #%% Beam Rotation (DCR)
-def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1, yticks=3, xlim=3):
+def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1, yticks=3, xlim=3, scale_factor=1.0):
 
 #%% Load Data
     # Data Conversion Sheets
     story_info = self.story_info
     beam_info = self.beam_info.copy()
-
+    rebar_info = self.rebar_info
 
     # Analysis Result Sheets
     node_data = self.node_data
@@ -112,6 +112,9 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
                     blank_col = pd.Series([''] * len(prop_name))
                     BR_output = pd.concat([BR_output, blank_col], axis=1)    
                     
+#%% Scale Factor 적용하기
+    BR_output.iloc[:,1:] *= scale_factor
+                    
 #%% 결과 정리 후 Input Sheets에 넣기
 
     # 출력용 Dataframe 만들기
@@ -154,11 +157,15 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     name_output_arr = np.array(name_empty)
     name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
     name_output = pd.DataFrame(name_output_arr)
+    
+    # ETC 시트
+    rebar_output = rebar_info.iloc[:,1:]    
 
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     BR_output = BR_output.replace(np.nan, '', regex=True)
     beam_output = beam_output.replace(np.nan, '', regex=True)
     name_output = name_output.replace(np.nan, '', regex=True)
+    rebar_output = rebar_output.replace(np.nan, '', regex=True)
     
 #%% 조작용 코드
     # 없애고 싶은 부재의 이름 입력(error_beam 확인 후!, DE, MCE에서 다 없어짐)
@@ -181,6 +188,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     ws1 = wb.Sheets('Results_C.Beam_Rotation')
     ws2 = wb.Sheets('Design_C.Beam')
     ws3 = wb.Sheets('Table_C.Beam_DE')
+    ws4 = wb.Sheets('ETC')
     
     startrow, startcol = 5, 1
     
@@ -197,6 +205,10 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(beam_name_list) # series -> list 형식만 입력가능
+        
+    # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
+        = list(rebar_output.itertuples(index=False, name=None))
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
@@ -266,6 +278,7 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     # Data Conversion Sheets     
     story_info = self.story_info
     beam_info = self.beam_info.copy()
+    rebar_info = self.rebar_info
 
     # Analysis Result Sheets
     node_data = self.node_data
@@ -416,10 +429,14 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
     name_output = pd.DataFrame(name_output_arr)
 
+    # ETC 시트
+    rebar_output = rebar_info.iloc[:,1:]
+
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     BSF_output = BSF_output.replace(np.nan, '', regex=True)
     beam_output = beam_output.replace(np.nan, '', regex=True)
     name_output = name_output.replace(np.nan, '', regex=True)
+    rebar_output = rebar_output.replace(np.nan, '', regex=True)
 
 #%% 출력 (Using win32com...)
     
@@ -432,6 +449,7 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     ws1 = wb.Sheets('Results_C.Beam_Shear')
     ws2 = wb.Sheets('Design_C.Beam')
     ws3 = wb.Sheets('Table_C.Beam_DE')
+    ws4 = wb.Sheets('ETC')
     
     startrow, startcol = 5, 1
     
@@ -448,6 +466,10 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(beam_name_list) # series -> list 형식만 입력가능
+        
+    # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
+        = list(rebar_output.itertuples(index=False, name=None))
     
     wb.Save()           
     # wb.Close(SaveChanges=1) # Closing the workbook

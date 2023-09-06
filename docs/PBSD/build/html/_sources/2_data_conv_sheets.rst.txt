@@ -24,16 +24,16 @@ Data Conversion Sheet는 성능기반 내진설계에 필요한 모든 정보를
     Midas Gen에서 Import할 정보를 입력할 시트.
 
 
-* Naming
+* :doc:`Naming <2_naming>`
     Naming에 필요한 정보를 입력할 시트.
 
 
-* :doc:`C. Beam Properties <2_c_beam_properties>` / G.Column Properties / Wall Properties
-    연결보, 일반기둥, 벽체의 모든 정보를 입력할 시트.
+* :doc:`Prop_C.Beam <2_c_beam_properties>` / Prop_G.Beam / Wall Properties
+    벽체, 연결보, 일반보, 탄성보, 일반기둥, 탄성기둥의 모든 정보를 입력할 시트.
 
 
-* Output_Naming
-    앞에서 입력한 정보들을 바탕으로 이름이 출력되는 시트.
+* Input_Naming
+    앞에서 입력한 정보들을 바탕으로 모델링에 사용할 이름이 출력되는 시트.
 
 
 * Output_G.Beam Properties / Output_E.Beam Properties / Output_E.Column Properties
@@ -74,7 +74,10 @@ Data Conversion Sheet는 성능기반 내진설계에 필요한 모든 정보를
    2_nodal_loads
    2_story_mass
    2_story_data
-   2_c_beam_properties
-   2_g_column_properties
-   2_output_e_g_beam_properties
+   2_naming
    2_wall_properties
+   2_c_beam_properties
+   2_output_e_g_beam_properties
+   2_g_column_properties
+   2_input_naming
+   

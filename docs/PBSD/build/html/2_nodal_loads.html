@@ -118,9 +118,16 @@
     </p>
     <ul id="navbar-main-elements" class="navbar-nav">
         
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
                         성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="release_note.html">
+                        Release Note
                       </a>
                     </li>
                 
@@ -194,9 +201,16 @@
     </p>
     <ul id="navbar-main-elements" class="navbar-nav">
         
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
                         성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="release_note.html">
+                        Release Note
                       </a>
                     </li>
                 
@@ -235,31 +249,21 @@
     Section Navigation
   </p>
   <div class="bd-toc-item navbar-nav">
-    <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">중간단계 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_etc.html">ETC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_materials.html">Materials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Nodal Loads</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_import.html">Import Nodes / Elements / Loads / Mass</a></li>
-</ul>
-</li>
+    <p aria-level="2" class="caption" role="heading"><span class="caption-text">STEPS</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_etc.html">ETC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_materials.html">Materials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Nodal Loads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_naming.html">Naming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_wall_properties.html">Prop_S.Wall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_c_beam_properties.html">Prop_C.Beam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_output_e_g_beam_properties.html">Output_G.Beam Properties / Output_E.Beam Properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_g_column_properties.html">G.Column Properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_input_naming.html">Input_Naming</a></li>
 </ul>
 
   </div>
@@ -306,14 +310,21 @@
 <div class="topic">
 <p class="topic-title">What to do</p>
 <ol class="arabic">
-<li><p>반력은 Supports가 설정된 Nodes에서만 생성됩니다.
+<li><p>Midas Gen에서 반력은 Supports가 설정된 Nodes에서만 생성됩니다.
 따라서 모든 수직 부재에서의 반력을 구하기 위해서는, 모든 수직 부재들에 Supports를 생성해야 합니다.
 우선, 모든 수직 부재를 선택하기 위해 <span class="guilabel">Select Nodes by Identifying…</span>를 클릭합니다.</p>
+<figure class="align-center">
+<img alt="_images/2_select_vertical_elem.gif" src="_images/2_select_vertical_elem.gif" />
+</figure>
 </li>
 <li><p>생성된 창에서 <span class="guilabel">Select Type</span> - <span class="guilabel">Material</span>을 선택한 후, Nodes만 선택하기 위해 <span class="guilabel">Nodes</span>만 체크합니다.</p>
+<img alt="_images/2_select_vertical_elem_2.gif" class="align-center" src="_images/2_select_vertical_elem_2.gif" />
 <p>Wall, Column과 같은 수직 부재의 재료들만 선택한 후, <kbd class="kbd docutils literal notranslate">Add</kbd> - <kbd class="kbd docutils literal notranslate">Close</kbd>를 클릭합니다.</p>
 </li>
 <li><p>선택된 수직 부재들에 Supports를 설정해주기 위해 <span class="guilabel">Boundary</span> - <span class="guilabel">Define Supports</span>를 클릭합니다.</p>
+<figure class="align-center">
+<img alt="_images/2_set_vertical_elem_support.gif" src="_images/2_set_vertical_elem_support.gif" />
+</figure>
 <p>생성된 창에서 <span class="guilabel">Dz</span>만 체크 후 <kbd class="kbd docutils literal notranslate">Apply</kbd>를 클릭하면, 선택된 모든 수직 부재들에 Supports가 생성됩니다.</p>
 </li>
 </ol>
@@ -323,6 +334,7 @@
 <h2>반력 입력<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크">#</a></h2>
 <blockquote>
 <div><ol class="arabic">
+<li><p>반력을 확인하기 위해서는 반드시 해석을 실시해야 합니다. 해석을 진행합니다.</p></li>
 <li><p>Supports의 반력을 확인하기 위해, <span class="guilabel">Results</span> - <span class="guilabel">Results Table</span> - <span class="guilabel">Reaction</span>를 클릭합니다.</p>
 <p><a class="reference internal" href="2_etc.html"><span class="doc">하중의 의미</span></a>를 다시 한 번 확인하고, 생성된 창에서 DL과 LL에 포함되는 하중을 모두 체크한 후 <kbd class="kbd docutils literal notranslate">OK</kbd>를 클릭합니다.</p>
 </li>

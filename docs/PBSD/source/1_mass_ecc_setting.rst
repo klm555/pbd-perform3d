@@ -29,7 +29,7 @@
 
 .. topic:: What to do
 
-   1. :guilabel:`Structure` - :guilabel:`Contro Data...` - :guilabel:`Contro Data...`\를 클릭합니다. 
+   1. :guilabel:`Structure` - :guilabel:`Control Data...` - :guilabel:`Control Data...`\를 클릭합니다. 
    
       ..
        .. figure:: _static/images/2_load_to_masses.gif

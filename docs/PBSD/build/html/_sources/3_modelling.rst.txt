@@ -16,12 +16,11 @@
    :maxdepth: 1
    :caption: STEPS
 
-   3_import
+   3_import_geometry
    3_create_frames
+   3_import_property
    3_create_supports
    3_create_sections
    3_create_drifts
-   3_create_imbedded_beams
-   3_import_properties
    3_assign_properties
    3_import_seismic_waves

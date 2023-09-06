@@ -58,6 +58,8 @@ def E_CSF(self, input_xlsx_path, col_design_xlsx_path, export_to_pdf=True\
     # MCE_load_name_list = result.MCE_load_name_list
 
 #%% Process Data
+    # Rebar info 필요한 열만 추출
+    rebar_info = rebar_info.iloc[:,[0,1,2]]
 
     # 필요한 부재만 선별
     prop_name = col_info.iloc[:,0]

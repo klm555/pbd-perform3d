@@ -136,6 +136,8 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
                                    , skiprows = 3, usecols=[0,1,2,3,4], index_col = 0)
         nodal_load.columns = ['Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)']
         
+        nodal_load = nodal_load.drop_duplicates()
+        
         nodal_load['MX(kN-mm)'] = 0
         nodal_load['MY(kN-mm)'] = 0
         nodal_load['MZ(kN-mm)'] = 0
@@ -356,6 +358,10 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     
     if import_WAS_gage == True:
         
+        # Story Info data 불러오기
+        story_info = pd.read_excel(input_xlsx_path, sheet_name=story_info_xlsx_sheet\
+                                   , skiprows=[0,2,3], usecols=[1,2,3,4], keep_default_na=False)
+            
         # Wall Element만 추출(slicing)
         wall = element.loc[lambda x: element['Type'] == 'WALL', :]
         
@@ -461,6 +467,31 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         WAS_gage_node_coord = pd.merge(WAS_gage_node_coord, node, how='left', left_on='Node2', right_on='Node', suffixes=(None, '2'))
         
         WAS_gage_node_coord = WAS_gage_node_coord.iloc[:,[3,4,5,7,8,9]]
+        
+        ### WAS gage가 분할층에서 나눠지지 않게 만들기 
+        # 분할층 노드가 포함되지 않은 부재 slice
+        WAS_gage_node_coord_no_div = WAS_gage_node_coord[(WAS_gage_node_coord['Z(mm)'].isin(story_info['Level']))\
+                                                    & (WAS_gage_node_coord['Z(mm)2'].isin(story_info['Level']))]
+        
+        # 분할층 노드가 상부에만(j-node) 포함되는 부재 slice
+        WAS_gage_node_coord_div = WAS_gage_node_coord[(WAS_gage_node_coord['Z(mm)'].isin(story_info['Level']))\
+                                                 & (~WAS_gage_node_coord['Z(mm)2'].isin(story_info['Level']))]
+        
+        # WAS_gage_node_coord_div 노드들의 상부 노드(j-node)의 z좌표를 다음 측으로 격상
+        next_level_list = []
+        for i in WAS_gage_node_coord_div['Z(mm)2']:
+            level_bigger = story_info['Level'][story_info['Level']-i >= 0]
+            next_level = level_bigger.sort_values(ignore_index=True)[0]
+
+            next_level_list.append(next_level)
+        
+        pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
+
+        WAS_gage_node_coord_div.loc[:, 'Z(mm)2'] = next_level_list
+        
+        WAS_gage_node_coord = pd.concat([WAS_gage_node_coord_no_div, WAS_gage_node_coord_div]\
+                                    , ignore_index=True)
+        
         
         # Gage Element 결과값을 csv로 변환
         WAS_gage_node_coord.to_csv(output_csv_dir+'\\'+WAS_gage_csv, mode='w', index=False)

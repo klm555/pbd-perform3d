@@ -11,7 +11,7 @@ from decimal import *
 
 #%% Wall Axial Strain
 
-def WAS(self, max_criteria=0.04, min_criteria=-0.002, yticks=2, WAS_gage_group='AS'):
+def WAS(self, wall_design_xlsx_path, max_criteria=0.04, min_criteria=-0.002, yticks=2, WAS_gage_group='AS', graph=True):
     ''' 
 
     각각의 벽체의 압축, 인장변형률을 산포도 그래프 형식으로 출력.
@@ -70,10 +70,16 @@ def WAS(self, max_criteria=0.04, min_criteria=-0.002, yticks=2, WAS_gage_group='
     
     '''
 #%% Load Data
+    # Data Conversion Sheets
     story_info = self.story_info
+    wall_info = self.wall_info
+    rebar_info = self.rebar_info
+    
+    # Analysis Result Sheets
     AS_gage_data = self.wall_as_gage_data
     AS_result_data = self.wall_as_result_data
     node_data = self.node_data
+    element_data = self.wall_data
 
     # Seismic Loads List
     load_name_list = self.load_name_list
@@ -81,115 +87,316 @@ def WAS(self, max_criteria=0.04, min_criteria=-0.002, yticks=2, WAS_gage_group='
     seismic_load_name_list = self.seismic_load_name_list
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
+    
+    # Data Conversion Sheets
+    # story_info = result.story_info
+    # wall_info = result.wall_info
+    
+    # # Analysis Result Sheets
+    # AS_gage_data = result.wall_as_gage_data
+    # AS_result_data = result.wall_as_result_data
+    # node_data = result.node_data
+    # element_data = result.wall_data
+
+    # # Seismic Loads List
+    # load_name_list = result.load_name_list
+    # gravity_load_name = result.gravity_load_name
+    # seismic_load_name_list = result.seismic_load_name_list
+    # DE_load_name_list = result.DE_load_name_list
+    # MCE_load_name_list = result.MCE_load_name_list
 
     AS_result_data = AS_result_data.sort_values(by= ['Load Case', 'Element Name', 'Step Type']) # 여러개로 나눠돌릴 경우 순서가 섞여있을 수 있어 DE11~MCE72 순으로 정렬
     
-#%% 데이터 매칭 후 결과뽑기
+    #%% (Only for SW2R Project) AS Gage가 분할층에서 나뉘어서 모델링 된 경우, 한 개의 게이지 값만 고려하기
 
+    # Merge로 Node 번호에 맞는 좌표를 결합
+    AS_gage_node_coord = pd.merge(AS_gage_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID', suffixes=(None, '_1'))
+    AS_gage_node_coord = pd.merge(AS_gage_node_coord, node_data, how='left', left_on='J-Node ID', right_on='Node ID', suffixes=(None, '_2'))
+    
+    ### WAS gage가 분할층에서 나눠지지 않게 만들기 
+    # 분할층 노드가 포함되지 않은 부재 slice
+    AS_gage_node_coord_no_div = AS_gage_node_coord[(AS_gage_node_coord['V'].isin(story_info['Height(mm)']))\
+                                                & (AS_gage_node_coord['V_2'].isin(story_info['Height(mm)']))]
+    
+    # 분할층 노드가 상부에만(j-node) 포함되는 부재 slice
+    AS_gage_node_coord_div = AS_gage_node_coord[(AS_gage_node_coord['V'].isin(story_info['Height(mm)']))\
+                                             & (~AS_gage_node_coord['V_2'].isin(story_info['Height(mm)']))]
+        
+    AS_gage_node_coord = AS_gage_node_coord.iloc[:,[0,1,2,3,7,11]]
+    
+    # AS_gage_node_coord_div 노드들의 상부 노드(j-node)의 z좌표를 다음 측으로 격상
+    next_level_list = []
+    for i in AS_gage_node_coord_div['V_2']:
+        level_bigger = story_info['Height(mm)'][story_info['Height(mm)']-i >= 0]
+        next_level = level_bigger.sort_values(ignore_index=True)[0]
+
+        next_level_list.append(next_level)
+    AS_gage_node_coord_div.loc[:, 'V_2'] = next_level_list
+    
+    next_node_list = []
+    for idx, row in AS_gage_node_coord_div[['H1_2', 'H2_2', 'V_2']].iterrows():
+        new_node = node_data[(node_data['H1'] == row[0]) 
+                             & (node_data['H2'] == row[1]) 
+                             & (node_data['V'] == row[2])]['Node ID']
+        next_node_list.append(new_node)
+    AS_gage_node_coord_div.loc[:, 'J-Node ID'] = next_node_list        
+    
+    AS_gage_data = pd.concat([AS_gage_node_coord_no_div, AS_gage_node_coord_div]\
+                                , ignore_index=True)
+    
+    AS_gage_data = AS_gage_data.iloc[:,0:4]        
+        
+#%% Gage Data & Result에 Node 정보 매칭   
+    # element_data 중, data conversion sheet에 있는 부재만 선별
+    prop_name = wall_info.iloc[:,0]
+    prop_name.name = 'Property Name'
+    element_data = element_data[element_data['Property Name'].isin(prop_name)]
+    
+    ### 여러개로 나뉜 Wall Elements의 양 끝단 점(i,j,k,l) 알아내기 
+    # 부재의 orientation 맞추기 (안맞추면 missing data 생기는 경우 발생)
+    # Merge로 Node 번호에 맞는 좌표를 결합
+    element_data = pd.merge(element_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID', suffixes=(None, '_i'))
+    element_data = pd.merge(element_data, node_data, how='left', left_on='J-Node ID', right_on='Node ID', suffixes=(None, '_j'))
+
+    # 허용 오차
+    tolerance = 5 # mm
+    element_data_pos = element_data[element_data['H1_j'] - element_data['H1'] > tolerance]
+    element_data_neg = element_data[element_data['H1_j'] - element_data['H1'] < -tolerance]
+    element_data_zero = element_data[(element_data['H1_j'] - element_data['H1'] >= -tolerance) 
+                               & (element_data['H1_j'] - element_data['H1'] <= tolerance)]
+    
+    # node i <-> node j, node k <-> node l
+    element_data_neg = element_data_neg.iloc[:,[0,1,3,2,5,4,6,7,8,9,10,11,12,13]]
+    element_data_neg.columns = element_data_pos.columns.values
+    
+    # (X좌표가 같다면) Y 좌표가 더 작은 노드를 i-node로!
+    element_data_zero_pos = element_data_zero[element_data_zero['H2_j'] >= element_data_zero['H2']]
+    element_data_zero_neg = element_data_zero[element_data_zero['H2_j'] < element_data_zero['H2']]
+    
+    element_data_zero_neg = element_data_zero_neg.iloc[:,[0,1,3,2,5,4,6,7,8,9,10,11,12,13]]
+    element_data_zero_neg.columns = element_data_zero_pos.columns.values
+    
+    # pos, neg 합치기
+    element_data = pd.concat([element_data_pos, element_data_neg, element_data_zero_pos, element_data_zero_neg]\
+                          , ignore_index=True)
+
+    # 필요한 열 뽑고 재정렬
+    element_data = element_data.iloc[:,[0,1,2,3,4,5]]
+        
+    # 같은 Property Name에 따라 Sorting
+    element_data_sorted = element_data.set_index('Property Name')
+    element_data_sorted = element_data_sorted.sort_values('Property Name')
+
+    # Wall의 4개의 node를 하나의 리스트로 합치기
+    element_data_sorted['Node List'] = element_data_sorted\
+        .loc[:,['I-Node ID', 'J-Node ID', 'K-Node ID', 'L-Node ID']].values.tolist()
+    
+    # For Loop 돌리면서 Property Name에 따라 Node 리스트 업데이트 (겹치는거 제거하면서)
+    count = 0
+    element_data_updated = pd.DataFrame(columns=['Property Name','Node List'])
+    for idx, elem_node_data in element_data_sorted.groupby('Property Name')['Node List']:
+
+        # series -> list
+        elem_node_data = list(elem_node_data)
+        # deque 생성
+        elem_node_dq = deque()
+        
+        # 노드를 위치 순서대로 deque에 insert
+        for i in range(0, len(elem_node_data)):
+            elem_node_dq.insert(int(i*1 + 0), elem_node_data[i][0])
+            elem_node_dq.insert(int(i*2 + 1), elem_node_data[i][1])
+            elem_node_dq.insert(int(i*3 + 2), elem_node_data[i][2])
+            elem_node_dq.insert(int(i*4 + 3), elem_node_data[i][3])
+        elem_node_dq = list(elem_node_dq) 
+        
+        # count = 1인 노드만 추출(중복되는 노드들 제거하는 법 몰라서 우회함)
+        elem_node_dq_flat = []
+        for i in elem_node_dq:
+            if elem_node_dq.count(i) == 1:
+                elem_node_dq_flat.append(i)
+
+        # 합쳐져 있는 노드들 분류
+        for i in range(0, len(elem_node_dq_flat)//4):
+            temp = [elem_node_dq_flat[i + len(elem_node_dq_flat)//4*0]
+                    , elem_node_dq_flat[i + len(elem_node_dq_flat)//4*1]
+                    , elem_node_dq_flat[i + len(elem_node_dq_flat)//4*2]
+                    , elem_node_dq_flat[i + len(elem_node_dq_flat)//4*3]]
+            # pd.at = Access a single value for a row/column label pair
+            element_data_updated.at[count,'Node List'] = temp
+        element_data_updated.at[count,'Property Name'] = idx
+        count += 1
+    
+    # list로 되어있는 i,j,k,l node들 각 column으로 나누기
+    element_data_updated[['i Node', 'j Node', 'k Node', 'l Node']]\
+        = pd.DataFrame(element_data_updated['Node List'].tolist())
+    
+    ### Gage 데이터 정리하기
     # Group Name에 따라서 데이터 추출
     AS_result_data = AS_result_data[AS_result_data['Group Name'] == WAS_gage_group]
     AS_gage_data = AS_gage_data[AS_gage_data['Group Name'] == WAS_gage_group]
 
-    # 지진파 이름에 따라서 데이터 추출
+    # 혹시 데이터 중복으로 들어간 경우, drop
+    AS_gage_data = AS_gage_data.drop_duplicates()
+    node_data = node_data.drop_duplicates()
+    
+    # 지진하중 결과 & Performance Level=1만 포함시키기
     AS_result_data = AS_result_data[AS_result_data['Load Case']\
-                                    .str.contains('|'.join(seismic_load_name_list))]   
+                                    .str.contains('|'.join(seismic_load_name_list))]
+    AS_result_data = AS_result_data[AS_result_data['Performance Level'] == 1]
     
-    # gage 개수 얻기
-    gage_num = len(AS_gage_data)
+    # Max나 Min값이 여러개인 경우(performance level이 여러개일 때로 추정), 큰 값만 뽑기
+    AS_result_data['Axial Strain(abs)'] = AS_result_data['Axial Strain'].copy().abs()
+    AS_result_data = AS_result_data.sort_values(by='Axial Strain(abs)')
+    AS_result_data = AS_result_data.drop_duplicates(subset=['Element Name', 'Load Case', 'Step Type'], keep='last')
     
-    ### Gage data에서 Element Name, I-Node ID 불러와서 v좌표 match하기
-    AS_gage_data = AS_gage_data[['Element Name', 'I-Node ID']]; 
+    # 필요한 정보만 추출
+    AS_result_data = AS_result_data.iloc[:,[1,2,3,4]]
+    AS_result_data.reset_index(inplace=True, drop=True)
+    
+    # Element Name별로 Grouping
+    AS_result_grouped_list = list(AS_result_data.groupby(['Load Case', 'Step Type']))
+    
+    ### 벽체 정보에 Gage Result를 붙이기 위해, 우선 Gage Result data 정리하기   
+    # 해석 결과 상관없이 Full 지진하중 이름 list 만들기
+    full_DE_load_name_list = 'DE' + pd.Series([11,12,21,22,31,32,41,42,51,52,61,62,71,72]).astype(str)
+    full_MCE_load_name_list = 'MCE' + pd.Series([11,12,21,22,31,32,41,42,51,52,61,62,71,72]).astype(str)
+    full_load_name_list = pd.concat([full_DE_load_name_list, full_MCE_load_name_list])
+    
+    # 지진하중, Max/Min loop 돌리면서 reshape된 df만들기
+    elem_name = AS_result_data['Element Name'].drop_duplicates().sort_values()
+    elem_name.name = 'Element Name'    
+    elem_name.reset_index(inplace=True, drop=True)
+    AS_result_reshaped = pd.DataFrame(elem_name)
+    for load_name in full_load_name_list:
+        for max_min in ['Max', 'Min']:
+            # 만들어진 Group List loop 돌리기
+            for AS_result_grouped in AS_result_grouped_list:
+                if (load_name in AS_result_grouped[0][0]) &  (AS_result_grouped[0][1] == max_min):
+                    # Element Name 순서대로 재정렬
+                    # AS_result_grouped_df = AS_result_grouped.sort_values(by='Element Name')
+                    AS_result_grouped_df = pd.merge(elem_name, AS_result_grouped[1], how='left')
+                    AS_result_grouped_df.reset_index(inplace=True, drop=True)
+                    AS_result_reshaped = pd.concat([AS_result_reshaped, AS_result_grouped_df['Axial Strain']], axis=1)
+                   
+            # 해당 지진하중의 해석결과가 없는 경우 Blank Column 생성
+            if load_name not in seismic_load_name_list: 
+                blank_col = pd.Series([''] * len(elem_name))
+                AS_result_reshaped = pd.concat([AS_result_reshaped, blank_col], axis=1)    
+    
+    ### element_data_updated에 AS_gage_data 합치기
+    # 벽체의 i,l 노드와 일치하는 AS gage 합치기
+    AS_result_merged = pd.merge(element_data_updated, AS_gage_data, how='left'
+                                , left_on=['i Node', 'l Node'], right_on=['I-Node ID', 'J-Node ID'])
+    AS_result_merged = AS_result_merged.iloc[:,[0,2,3,4,5,7]]
+    # 벽체의 j,k 노드와 일치하는 AS gage 합치기
+    AS_result_merged = pd.merge(AS_result_merged, AS_gage_data, how='left'
+                                , left_on=['j Node', 'k Node'], right_on=['I-Node ID', 'J-Node ID'])
+    AS_result_merged = AS_result_merged.iloc[:,np.r_[0:6,7]]
+    AS_result_merged.columns = ['Property Name', 'i Node', 'j Node', 'k Node', 'l Node', 'i-l Element', 'j-k Element']
+    
+    ### 만들어진 AS_output에 AS_result_data 합치기
+    AS_i_result_merged = pd.merge(AS_result_merged, AS_result_reshaped, how='left'
+                           , left_on='i-l Element', right_on='Element Name')
+    AS_j_result_merged = pd.merge(AS_result_merged, AS_result_reshaped, how='left'
+                           , left_on='j-k Element', right_on='Element Name')
+    AS_i_output = AS_i_result_merged.iloc[:,8:]
+    AS_j_output = AS_j_result_merged.iloc[:,8:]
+    
+    # 최종 dataframe을 우선 이름만 넣고 생성
+    AS_output = pd.DataFrame(AS_result_merged['Property Name'])
+    
+    # 최종 dataframe에 i-end와 j-end의 결과를 번갈아가면서 넣어 최종 df 생성
+    for i in range(int(AS_i_output.shape[1] / 2)):
+        max_col = int(2*i)
+        min_col = int(2*i + 1)
+        AS_output = pd.concat([AS_output, AS_i_output.iloc[:,[max_col, min_col]]], axis=1)
+        AS_output = pd.concat([AS_output, AS_j_output.iloc[:,[max_col, min_col]]], axis=1)
+    
+    # Input 시트의 부재 순서대로 재정렬
+    AS_output = pd.merge(prop_name, AS_output, how='left')
+    
+#%% 결과 생성 후 Seismic Design 시트에 넣기
 
+    # 출력용 Dataframe 만들기
+    # Design_S.Wall 시트
+    steel_design_df = wall_info.iloc[:,[5,6,7,9,10]]
+    wall_output = pd.concat([wall_info.iloc[:,0:11], steel_design_df], axis=1)
     
-    # I-Node의 v좌표 match해서 추가
-    AS_gage_data = AS_gage_data.join(node_data.set_index('Node ID')[['H1', 'H2', 'V']], on='I-Node ID')
+    # Table_S.Wall_DE 시트
+    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+    # story_info의 Index열을 1부터 시작하도록 재지정
+    story_info['Index'] = range(story_info.shape[0], 0, -1)
+    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 5에 배정
+    add_num_new_story = 5 - story_info.iloc[ground_level_idx, 0]
+    story_info['Index'] = story_info['Index'] + add_num_new_story
     
-    ### AS_gage_data와 AS_result_data의 순서 맞추기 (Element Name열 기준으로)
-    # AS_gage_data의 Element Name 열을 Index로 설정
-    AS_gage_data = AS_gage_data.set_index('Element Name')
-
-    # AS_result_data의 Element Name 열 추출
-    elem_name_list = AS_result_data['Element Name'].drop_duplicates()
-
-    # AS_gage_data를 추출된 AS_result_data의 Element Name 열에 맞게 재구성
-    AS_gage_data = AS_gage_data.loc[elem_name_list]
-
-    AS_gage_data.reset_index(drop=False, inplace=True)
-   
-    ### AS_total data 만들기
-    AS_max = AS_result_data[(AS_result_data['Step Type'] == 'Max') & (AS_result_data['Performance Level'] == 1)][['Axial Strain']].values # dataframe을 array로
-    AS_max = AS_max.reshape(gage_num, len(seismic_load_name_list), order='F') # order = 'C' 인 경우 row 우선 변경, order = 'F'인 경우 column 우선 변경
-    AS_max = pd.DataFrame(AS_max) # array를 다시 dataframe으로
-    AS_min = AS_result_data[(AS_result_data['Step Type'] == 'Min') & (AS_result_data['Performance Level'] == 1)][['Axial Strain']].values
-    AS_min = AS_min.reshape(gage_num, len(seismic_load_name_list), order='F')
-    AS_min = pd.DataFrame(AS_min)
-    AS_total = pd.concat([AS_max, AS_min], axis=1)
-    ################# 
-    # AS 위치 알아내기(temp)
-    # AS_min = AS_min.abs()
-    # AS_gage_loc = AS_gage_data.loc[:, ['H1', 'H2', 'V']]
-    # AS_gage_loc.columns = ['X(mm)', 'Y(mm)', 'Z(mm)']
-    # AS_min_test = pd.concat([AS_gage_loc, AS_min], axis=1)
-    
-    # elem_list = df_list[1].iloc[:,[0,1,2]]
-    
-    # AS_min_test_final = pd.merge(elem_list, AS_min_test, how='left')
-    
-    # import matplotlib.pyplot as plt
-    # for i in range(AS_min_test_final.shape[0]):
-    #     plt.figure(dpi=150, figsize=(10,4))  # 그래프 사이즈
+    # Wall 이름 split    
+    wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
+    wall_info = pd.merge(wall_info, story_info, how='left')
+    # 벽체 이름, 번호에 따라 grouping
+    wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
+    # 55 row짜리 empty dataframe 만들기
+    name_empty = pd.DataFrame(np.nan, index=range(55), columns=range(len(wall_name_list)))
+    # dataframe에 이름 채워넣기
+    count = 0
+    while True:
+        name_iter = wall_name_list[count][0][0]
+        num_iter = wall_name_list[count][0][1]
+        total_iter = wall_info['Name'][(wall_info['Wall Name'] == name_iter) 
+                                       & (wall_info['Wall Number'] == num_iter)]
+        idx_range = wall_info['Index'][(wall_info['Wall Name'] == name_iter) 
+                                       & (wall_info['Wall Number'] == num_iter)]
+        name_empty.iloc[idx_range, count] = total_iter
         
-    #     plt.stem(MCE_load_name_list, AS_min_test_final.iloc[i,3:17], '-.')
-        
-    #     # reference line 그려서 허용치 나타내기
-    #     plt.axhline(y= 0.002, color='r', linestyle='--')
-        
-    #     plt.grid(linestyle='-.')
-    #     plt.ylabel('Axial Strain(m/m)')
-    #     plt.title('MCE (Compressive)')
-        
-    #     plt.tight_layout()
-    #     plt.style.use('fast')
-    #     plt.savefig(r'D:\이형우\성능기반 내진설계\21-GR-222 광명 4R구역 주택재개발사업 성능기반내진설계\해석 결과\101_N1' 
-    #                 + '\\'+ 'AS_sliced %s .png' % str(i+1))
-        
-    #####################
-    ### AS_avg_data 만들기
-    DE_max_avg = AS_total.iloc[:, 0:len(DE_load_name_list)].mean(axis=1)
-    MCE_max_avg = AS_total.iloc[:, len(DE_load_name_list) : len(DE_load_name_list)+len(MCE_load_name_list)].mean(axis=1)
-    DE_min_avg = AS_total.iloc[:, len(DE_load_name_list)+len(MCE_load_name_list) : 2*len(DE_load_name_list)+len(MCE_load_name_list)].mean(axis=1)
-    MCE_min_avg = AS_total.iloc[:, 2*len(DE_load_name_list)+len(MCE_load_name_list) : 2*len(DE_load_name_list) + 2*len(MCE_load_name_list)].mean(axis=1)
-    AS_avg_total = pd.concat([AS_gage_data.loc[:, ['H1', 'H2', 'V']], DE_max_avg, DE_min_avg, MCE_max_avg, MCE_min_avg], axis=1)
-    AS_avg_total.columns = ['X(mm)', 'Y(mm)', 'Z(mm)', 'DE_max_avg', 'DE_min_avg', 'MCE_max_avg', 'MCE_min_avg']
-
-    ### 층분할된 곳의 Axial strain gage는 max(abs(분할된 두 값))로 assign하기
-    # 분할층 노드가 포함되지 않은 부재 slice
-    AS_avg_total_no_divide = AS_avg_total[AS_avg_total['Z(mm)'].isin(story_info['Height(mm)'])] 
+        count += 1
+        if count == len(wall_name_list):
+            break
+    # dataframe을 1열로 만들기
+    name_output_arr = np.array(name_empty)
+    name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
+    name_output = pd.DataFrame(name_output_arr)    
     
-    # i-node가 분할층에 있는 부재 slice
-    AS_avg_total_divide = AS_avg_total[~AS_avg_total['Z(mm)'].isin(story_info['Height(mm)'])]   
- 
-    # AS_avg_total_divide 노드들의 i-node의 z좌표를 아래 층으로 격하
-    next_level_list = []
-    for i in AS_avg_total_divide['Z(mm)']:
-        level_smaller = story_info['Height(mm)'][i-story_info['Height(mm)'] >= 0]
-        next_level = level_smaller.sort_values(ignore_index=True, ascending=False)[0]
-   
-        next_level_list.append(next_level)
+    # ETC 시트
+    rebar_output = rebar_info.iloc[:,1:]
     
-    pd.options.mode.chained_assignment = None # SettingWithCopyWarning 안뜨게 하기
-   
-    AS_avg_total_divide.loc[:,'Z(mm)'] = next_level_list
-         
-    # divide, no_divide 정보 concat
-    AS_avg_total_joined = pd.concat([AS_avg_total_divide, AS_avg_total_no_divide]\
-                                    , ignore_index=True)
-
-    AS_output = AS_avg_total_joined.groupby(['X(mm)', 'Y(mm)', 'Z(mm)'])\
-                .agg({'DE_max_avg':'max', 'DE_min_avg':'min', 'MCE_max_avg':'max', 'MCE_min_avg':'min'})\
-                    [['DE_max_avg', 'DE_min_avg', 'MCE_max_avg', 'MCE_min_avg']]
+    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    AS_output = AS_output.replace(np.nan, '', regex=True)
+    wall_output = wall_output.replace(np.nan, '', regex=True)
+    name_output = name_output.replace(np.nan, '', regex=True)
+    rebar_output = rebar_output.replace(np.nan, '', regex=True)
     
-    AS_output.reset_index(inplace=True)
+    # 엑셀로 출력(Using win32com)
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
+    excel.Visible = True # 엑셀창 안보이게
+    
+    wb = excel.Workbooks.Open(wall_design_xlsx_path)
+    ws1 = wb.Sheets('Results_S.Wall_Strain')
+    ws2 = wb.Sheets('Design_S.Wall')
+    ws3 = wb.Sheets('Table_S.Wall_DE')
+    ws4 = wb.Sheets('ETC')
+    
+    startrow, startcol = 5, 1
+    
+    # Results_S.Wall_Strain 시트 입력
+    ws1.Range('A%s:DI%s' %(startrow, startrow + AS_output.shape[0] - 1)).Value\
+        = list(AS_output.itertuples(index=False, name=None))
+    
+    # Design_S.Wall 시트 입력
+    ws2.Range('A%s:P%s' %(startrow, startrow + wall_output.shape[0] - 1)).Value\
+        = list(wall_output.itertuples(index=False, name=None))
+    
+    # Table_S.Wall_DE 시트 입력
+    ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
+        = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
+    ws3.Range('A4:A4').Value\
+        = len(wall_name_list) # series -> list 형식만 입력가능
+    
+    # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
+        = list(rebar_output.itertuples(index=False, name=None))
+        
+    wb.Save()
         
 #%% ***조작용 코드
     # 데이터 없애기 위한 기준값 입력
@@ -198,15 +405,51 @@ def WAS(self, max_criteria=0.04, min_criteria=-0.002, yticks=2, WAS_gage_group='
     # .....위와 같은 포맷으로 계속
 
 #%% 그래프
-
+    if graph == True:
+        # Wall 정보 load
+        ws_DE = wb.Sheets('Table_S.Wall_DE')
+        ws_MCE = wb.Sheets('Table_S.Wall_MCE')
+        
+        DE_result = ws_DE.Range('U%s:V%s' %(startrow, startrow + name_output.shape[0] - 1)).Value
+        DE_result_arr = np.array(DE_result)[:,[0,1]]
+        MCE_result = ws_MCE.Range('U%s:V%s' %(startrow, startrow + name_output.shape[0] - 1)).Value
+        MCE_result_arr = np.array(MCE_result)[:,[0,1]]
+        
+        WAS_plot = name_output.copy()
+        WAS_plot[['DE(Compressive)', 'DE(Tensile)']] = DE_result_arr
+        WAS_plot[['MCE(Compressive)', 'MCE(Tensile)']] = MCE_result_arr
+        WAS_plot.columns = ['Name', 'DE(Compressive)', 'DE(Tensile)', 'MCE(Compressive)', 'MCE(Tensile)']
+        
+        # 벽체 해당하는 층 높이 할당
+        story = []
+        for i in WAS_plot['Name']:
+            if i == '':
+                story.append(np.nan)
+            else:
+                story.append(i.split('_')[-1])        
+        WAS_plot['Story Name'] = story
+        
+        WAS_plot = pd.merge(WAS_plot, story_info.iloc[:,[1,2]], how='left')
+        
+        # Change non-numeric objects(e.g. str) into int or float as appropriate.
+        WAS_plot['DE(Compressive)'] = pd.to_numeric(WAS_plot['DE(Compressive)'])
+        WAS_plot['DE(Tensile)'] = pd.to_numeric(WAS_plot['DE(Tensile)'])
+        WAS_plot['MCE(Compressive)'] = pd.to_numeric(WAS_plot['MCE(Compressive)'])
+        WAS_plot['MCE(Tensile)'] = pd.to_numeric(WAS_plot['MCE(Tensile)'])
+        
+        # Delete rows with missing name
+        WAS_plot = WAS_plot[WAS_plot['Name'] != '']
+        
+        
     # 결과 dataframe -> pickle
     WAS_result = []
-    WAS_result.append(AS_output)
+    WAS_result.append(WAS_plot)
     WAS_result.append(story_info)
     WAS_result.append(DE_load_name_list)
     WAS_result.append(MCE_load_name_list)
     with open('pkl/WAS.pkl', 'wb') as f:
         pickle.dump(WAS_result, f)
+        
     
 '''
     count = 1    
@@ -378,8 +621,8 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     # Data Conversion Sheets
     story_info = self.story_info
     wall_info = self.wall_info
+    rebar_info = self.rebar_info
 
-    story_info = story_info[::-1]
     story_info.reset_index(inplace=True, drop=True)
     wall_info.reset_index(inplace=True, drop=True)
 
@@ -400,8 +643,8 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     # # Data Conversion Sheets
     # story_info = result.story_info
     # wall_info = result.wall_info
+    # rebar_info = result.rebar_info
 
-    # story_info = story_info[::-1]
     # story_info.reset_index(inplace=True, drop=True)
     # wall_info.reset_index(inplace=True, drop=True)
 
@@ -523,7 +766,17 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     wall_output = pd.concat([wall_info.iloc[:,0:11], steel_design_df], axis=1)
     
     # Table_S.Wall_DE 시트
-    wall_info[['Wall Name', 'Wall Number', 'Floor']] = wall_info['Name'].str.split('_', expand=True)
+    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+    # story_info의 Index열을 1부터 시작하도록 재지정
+    story_info['Index'] = range(story_info.shape[0], 0, -1)
+    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 5에 배정
+    add_num_new_story = 5 - story_info.iloc[ground_level_idx, 0]
+    story_info['Index'] = story_info['Index'] + add_num_new_story
+    
+    # Wall 이름 split    
+    wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
+    wall_info = pd.merge(wall_info, story_info, how='left')
     # 벽체 이름, 번호에 따라 grouping
     wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
@@ -535,7 +788,9 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
         num_iter = wall_name_list[count][0][1]
         total_iter = wall_info['Name'][(wall_info['Wall Name'] == name_iter) 
                                        & (wall_info['Wall Number'] == num_iter)]
-        name_empty.iloc[range(len(total_iter)), count] = total_iter
+        idx_range = wall_info['Index'][(wall_info['Wall Name'] == name_iter) 
+                                       & (wall_info['Wall Number'] == num_iter)]
+        name_empty.iloc[idx_range, count] = total_iter
         
         count += 1
         if count == len(wall_name_list):
@@ -545,30 +800,14 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
     name_output = pd.DataFrame(name_output_arr)
     
-    # Plot_S.Wall_DE 시트
-    plot_num = pd.DataFrame()
-    # 첫번째 부재(wall)의 이름 추출
-    plot_num['Name'] = wall_info['Name'][(wall_info['Wall Name'] == wall_name_list[0][0][0]) 
-                                 & (wall_info['Wall Number'] == wall_name_list[0][0][1])]    
-    plot_num[['Wall Name', 'Wall Number', 'Story Name']] = plot_num['Name'].str.split('_', expand=True)
-    # Story 정보 merge
-    plot_num = pd.merge(plot_num, story_info, how='left')
-    # Table_S.Wall_DE의 Index에 맞게 Index 재지정
-    plot_num['Index'] = range(1, plot_num.shape[0] + 1)
-    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
-    ground_level_idx = plot_num['Height(mm)'].abs().idxmin()
-    # Ground Level(0mm, 1F)에 가장 가까운 층에 59번 row 배정
-    plot_place_arr = np.zeros(plot_num.shape[0], dtype=int)
-    for idx, x in enumerate(plot_place_arr): # 59 + index 는 일정하다는 사실을 이용
-        plot_place_arr[idx] = 59 + ground_level_idx - idx
-    plot_num['Place'] = plot_place_arr
-    # Reverse the order of row
-    plot_num = plot_num.iloc[::-1]
+    # ETC 시트
+    rebar_output = rebar_info.iloc[:,1:]
     
-# nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     SF_output = SF_output.replace(np.nan, '', regex=True)
     wall_output = wall_output.replace(np.nan, '', regex=True)
     name_output = name_output.replace(np.nan, '', regex=True)
+    rebar_output = rebar_output.replace(np.nan, '', regex=True)
     
 # 엑셀로 출력(Using win32com)
     
@@ -581,7 +820,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     ws1 = wb.Sheets('Results_S.Wall_Shear')
     ws2 = wb.Sheets('Design_S.Wall')
     ws3 = wb.Sheets('Table_S.Wall_DE')
-    ws4 = wb.Sheets('Plot_S.Wall_DE')
+    ws4 = wb.Sheets('ETC')
     
     startrow, startcol = 5, 1
     
@@ -598,16 +837,16 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(wall_name_list) # series -> list 형식만 입력가능
-        
-    # Plot_S.Wall_DE 시트 입력
-    ws4.Range('A%s:A%s' %(plot_num['Place'].min(), plot_num['Place'].max())).Value\
-        = [[i] for i in plot_num['Index']] # series -> list 형식만 입력가능
     
+    # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
+        = list(rebar_output.itertuples(index=False, name=None))
+        
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
     ###########################################################################
-    
+
 #%% Gage Data & Result에 Node 정보 매칭
     
     gage_data = gage_data.drop_duplicates()
@@ -946,8 +1185,8 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     # Data Conversion Sheets
     story_info = self.story_info
     wall_info = self.wall_info
+    rebar_info = self.rebar_info
 
-    story_info = story_info[::-1]
     story_info.reset_index(inplace=True, drop=True)
     wall_info.reset_index(inplace=True, drop=True)
 
@@ -967,7 +1206,6 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     # story_info = result.story_info
     # wall_info = result.wall_info
 
-    # story_info = story_info[::-1]
     # story_info.reset_index(inplace=True, drop=True)
     # wall_info.reset_index(inplace=True, drop=True)
 
@@ -1086,7 +1324,17 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     wall_output = pd.concat([wall_info.iloc[:,0:11], steel_design_df], axis=1)
     
     # Table_S.Wall_DE 시트
-    wall_info[['Wall Name', 'Wall Number', 'Floor']] = wall_info['Name'].str.split('_', expand=True)
+    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+    # story_info의 Index열을 1부터 시작하도록 재지정
+    story_info['Index'] = range(story_info.shape[0], 0, -1)
+    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 5에 배정
+    add_num_new_story = 5 - story_info.iloc[ground_level_idx, 0]
+    story_info['Index'] = story_info['Index'] + add_num_new_story
+    
+    # Wall 이름 split    
+    wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
+    wall_info = pd.merge(wall_info, story_info, how='left')
     # 벽체 이름, 번호에 따라 grouping
     wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
@@ -1098,7 +1346,9 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
         num_iter = wall_name_list[count][0][1]
         total_iter = wall_info['Name'][(wall_info['Wall Name'] == name_iter) 
                                        & (wall_info['Wall Number'] == num_iter)]
-        name_empty.iloc[range(len(total_iter)), count] = total_iter
+        idx_range = wall_info['Index'][(wall_info['Wall Name'] == name_iter) 
+                                       & (wall_info['Wall Number'] == num_iter)]
+        name_empty.iloc[idx_range, count] = total_iter
         
         count += 1
         if count == len(wall_name_list):
@@ -1108,30 +1358,14 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
     name_output = pd.DataFrame(name_output_arr)
     
-    # Plot_S.Wall_DE 시트
-    plot_num = pd.DataFrame()
-    # 첫번째 부재(wall)의 이름 추출
-    plot_num['Name'] = wall_info['Name'][(wall_info['Wall Name'] == wall_name_list[0][0][0]) 
-                                 & (wall_info['Wall Number'] == wall_name_list[0][0][1])]    
-    plot_num[['Wall Name', 'Wall Number', 'Story Name']] = plot_num['Name'].str.split('_', expand=True)
-    # Story 정보 merge
-    plot_num = pd.merge(plot_num, story_info, how='left')
-    # Table_S.Wall_DE의 Index에 맞게 Index 재지정
-    plot_num['Index'] = range(1, plot_num.shape[0] + 1)
-    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
-    ground_level_idx = plot_num['Height(mm)'].abs().idxmin()
-    # Ground Level(0mm, 1F)에 가장 가까운 층에 59번 row 배정
-    plot_place_arr = np.zeros(plot_num.shape[0], dtype=int)
-    for idx, x in enumerate(plot_place_arr): # 59 + index 는 일정하다는 사실을 이용
-        plot_place_arr[idx] = 59 + ground_level_idx - idx
-    plot_num['Place'] = plot_place_arr
-    # Reverse the order of row
-    plot_num = plot_num.iloc[::-1]
+    # ETC 시트
+    rebar_output = rebar_info.iloc[:,1:]
     
-# nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     SF_output = SF_output.replace(np.nan, '', regex=True)
     wall_output = wall_output.replace(np.nan, '', regex=True)
     name_output = name_output.replace(np.nan, '', regex=True)
+    rebar_output = rebar_output.replace(np.nan, '', regex=True)
     
 # 엑셀로 출력(Using win32com)
     
@@ -1144,7 +1378,7 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     ws1 = wb.Sheets('Results_S.Wall_Shear')
     ws2 = wb.Sheets('Design_S.Wall')
     ws3 = wb.Sheets('Table_S.Wall_DE')
-    ws4 = wb.Sheets('Plot_S.Wall_DE')
+    ws4 = wb.Sheets('ETC')
     
     startrow, startcol = 5, 1
     
@@ -1160,11 +1394,11 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
-        = len(wall_name_list) # series -> list 형식만 입력가능
+        = len(wall_name_list) # series -> list 형식만 입력가능 
         
-    # Plot_S.Wall_DE 시트 입력
-    ws4.Range('A%s:A%s' %(plot_num['Place'].min(), plot_num['Place'].max())).Value\
-        = [[i] for i in plot_num['Index']] # series -> list 형식만 입력가능   
+    # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
+        = list(rebar_output.itertuples(index=False, name=None))
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
@@ -1741,7 +1975,7 @@ def SWR_DCR_element(input_xlsx_path
 
 #%% Redesign Horizontal Rebars
 
-def WSF_redesign(self, wall_design_xlsx_path, rebar_limit=[None,None]): 
+def WSF_redesign(wall_design_xlsx_path, rebar_limit=[None,None]): 
     ''' 
 
     완성된 <Results_Wall> 시트에서 전단보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n

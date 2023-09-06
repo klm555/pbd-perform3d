@@ -18,6 +18,7 @@
    :caption: 목차
 
    pbd_p3d_manual
+   release_note
 
 
 

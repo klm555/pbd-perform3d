@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Wall Properties &#8212;  성능기반 내진설계 업무절차서 </title>
+    <title>Prop_S.Wall &#8212;  성능기반 내진설계 업무절차서 </title>
   
   
   
@@ -44,8 +44,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = '2_wall_properties';</script>
     <link rel="index" title="색인" href="genindex.html" />
     <link rel="search" title="검색" href="search.html" />
-    <link rel="next" title="모델링" href="3_modelling.html" />
-    <link rel="prev" title="Output_G.Beam Properties / Output_E.Beam Properties" href="2_output_e_g_beam_properties.html" />
+    <link rel="next" title="Prop_C.Beam" href="2_c_beam_properties.html" />
+    <link rel="prev" title="Naming" href="2_naming.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="ko">
   </head>
@@ -118,9 +118,16 @@
     </p>
     <ul id="navbar-main-elements" class="navbar-nav">
         
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
                         성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="release_note.html">
+                        Release Note
                       </a>
                     </li>
                 
@@ -194,9 +201,16 @@
     </p>
     <ul id="navbar-main-elements" class="navbar-nav">
         
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="pbd_p3d_manual.html">
                         성능기반 내진설계 업무절차서 v1.0
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="release_note.html">
+                        Release Note
                       </a>
                     </li>
                 
@@ -235,48 +249,21 @@
     Section Navigation
   </p>
   <div class="bd-toc-item navbar-nav">
-    <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="1_ref_model.html">레퍼런스 모델 생성</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="1_unit_setting.html">단위 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_material_setting.html">재료 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_base_wall.html">지하외벽 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_support_setting.html">지점 및 다이어프램 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_stiffness_setting.html">유효강성 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_mass_ecc_setting.html">질량 및 우발편심 설정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_seismic_wave_request_model.html">지진파산정 모델</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_loads_conversion_model.html">하중변환 모델</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_period_check_model.html">주기 확인(탄성설계 모델)</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="2_data_conv_sheets.html">Data Conversion Sheets 작성</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_etc.html">ETC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_materials.html">Materials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_c_beam_properties.html">C.Beam Properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_g_column_properties.html">G.Column Properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_output_e_g_beam_properties.html">Output_G.Beam Properties / Output_E.Beam Properties</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Wall Properties</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="3_modelling.html">모델링</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_import.html">탄성설계 모델 Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_create_frames.html">Frame 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_create_supports.html">Constraints, Supports 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_create_sections.html">Sections 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_create_drifts.html">Drifts 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_create_imbedded_beams.html">Imbedded Beams 생성</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_import_properties.html">Properties Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_assign_properties.html">Properties 지정</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_import_seismic_waves.html">지진파 Import</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="4_nonlinear_static_analysis.html">비선형정적해석</a></li>
-<li class="toctree-l1"><a class="reference internal" href="5_nonlinear_dynamic_analysis.html">비선형동적해석</a></li>
-<li class="toctree-l1"><a class="reference internal" href="6_post-processing.html">해석결과 후처리</a></li>
+    <p aria-level="2" class="caption" role="heading"><span class="caption-text">STEPS</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="2_naming_rules.html">이름 표기법</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_etc.html">ETC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_materials.html">Materials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_nodes_elements.html">Nodes / Elements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_nodal_loads.html">Nodal Loads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_story_mass.html">Story Mass</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_story_data.html">Story Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_naming.html">Naming</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Prop_S.Wall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_c_beam_properties.html">Prop_C.Beam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_output_e_g_beam_properties.html">Output_G.Beam Properties / Output_E.Beam Properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_g_column_properties.html">G.Column Properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_input_naming.html">Input_Naming</a></li>
 </ul>
 
   </div>
@@ -308,19 +295,20 @@
             
             <article class="bd-article" role="main">
               
-  <section id="wall-properties">
-<h1>Wall Properties<a class="headerlink" href="#wall-properties" title="이 제목에 대한 퍼머링크">#</a></h1>
-<p>Wall Properties 시트에는 벽체에 대한 정보를 입력합니다.</p>
+  <section id="prop-s-wall">
+<h1>Prop_S.Wall<a class="headerlink" href="#prop-s-wall" title="이 제목에 대한 퍼머링크">#</a></h1>
+<p>Prop_S.Wall 시트에는 벽체에 대한 정보를 입력합니다.
+벽체의 정보는 부재일람표, 벽체리스트, 도면 등을 참조합니다.</p>
 <p>각 열마다 입력해야할 정보는 다음과 같습니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <ul>
 <li><p>부재는 순서대로(층순, 부재명순 등등) 입력하지 않아도 무방합니다.(???)
-사용자 편의에 따라 입력하면, Output_C.Beam Properties 시트에 자동으로 정렬되어 출력됩니다.</p></li>
+사용자 편의에 따라 입력하면, Prop_S.Wall 시트에 자동으로 정렬되어 출력됩니다.</p></li>
 <li><p>동일한 정보의 부재를 모두 입력할 필요가 없습니다. 아래의 예시와 같이, 해당 행의 정보가 위의 행 정보와 동일하다면, 빈 칸으로 두어도 됩니다.
 다만, <code class="docutils literal notranslate"><span class="pre">Arrangement</span></code> 열은 반드시 모두 입력해야 합니다(빈 칸으로 두면 0으로 입력됩니다).</p>
 <figure class="align-center">
-<img alt="_images/2_c_beam_%EC%98%88%EC%8B%9C.png" src="_images/2_c_beam_%EC%98%88%EC%8B%9C.png" />
+<img alt="_images/2_wall_%EC%98%88%EC%8B%9C.png" src="_images/2_wall_%EC%98%88%EC%8B%9C.png" />
 </figure>
 </li>
 </ul>
@@ -332,22 +320,18 @@
 </div></blockquote>
 <div class="admonition warning">
 <p class="admonition-title">경고</p>
-<p>벽체의 이름을 입력할 때마다 1줄의 공백을 만들어 주어야 합니다.  부재를 입력할 시,</p>
+<p>벽체의 이름을 입력할 때마다 위의 예시와 같이 1줄의 공백을 만들어 주어야 합니다.</p>
 </div>
 </dd>
 </dl>
 </li>
 <li><dl>
 <dt><code class="docutils literal notranslate"><span class="pre">Story</span></code></dt><dd><p>ETC 시트에서 콘크리트 강도를 입력했던 방식과 동일하게 해당 벽체가 위치하는 층의 범위를 입력합니다.
-해당하는 층이 단일 층인 경우, <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>과 <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>에 동일하게 해당층을 입력합니다.</p>
+해당하는 층이 단일 층인 경우, <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>과 <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>에 동일하게 또는 <code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>에만 해당층을 입력합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>철근콘크리트 전단벽식 건물을 포함해 많은 공동주택에서는 벽체의 양이 많아 Wall Properties 시트를 입력하는 시간이 많이 소요됩니다.
 따라서 본 업무절차서에서는 설계자가 제공한 벽체리스트 정보를 활용하여 입력 시간을 줄일 수 있도록 하였습니다.</p>
-<ul class="simple">
-<li><p>불연속으로 설치된 층의 예시 : 1F, 2F, 4F, 5F (3F에는 설치되어있지 않음)
-<code class="docutils literal notranslate"><span class="pre">Story(from)</span></code>에는 1F, <code class="docutils literal notranslate"><span class="pre">Story(to)</span></code>에는 5F를 입력합니다.</p></li>
-</ul>
 </div>
 </dd>
 </dl>
@@ -361,7 +345,7 @@
 <dt><code class="docutils literal notranslate"><span class="pre">Rebar</span></code></dt><dd><p>철근 정보를 입력합니다.</p>
 <div class="admonition note">
 <p class="admonition-title">참고</p>
-<p>사용자의 편의에 따라 아래와 같이 철근의 Type과 Spacing을 나누지 않고 입력하여도 무방합니다.</p>
+<p>사용자의 편의에 따라 위의 예시와 같이 철근의 Type과 Spacing을 나누지 않고 입력하여도 무방합니다.</p>
 </div>
 </dd>
 </dl>
@@ -386,11 +370,11 @@
 <div class="admonition note">
 <p class="admonition-title">참고</p>
 <p>탄성설계에서 작성된 Wall List를 활용하면 Wall Properties 시트를 더 빠르게 작성할 수 있습니다.
-따라서 설계자에게 Wall List를 엑셀 형태로 요청하는 것이 좋습니다.</p>
+따라서 엑셀 형태의 Wall List가 없는 경우, 설계자에게 Wall List를 엑셀 형태로 요청하는 것이 좋습니다.</p>
 </div>
 <div class="topic">
 <p class="topic-title">What to do</p>
-<p>위의 정보를 참조하여 연결보의 정보를 입력합니다.</p>
+<p>위의 정보를 참조하여 벽체의 정보를 입력합니다.</p>
 </div>
 </section>
 
@@ -402,17 +386,17 @@
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="2_output_e_g_beam_properties.html" title="이전 페이지">
+  <a class='left-prev' id="prev-link" href="2_naming.html" title="이전 페이지">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">이전</p>
-          <p class="prev-next-title">Output_G.Beam Properties / Output_E.Beam Properties</p>
+          <p class="prev-next-title">Naming</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="3_modelling.html" title="다음 페이지">
+  <a class='right-next' id="next-link" href="2_c_beam_properties.html" title="다음 페이지">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">다음</p>
-      <p class="prev-next-title">모델링</p>
+      <p class="prev-next-title">Prop_C.Beam</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>

@@ -31,15 +31,18 @@ class MplCanvas(FigureCanvasQTAgg):
     # self.worker.msg.connect(self.msg_fn)
 
 #%% Tab3 - Show Plots on Display
-def plot_display(self, result_dict):
-    # 시작 메세지
-    time_start = time.time()
+def plot_display(self, result_dict_and_time):
+    
+    # Time Start 데이터
+    time_start = result_dict_and_time[1]
+    
+    # Pickle 데이터
+    result_dict = result_dict_and_time[0]
     
     # 변수 정리
-    # output_docx = self.output_docx_editbox.text()
     # bldg_name = self.bldg_name_editbox.text()
-    story_gap = self.story_gap_editbox.text()
-    max_shear = self.max_shear_editbox.text()
+    # story_gap = self.story_gap
+    # max_shear = self.max_shear
     get_base_SF = self.base_SF_checkbox.isChecked()
     get_story_SF = self.story_SF_checkbox.isChecked()
     get_IDR = self.IDR_checkbox.isChecked()
@@ -52,7 +55,12 @@ def plot_display(self, result_dict):
     get_WAS = self.WAS_checkbox.isChecked()
     get_WR = self.WR_checkbox.isChecked()
     get_WSF = self.WSF_checkbox.isChecked()
-    # get_WSF_each = self.WSF_each_checkbox.isChecked()
+    
+    story_gap = self.win_print.story_gap_editbox.text()
+    max_shear = self.win_print.max_shear_editbox.text()
+
+    story_gap = int(story_gap)
+    max_shear = int(max_shear)
     
     # 아무것도 check 안되어있는 경우 break
     # if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
@@ -61,16 +69,13 @@ def plot_display(self, result_dict):
     #     self.status_browser.append('Nothing Checked')
     #     return
 
-    # intger 변수
-    story_gap = int(story_gap)
-    max_shear = int(max_shear)
     # 기타 변수들 (향 후, UI에서 조작할 수 있게끔)
     cri_DE=0.015 # IDR
     cri_MCE=0.02 # IDR
     max_criteria=0.04 # WAS
     min_criteria=-0.002 # WAS
     DCR_criteria=1
-    xlim = 3 # BR
+    xlim = 2 # BR
     WAS_gage_group='AS' # WAS
     WSF_graph = True # WSF
     
@@ -80,6 +85,9 @@ def plot_display(self, result_dict):
     self.plot_display_area.setWidget(container)
     # grid layout
     layout = QGridLayout(container)
+    # Add empty, stretchable rows/columns to fit Widget into the Canvas
+    # layout.setRowStretch(layout.rowCount(), 1)
+    # layout.setColumnStretch(layout.columnCount(), 1)
     row_count = 0
     
     #%% Base Shear Force 그래프
@@ -624,12 +632,16 @@ def plot_display(self, result_dict):
             layout.addWidget(sc16, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
             row_count += 2
 
+    #%% E.Column 그래프
+    if get_E_CSF == True:
+        pass
+    
     #%% Wall Axial Strain 그래프
     if get_WAS == True:
         # WAS 결과값 가져오기    
         WAS_result = result_dict['WAS']
         # 결과값 classify & assign
-        WAS_output = WAS_result[0]
+        WAS_plot = WAS_result[0]
         story_info = WAS_result[1]
         DE_load_name_list = WAS_result[2]
         MCE_load_name_list = WAS_result[3]
@@ -642,8 +654,8 @@ def plot_display(self, result_dict):
             sc17 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc17.axes.scatter(WAS_output['DE_min_avg'], WAS_output['Z(mm)'], color='r', s=5)
-            sc17.axes.scatter(WAS_output['DE_max_avg'], WAS_output['Z(mm)'], color='k', s=5)
+            sc17.axes.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc17.axes.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
             sc17.axes.axvline(x=min_criteria, color='r', linestyle='--')
@@ -671,8 +683,8 @@ def plot_display(self, result_dict):
             sc18 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc18.axes.scatter(WAS_output['DE_min_avg'], WAS_output['Z(mm)'], color='r', s=5)
-            sc18.axes.scatter(WAS_output['DE_max_avg'], WAS_output['Z(mm)'], color='k', s=5)
+            sc18.axes.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc18.axes.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
             sc18.axes.axvline(x=min_criteria, color='r', linestyle='--')
@@ -696,8 +708,8 @@ def plot_display(self, result_dict):
             row_count += 2
             
             # 기준 넘는 점 확인
-            error_coord_DE = WAS_output[(WAS_output['DE_max_avg'] >= max_criteria)
-                                        | (WAS_output['DE_min_avg'] <= min_criteria)]
+            # error_coord_DE = WAS_plot[(WAS_plot['DE(Tensile)'] >= max_criteria)
+            #                             | (WAS_plot['DE(Compressive)'] <= min_criteria)]
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -706,8 +718,8 @@ def plot_display(self, result_dict):
             sc19 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc19.axes.scatter(WAS_output['MCE_min_avg'], WAS_output['Z(mm)'], color='r', s=5)
-            sc19.axes.scatter(WAS_output['MCE_max_avg'], WAS_output['Z(mm)'], color='k', s=5)
+            sc19.axes.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc19.axes.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
             sc19.axes.axvline(x=min_criteria, color='r', linestyle='--')
@@ -735,8 +747,8 @@ def plot_display(self, result_dict):
             sc20 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc20.axes.scatter(WAS_output['MCE_min_avg'], WAS_output['Z(mm)'], color='r', s=5)
-            sc20.axes.scatter(WAS_output['MCE_max_avg'], WAS_output['Z(mm)'], color='k', s=5)
+            sc20.axes.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc20.axes.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
             sc20.axes.axvline(x=min_criteria, color='r', linestyle='--')
@@ -760,8 +772,8 @@ def plot_display(self, result_dict):
             row_count += 2
 
             # 기준 넘는 점 확인
-            error_coord_MCE = WAS_output[(WAS_output['MCE_max_avg'] >= max_criteria)
-                                        | (WAS_output['MCE_min_avg'] <= min_criteria)]
+            # error_coord_MCE = WAS_plot[(WAS_plot['MCE(Tensile)'] >= max_criteria)
+            #                             | (WAS_plot['MCE(Compressive)'] <= min_criteria)]
 
     #%% Wall Rotation 그래프
     if get_WR == True:
@@ -911,3 +923,11 @@ def plot_display(self, result_dict):
             layout.addWidget(toolbar24, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
             layout.addWidget(sc24, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
             row_count += 2
+            
+#%% 실행 시간 계산
+    time_end = time.time()
+    time_run = (time_end-time_start)/60            
+    # Print
+    msg = 'Completed!' + '  (total time = %0.3f min)' %(time_run)
+    msg_colored = '<span style=\" color: #0000ff;\">%s</span>' % msg
+    self.status_browser.append(msg_colored)

@@ -9,7 +9,7 @@ G.Column Properties 시트에는 일반기둥(General Column)에 대한 정보�
 * ``Name``\, ``Story``\, ``Dimensions``\, ``Cover``
     C.Beam Properties 시트와 동일한 방식으로 입력합니다.
 
-    .. figure:: _static/images/2_c_beam_예시.png
+    .. figure:: _static/images/2_c_beam_예시_1.png
        :align: center
 
 * ``Rebar``

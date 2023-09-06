@@ -11,7 +11,7 @@ import sys
 # A list of packages to include in the build (this is to safeguard against cx_freeze missing a package since it automatically detects required packages).
 buildOptions = dict(packages = [],
                     excludes = ['numpy_mkl'],
-                    include_files = ['PBD_p3d.ui', './images'])
+                    include_files = ['PBD_p3d.ui', 'BR_setting.ui', 'print_setting.ui', 'about.ui', './images', './docs', './template'])
 
 base = None
 if sys.platform == "win32":
@@ -25,7 +25,7 @@ exe = [Executable(script="GUI_main.py", base=base, targetName='PBD-p3d.exe', ico
 
 setup(
     name='PBD-p3d',
-    version = '1.0.0',
+    version = '2.3.0',
     author = "CNP Dongyang",
     description = "Performance-Based Design with Perform-3D",
     options = dict(build_exe = buildOptions),
