@@ -29,7 +29,15 @@ language = 'ko'
 html_theme = 'pydata_sphinx_theme'
 html_title = " 성능기반 내진설계 업무절차서 "
 # html_logo = "_static/images/myimage.png"
-# html_static_path = [_static]
+html_static_path = ['_static']
+html_css_files = ['css/custom.css']
+
+# inclusion for the color support
+# https://stackoverflow.com/questions/3702865/sphinx-restructuredtext-set-color-for-a-single-word
+rst_prolog = """
+.. include:: <s5defs.txt>
+
+ """
 
 # -- LaTeX -------------------------------------------------
 release = ''

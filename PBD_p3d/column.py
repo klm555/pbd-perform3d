@@ -138,15 +138,18 @@ def E_CSF(self, input_xlsx_path, col_design_xlsx_path, export_to_pdf=True\
         # 해당 지진하중의 해석결과가 없는 경우 Blank Column 생성
         if load_name not in MCE_load_name_list: 
             blank_col = pd.Series([''] * len(prop_name))
-            E_CSF_output = pd.concat([E_CSF_output, blank_col], axis=1)       
+            E_CSF_output = pd.concat([E_CSF_output, blank_col], axis=1)      
 
 #%% 결과 정리 후 Input Sheets에 넣기
+    
+    # Design_E.Column 시트    
+    # 결과값 없는 부재 제거
+    idx_to_slice = E_CSF_output.iloc[:,1:].dropna().index # dropna로 결과값(DE,MCE) 있는 부재만 남긴 후 idx 추출
+    idx_to_slice2 = col_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
+    col_info = col_info.iloc[idx_to_slice2,:]
+    col_info.reset_index(inplace=True, drop=True)
 
-    # 출력용 Dataframe 만들기
-    # Design_E.Column 시트 
-    # - 위에 이미 만들어져있음
-
-    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    # nan인 칸을 ''로 바꿔주기
     E_CSF_output = E_CSF_output.replace(np.nan, '', regex=True)
     col_output = col_output.replace(np.nan, '', regex=True)
 
@@ -163,10 +166,12 @@ def E_CSF(self, input_xlsx_path, col_design_xlsx_path, export_to_pdf=True\
     startrow, startcol = 5, 1
     
     # Results_E.Column 시트 입력
+    ws1.Range('A%s:BS%s' %(startrow, 5000)).ClearContents()
     ws1.Range('A%s:BS%s' %(startrow, startrow + E_CSF_output.shape[0] - 1)).Value\
         = list(E_CSF_output.itertuples(index=False, name=None))
         
     # Design_E.Column 시트 입력
+    ws2.Range('B%s:R%s' %(startrow, 5000)).ClearContents()
     ws2.Range('B%s:R%s' %(startrow, startrow + col_output.shape[0] - 1)).Value\
         = list(col_output.itertuples(index=False, name=None))
     
@@ -684,78 +689,6 @@ def CSF(self, input_xlsx_path, DCR_criteria=1, yticks=2, xlim=3):
         
         yield fig4
         yield 'MCE' # Marker 출력
-        
-#%% G.Column SF (elementwise)
-
-def CSF_each(input_xlsx_path, retrofit_sheet=None): 
-    ''' 
-
-    완성된 Results_Wall 시트에서 보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n
-    
-       
-    세로 생성되는 Results_Wall_보강 시트에 보강 결과 출력 (철근 type 변경, 해결 안될 시 spacing은 10mm 간격으로 down)
-    
-    Parameters
-    ----------
-    input_path : str
-                 Data Conversion 엑셀 파일의 경로.
-                 
-    input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
-
-    Yields
-    -------
-    Min, Max값 모두 출력됨. 
-    
-    fig1 : matplotlib.pyplot.figure or None
-           DE(설계지진) 발생 시 벽체 회전각 DCR 그래프                                      
-    
-    Raises
-    -------
-    
-    References
-    -------
-    .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
-    
-    '''
-#%% Input Sheet
-        
-    # Input Sheets 불러오기
-    input_xlsx_sheet = 'Results_G.Column'
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, retrofit_sheet], skiprows=3
-                                 , usecols=[0,8,15,31,33])
-    input_data_raw.close()
-    
-    col_before = input_data_sheets[input_xlsx_sheet]
-    col_after = input_data_sheets[retrofit_sheet]
-
-    col_before.columns = ['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'MCE(H1)', 'MCE(H2)']
-    col_after.columns = ['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'MCE(H1)', 'MCE(H2)']
-    
-#%% 보강 전,후 Column dataframe 정리
-
-    # 4개의 DCR 열에서 max값을 추출한 열 만들기
-    col_before['DCR_max(before)'] = col_before[['MCE(H1)', 'MCE(H2)']].max(axis=1)
-    col_after['DCR_max(after)'] = col_after[['MCE(H1)', 'MCE(H2)']].max(axis=1)
-
-    # DCR 열 반올림하기(소수점 5자리까지)
-    col_before['DCR_max(before)'] = col_before['DCR_max(before)'].round(5)
-    col_after['DCR_max(after)'] = col_after['DCR_max(after)'].round(5)
-
-    # 필요한 열만 추출
-    col_output = pd.merge(col_before[['Name', 'Rebar Type(before)', 'Rebar Spacing(before)', 'DCR_max(before)']]
-                           , col_after[['Name', 'Rebar Type(after)', 'Rebar Spacing(after)', 'DCR_max(after)']], how='left')
-
-    # 이름 분리(부재 이름, 번호, 층)
-    col_output['Property Name'] = col_output['Name'].str.split('_', expand=True)[0]
-    col_output['Number'] = col_output['Name'].str.split('_', expand=True)[1]
-    col_output['Story'] = col_output['Name'].str.split('_', expand=True)[2]
-
-    # 부재 이름과 번호(C1_1)이 같은 부재들끼리 groupby로 묶고, list of dataframes 생성
-    col_output_list = list(col_output.groupby(['Property Name', 'Number'], sort=False))
-    
-    yield col_output_list
 
 #%% General Column SF - 허무원 박사
 

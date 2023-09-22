@@ -892,16 +892,6 @@
      <string>Performance-Based Design with</string>
     </property>
    </widget>
-   <widget class="QWidget" name="widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>700</x>
-      <y>375</y>
-      <width>120</width>
-      <height>80</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="CNP_img">
     <property name="geometry">
      <rect>
@@ -1047,7 +1037,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -2344,13 +2334,13 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
-        <width>581</width>
-        <height>361</height>
+        <y>160</y>
+        <width>601</width>
+        <height>241</height>
        </rect>
       </property>
       <property name="title">
-       <string>Load and Export Results</string>
+       <string>Export Results (Plots)</string>
       </property>
       <widget class="QCheckBox" name="BR_checkbox">
        <property name="geometry">
@@ -2786,11 +2776,160 @@
         <bool>false</bool>
        </property>
       </widget>
+      <widget class="QPushButton" name="print_docx_btn">
+       <property name="geometry">
+        <rect>
+         <x>300</x>
+         <y>200</y>
+         <width>81</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Export</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="print_docx_btn_2">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>200</y>
+         <width>81</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Preview</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="label_10">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>460</y>
+        <width>221</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>8</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>* 프로그램 실행 중, Excel 사용 및 조작 금지</string>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_13">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>311</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Insert Results (to Seismic Design Sheets)</string>
+      </property>
+      <widget class="QCheckBox" name="load_cbeam_checkbox">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>30</y>
+         <width>121</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Coupling Beams</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="load_ecol_checkbox">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>70</y>
+         <width>121</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Elastic Columns</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="load_wall_checkbox">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>50</y>
+         <width>121</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Walls</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
       <widget class="QPushButton" name="load_result_btn">
        <property name="geometry">
         <rect>
-         <x>240</x>
-         <y>200</y>
+         <x>100</x>
+         <y>100</y>
          <width>75</width>
          <height>23</height>
         </rect>
@@ -2803,31 +2942,55 @@
         </font>
        </property>
        <property name="text">
-        <string>Load</string>
+        <string>Insert</string>
        </property>
       </widget>
-      <widget class="QLabel" name="arrow_img">
+      <widget class="QPushButton" name="design_wall_btn">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>220</y>
-         <width>191</width>
-         <height>101</height>
+         <x>190</x>
+         <y>100</y>
+         <width>75</width>
+         <height>23</height>
         </rect>
        </property>
-       <property name="text">
-        <string/>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
        </property>
-       <property name="scaledContents">
-        <bool>true</bool>
+       <property name="text">
+        <string>( Design )</string>
        </property>
       </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_14">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>20</y>
+        <width>281</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial Black</family>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="title">
+       <string>Export Results (Seismic Design Sheets)</string>
+      </property>
       <widget class="QPushButton" name="print_pdf_btn">
        <property name="geometry">
         <rect>
-         <x>380</x>
-         <y>250</y>
-         <width>75</width>
+         <x>20</x>
+         <y>100</y>
+         <width>81</width>
          <height>23</height>
         </rect>
        </property>
@@ -2842,74 +3005,11 @@
         <string>PDF(.pdf)</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="print_docx_btn">
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>310</y>
-         <width>91</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Word(.docx)</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="print_setting_btn">
-       <property name="geometry">
-        <rect>
-         <x>230</x>
-         <y>310</y>
-         <width>91</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Export Setting</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="ecol_pdf_checkbox">
-       <property name="geometry">
-        <rect>
-         <x>380</x>
-         <y>300</y>
-         <width>101</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>E.Column</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
       <widget class="QCheckBox" name="cbeam_pdf_checkbox">
        <property name="geometry">
         <rect>
-         <x>380</x>
-         <y>280</y>
+         <x>30</x>
+         <y>30</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -2928,11 +3028,34 @@
         <bool>true</bool>
        </property>
       </widget>
+      <widget class="QCheckBox" name="ecol_pdf_checkbox">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>50</y>
+         <width>101</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>E.Column</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
       <widget class="QCheckBox" name="wall_pdf_checkbox">
        <property name="geometry">
         <rect>
-         <x>380</x>
-         <y>320</y>
+         <x>30</x>
+         <y>70</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -2951,118 +3074,41 @@
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QPushButton" name="design_wall_btn">
-       <property name="geometry">
-        <rect>
-         <x>240</x>
-         <y>250</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>( Design )</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_40">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>290</y>
-         <width>31</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Plots</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_41">
-       <property name="geometry">
-        <rect>
-         <x>350</x>
-         <y>230</y>
-         <width>131</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Seismic Design Sheets</string>
-       </property>
-      </widget>
      </widget>
-     <widget class="QLabel" name="label_10">
+     <widget class="QPushButton" name="print_setting_btn">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>440</y>
-        <width>221</width>
-        <height>41</height>
+        <y>410</y>
+        <width>91</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="font">
        <font>
         <family>Arial</family>
-        <pointsize>8</pointsize>
         <weight>50</weight>
         <bold>false</bold>
        </font>
       </property>
       <property name="text">
-       <string>* 프로그램 실행 중, Excel 사용 금지</string>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       <string>Export Setting</string>
       </property>
      </widget>
-     <widget class="QGroupBox" name="groupBox_12">
+     <widget class="QLabel" name="arrow_img">
       <property name="geometry">
        <rect>
-        <x>270</x>
-        <y>460</y>
-        <width>321</width>
-        <height>21</height>
+        <x>360</x>
+        <y>430</y>
+        <width>191</width>
+        <height>101</height>
        </rect>
       </property>
-      <property name="title">
-       <string>Export Results</string>
+      <property name="text">
+       <string/>
       </property>
-     </widget>
-     <widget class="QGroupBox" name="groupBox_11">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>470</y>
-        <width>251</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Design Horizontal Rebars (Wall)</string>
+      <property name="scaledContents">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>

@@ -1,40 +1,126 @@
 ==================================
-Release Note
+Release Notes
 ==================================
 
-2023.09.06 - **Version 2.3.1**
+.. role:: teal
+.. role:: under
+.. role:: tealbold
+.. role:: maroonbold
+
+**2023.09.22**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- * 버그 수정
+*Version 2.3.2*
+~~~~~~~~~~~~~~~~~~~~~
 
- 1. 벽체 축변형률(Wall Axial Strain) 게이지가 분할된 층에서 단일 부재로 Import 및 결과 출력이 되도록 수정함.
+ .. only:: html
+   
+    .. button-ref:: FEATURE
+      :ref-type: ref
+      :color: success
+      :shadow:
 
- 2. UI 글씨체 및 포맷 수정
+ * Seismic Design Sheets에 :maroonbold:`기존값이 있을 시, 자동으로 삭제 후 입력.`
 
+ * :maroonbold:`연결보 전단강도 그래프` 확인 및 출력 가능.
 
-2023.08.31 - **Version 2.3.0**
+ * Seismic Design Sheets에서 :maroonbold:`해석결과가 없는 부재는 Table 및 Plot 시트에서 자동으로 제거.`
+
+ .. only:: html
+   
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+ * 모든 그래프의 "DE"를 :maroonbold:`"1.2*DBE"`\로 변경
+
+ .. only:: html
+   
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+ * pdf 연속 출력 시, 엑셀 파일이 닫히지 않고 계속 남아서 출력이 점점 느려지는 사항 수정.
+
+ * 입력값의 앞뒤에 공백이 있는 경우, 자동으로 공백 제거. 
+
+ * 입력창(checkbox, editbox)이 공란인 경우, 예외 처리.
+
+**2023.09.06**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 1. 모든 DCR 그래프의 **x축 limit**\가 3에서 2로 변경됨.
+*Version 2.3.1*
+~~~~~~~~~~~~~~~~~~~~~
 
- 2. **프로젝트, 건물명 입력창**\이 추가됨(pdf 출력시 반영되어 출력됨).
+ .. only:: html
+   
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
 
- 3. 메뉴바에 **계산 시트 경로**\로 바로 이동할 수 있는 메뉴가 추가됨.
+ * 층 분할 시, :maroonbold:`벽체 축변형률(Wall Axial Strain) 게이지가 층 분할을 고려하지 않고 단일 게이지로 Import`\되도록 수정.
 
- 4. Word(.docx)파일로 출력하는 기능이 추가됨(보, 기둥 제외. 추후 추가 예정).
+ * 그래프 워드(.docx)로 출력할 때 :maroonbold:`해상도(dpi=150)` 개선.
+ 
+ * UI :maroonbold:`글씨체 및 포맷` 변경
 
- * 버그 수정
-
- 1. Nodal Load를 Import할 시, 비어있는 행이 있는 경우, Error가 발생하는 버그 수정.
-
- 2. Analysis Results 파일 선택 시, 아무것도 선택하지 않고 확인을 누르면 기존의 경로가 삭제되는 버그 수정.
-
- 3. Word(.docx)파일 출력 시, overwrite되지 않고 새로운 파일이 생성되도록 함.
-
-2023.08.29 - **Version 2.2.0**
+**2023.08.31**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 1. **Release Note**\와 **소프트웨어 정보**\확인이 가능해짐.
+*Version 2.3.0*
+~~~~~~~~~~~~~~~~~~~~~
 
- 2. Seismic Design Sheets(부재별 결과확인 시트)에서 **벽체 축변형률(Wall Axial Strain) 결과 확인**\이 가능해짐.
+ .. only:: html
+   
+    .. button-ref:: FEATURE
+      :ref-type: ref
+      :color: success
+      :shadow:
+      
+ * :maroonbold:`프로젝트, 건물명 입력창` 추가(pdf 출력용).
 
- 3. **연결보 회전각(Beam Rotation) 결과에 Scale Factor를 적용**\할 수 있는 기능이 추가됨.
+ * 메뉴바에 :maroonbold:`계산 시트 경로`\로 바로 이동할 수 있는 메뉴 추가.
 
- 4. Seismic Design Sheets(부재별 결과확인 시트)의 **ETC 시트 자동 입력 기능**\이 추가됨.
+ * :maroonbold:`Word(.docx)파일로 출력하는 기능` 추가.
+
+ * Word(.docx)파일 출력 시, overwrite되지 않고 새로운 파일이 생성되도록 함.
+
+ .. only:: html
+   
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+ * 모든 :maroonbold:`DCR 그래프의 x축 limit`\가 3에서 2로 변경됨.
+
+ .. only:: html
+   
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+ * Nodal Load를 Import할 시, Nodal Load 시트에 비어있는 행이 있는 경우, Error가 발생하는 버그 수정.
+
+ * Analysis Results 파일 선택 시, 아무것도 선택하지 않고 확인을 누르면 기존 경로가 삭제되는 버그 수정.
+
+**2023.08.29**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.2.0*
+~~~~~~~~~~~~~~~~~~~~~
+
+ .. only:: html
+   
+    .. button-ref:: FEATURE
+      :ref-type: ref
+      :color: success
+      :shadow:
+
+ * :maroonbold:`Release Note, 소프트웨어 정보 확인 창` 추가.
+
+ * Seismic Design Sheets(부재별 결과확인 시트)에서 :maroonbold:`벽체 축변형률(Wall Axial Strain) 결과 확인` 가능.
+
+ * :maroonbold:`연결보 회전각(Beam Rotation) 결과에 Scale Factor 적용` 기능 추가.
+
+ * Seismic Design Sheets의 :maroonbold:`ETC 시트 자동으로 입력.`

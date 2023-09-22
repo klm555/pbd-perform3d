@@ -267,6 +267,8 @@ def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
             os.remove(DE_pdf_file_path)
             os.remove(MCE_pdf_file_path)
             
+        wb_cbeam.Close(SaveChanges=False)
+            
     if get_ecol == True:
         wb_ecol = excel.Workbooks.Open(col_design_xlsx_path)
         ws = wb_ecol.Sheets('Design_E.Column')        
@@ -319,8 +321,7 @@ def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
             pdf_file_path = pdf_file_path.replace('/', '\\')
             os.remove(pdf_file_path)
 
-        # wb_ecol.Close(SaveChanges=False)
-        # wb_ecol.Save()
+        wb_ecol.Close(SaveChanges=False)
         
     if get_wall == True:
         wb_wall = excel.Workbooks.Open(wall_design_xlsx_path)
@@ -385,6 +386,8 @@ def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
             MCE_pdf_file_path = MCE_pdf_file_path.replace('/', '\\')
             os.remove(DE_pdf_file_path)
             os.remove(MCE_pdf_file_path)
+            
+        wb_wall.Close(SaveChanges=False)
 
 #%% Function to Print the Result into DOCX
 
@@ -454,13 +457,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax1.set_xlabel('Ground Motion No.')
             ax1.set_ylabel('Base Shear(kN)')
             ax1.legend(loc = 2)
-            ax1.set_title('X DE')
+            ax1.set_title('X 1.2$\star$DBE')
             
             base_SF_avg_DE_x = Decimal(str(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()))\
                 .quantize(Decimal('.01'), rounding=ROUND_UP)        
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
             # H2_DE
@@ -474,13 +477,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax2.set_xlabel('Ground Motion No.')
             ax2.set_ylabel('Base Shear(kN)')
             ax2.legend(loc = 2)
-            ax2.set_title('Y DE')
+            ax2.set_title('Y 1.2$\star$DBE')
             
             base_SF_avg_DE_y = Decimal(str(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()))\
                 .quantize(Decimal('.01'), rounding=ROUND_UP)
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()
 
             # 첫번째 표에 avg 값 넣기
@@ -529,7 +532,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
                 .quantize(Decimal('.01'), rounding=ROUND_UP)
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
 
             # H2_MCE
@@ -552,7 +555,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
                 .quantize(Decimal('.01'), rounding=ROUND_UP)
 
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()            
 
             # 첫번째 표에 avg 값 넣기
@@ -616,10 +619,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax5.set_xlabel('Story Shear(kN)')
             ax5.set_ylabel('Story')
             ax5.legend(loc=1, fontsize=8)
-            ax5.set_title('X DE')
+            ax5.set_title('X 1.2$\star$DBE')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
             # H2_DE
@@ -638,10 +641,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax6.set_xlabel('Story Shear(kN)')
             ax6.set_ylabel('Story')
             ax6.legend(loc=1, fontsize=8)
-            ax6.set_title('Y DE')
+            ax6.set_title('Y 1.2$\star$DBE')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()
             
             # 표에 그래프 넣기            
@@ -678,7 +681,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax7.set_title('X MCE')
         
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
             # H1_MCE
@@ -700,7 +703,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax8.set_title('Y MCE')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()
             
             # 표에 그래프 넣기            
@@ -766,10 +769,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax9.set_xlabel('Interstory Drift Ratios(m/m)')
             ax9.set_ylabel('Story')
             ax9.legend(loc=4, fontsize=8)
-            ax9.set_title('X DE')
+            ax9.set_title('X 1.2$\star$DBE')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
             # H2_DE
@@ -800,10 +803,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax10.set_xlabel('Interstory Drift Ratios(m/m)')
             ax10.set_ylabel('Story')
             ax10.legend(loc=4, fontsize=8)
-            ax10.set_title('Y DE')
+            ax10.set_title('Y 1.2$\star$DBE')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()
 
             # 표에 그래프 넣기            
@@ -851,7 +854,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax11.set_title('X MCE')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
 
             # H2_MCE
@@ -885,7 +888,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax12.set_title('Y MCE')
 
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()            
             
             # 표에 그래프 넣기            
@@ -900,7 +903,174 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_run_y.add_picture(memfile2, width=Cm(9))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER       
+
+    ### Beam
+    #%% Beam Rotation
+    if get_BR == True:
+        # Load Pickle Files
+        with open('pkl/BR.pkl', 'rb') as f:
+            BR_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        BR_plot = BR_result[0]
+        story_info = BR_result[1]
+        DE_load_name_list = BR_result[2]
+        MCE_load_name_list = BR_result[3]
+            
+        # Beam Rotation 표 작성
+        # template의 7번 표 불러오기
+        BR_plots_table = document.tables[7]
+        
+        # Plot
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+
+            fig13, ax13 = plt.subplots(1,1, figsize=(5,6))
+            
+            # DCR plot                
+            ax13.scatter(BR_plot['DCR(DE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
+            ax13.scatter(BR_plot['DCR(DE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
+
+            # 허용치(DCR) 기준선
+            ax13.axvline(x = DCR_criteria, color='r', linestyle='--')
+            ax13.axvline(x = -DCR_criteria, color='r', linestyle='--')
+
+            ax13.set_xlim(-xlim, xlim)
+            ax13.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax13.grid(linestyle='-.')
+            ax13.set_xlabel('D/C Ratios')
+            ax13.set_ylabel('Story')
+            ax13.set_title('Beam Rotation (1.2$\star$DBE)')
+            
+            # plt.tight_layout()
+            memfile = BytesIO()
+            plt.savefig(memfile, dpi=150)
+            plt.close()
+            
+            # 첫번째 표에 그래프 넣기            
+            plots_row = BR_plots_table.rows[0]
+            plots_cell = plots_row.cells[0]
+            plots_para = plots_cell.paragraphs[0]
+            plots_run = plots_para.add_run()
+            plots_run.add_picture(memfile, width=Cm(9))
+            plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+        if len(MCE_load_name_list) != 0:
+            
+            fig14, ax14 = plt.subplots(1,1, figsize=(5,6))
+
+            # DCR plot                
+            ax14.scatter(BR_plot['DCR(MCE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
+            ax14.scatter(BR_plot['DCR(MCE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
+
+            # 허용치(DCR) 기준선
+            ax14.axvline(x = DCR_criteria, color='r', linestyle='--')
+            ax14.axvline(x = -DCR_criteria, color='r', linestyle='--')
+
+            ax14.set_xlim(-xlim, xlim)
+            ax14.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax14.grid(linestyle='-.')
+            ax14.set_xlabel('D/C Ratios')
+            ax14.set_ylabel('Story')
+            ax14.set_title('Beam Rotation (MCE)')
+            
+            # plt.tight_layout()   
+            memfile = BytesIO()
+            plt.savefig(memfile, dpi=150)
+            plt.close()
+
+            # 첫번째 표에 그래프 넣기            
+            plots_row = BR_plots_table.rows[0]
+            plots_cell = plots_row.cells[1]
+            plots_para = plots_cell.paragraphs[0]
+            plots_run = plots_para.add_run()
+            plots_run.add_picture(memfile, width=Cm(9))
+            plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER   
+            
+    #%% Beam Shear Force
+    if get_BSF == True:
+        # Load Pickle Files
+        with open('pkl/BSF.pkl', 'rb') as f:
+            BSF_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        BSF_plot = BSF_result[0]
+        story_info = BSF_result[1]
+        DE_load_name_list = BSF_result[2]
+        MCE_load_name_list = BSF_result[3]
+            
+        # Beam Shear Force 표 작성
+        # template의 8번 표 불러오기
+        BSF_plots_table = document.tables[8]
+        
+        # Plot
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            fig15, ax15 = plt.subplots(1,1, figsize=(5,6))
+            
+            # DCR plot                
+            ax15.axes.scatter(BSF_plot['DE'], BSF_plot['Height(mm)'], color='k', s=1)
     
+            # 허용치(DCR) 기준선
+            ax15.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+    
+            ax15.axes.set_xlim(0, xlim)
+            ax15.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+    
+            # 기타
+            ax15.axes.grid(linestyle='-.')
+            ax15.axes.set_xlabel('D/C Ratios')
+            ax15.axes.set_ylabel('Story')
+            ax15.axes.set_title('Shear Strength (1.2$\star$DBE)')
+            
+            memfile = BytesIO()
+            plt.savefig(memfile, dpi=150)
+            plt.close()
+            
+            # 첫번째 표에 그래프 넣기            
+            plots_row = BSF_plots_table.rows[0]
+            plots_cell = plots_row.cells[0]
+            plots_para = plots_cell.paragraphs[0]
+            plots_run = plots_para.add_run()
+            plots_run.add_picture(memfile, width=Cm(9))
+            plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+        # Plot
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            fig16, ax16 = plt.subplots(1,1, figsize=(5,6))
+            
+            # DCR plot                
+            ax16.axes.scatter(BSF_plot['MCE'], BSF_plot['Height(mm)'], color='k', s=1)
+    
+            # 허용치(DCR) 기준선
+            ax16.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+    
+            ax16.axes.set_xlim(0, xlim)
+            ax16.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+    
+            # 기타
+            ax16.axes.grid(linestyle='-.')
+            ax16.axes.set_xlabel('D/C Ratios')
+            ax16.axes.set_ylabel('Story')
+            ax16.axes.set_title('Shear Strength (MCE)')
+            
+            memfile = BytesIO()
+            plt.savefig(memfile, dpi=150)
+            plt.close()
+            
+            # 첫번째 표에 그래프 넣기            
+            plots_row = BSF_plots_table.rows[0]
+            plots_cell = plots_row.cells[1]
+            plots_para = plots_cell.paragraphs[0]
+            plots_run = plots_para.add_run()
+            plots_run.add_picture(memfile, width=Cm(9))
+            plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
     #%% Wall Axial Strain
     if get_WAS == True:
         with open('pkl/WAS.pkl', 'rb') as f:
@@ -936,10 +1106,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax17.grid(linestyle='-.')
             ax17.set_xlabel('Axial Strain (m/m)')
             ax17.set_ylabel('Story')
-            ax17.set_title('DE (Compressive)')
+            ax17.set_title('1.2$\star$DBE (Compressive)')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
             # DE_Pos
@@ -960,10 +1130,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax18.grid(linestyle='-.')
             ax18.set_xlabel('Axial Strain (m/m)')
             ax18.set_ylabel('Story')
-            ax18.set_title('DE (Tensile)')
+            ax18.set_title('1.2$\star$DBE (Tensile)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()          
             
             # 표에 그래프 넣기            
@@ -1002,7 +1172,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax19.set_title('MCE (Compressive)')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
             # MCE_Pos
@@ -1026,7 +1196,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax20.set_title('MCE (Tensile)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()      
             
             # 표에 그래프 넣기            
@@ -1077,10 +1247,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax21.grid(linestyle='-.')
             ax21.set_xlabel('D/C Ratios')
             ax21.set_ylabel('Story')
-            ax21.set_title('Wall Rotation (DE)')
+            ax21.set_title('Wall Rotation (1.2$\star$DBE)')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
 
         # MCE Plot
@@ -1106,7 +1276,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax22.set_title('Wall Rotation (MCE)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()      
         
         # 표에 그래프 넣기            
@@ -1155,10 +1325,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax23.grid(linestyle='-.')
             ax23.set_xlabel('D/C Ratios')
             ax23.set_ylabel('Story')
-            ax23.set_title('Shear Strength (DE)')
+            ax23.set_title('Shear Strength (1.2$\star$DBE)')
             
             memfile = BytesIO()
-            plt.savefig(memfile)           
+            plt.savefig(memfile, dpi=150)           
             plt.close()
             
         # MCE Plot
@@ -1182,7 +1352,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax24.set_title('Shear Strength (MCE)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2)
+            plt.savefig(memfile2, dpi=150)
             plt.close()      
         
         # 표에 그래프 넣기            
@@ -1197,120 +1367,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         plots_run_y.add_picture(memfile2, width=Cm(9))
         plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
         plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER  
-            
-            
-    '''       
-    ### Beam
-    # Beam Rotation
-    if get_BR == True:
-        # Load Pickle Files
-        with open('pkl/BR.pkl', 'rb') as f:
-            BR_result = pickle.load(f)
-        
-        # 결과값 classify & assign
-        BR_plot = BR_result[0]
-        story_info = BR_result[1]
-        DE_load_name_list = BR_result[2]
-        MCE_load_name_list = BR_result[3]
-            
-        # Beam Rotation 표 작성
-        # template의 6,7,8번 표 불러오기
-        BR_plots_table = document.tables[6]
-        # BR_values_DE_table = document.tables[7]
-        # BR_values_MCE_table = document.tables[8]
-        
-        # Beam Rotation Plot
-        # DE Plot
-        if len(DE_load_name_list) != 0:
-
-            # fig1, ax1 = plt.figure(count, dpi=150, figsize=(5,6))
-            fig1, ax1 = plt.subplots(1,1)
-            
-            # DCR plot                
-            ax1.scatter(BR_plot['DCR(DE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
-            ax1.scatter(BR_plot['DCR(DE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
-
-            # 허용치(DCR) 기준선
-            ax1.axvline(x = DCR_criteria, color='r', linestyle='--')
-            ax1.axvline(x = -DCR_criteria, color='r', linestyle='--')
-
-            ax1.set_xlim(-xlim, xlim)
-            ax1.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
-
-            # 기타
-            ax1.grid(linestyle='-.')
-            ax1.set_xlabel('D/C Ratios')
-            ax1.set_ylabel('Story')
-            ax1.set_title('Beam Rotation (DE)')
-            
-            # plt.tight_layout()
-            memfile = BytesIO()
-            plt.savefig(memfile)
-            plt.close()
-
-            # 기준 넘는 점 확인
-            # error_beam_DE = BR_plot[['Element Name', 'Property Name', 'Story Name', 'DCR(DE_pos)', 'DCR(DE_neg)']]\
-            #               [(BR_plot['DCR(DE_pos)'] >= DCR_criteria) | (BR_plot['DCR(DE_neg)'] >= DCR_criteria)]            
-            
-            # 첫번째 표에 avg 값 넣기
-            # values_row = BR_values_table.rows[4]
-            # values_cell_x = values_row.cells[2]
-            # values_cell_y = values_row.cells[3]
-            # values_para_x = values_cell_x.paragraphs[0]
-            # values_para_y = values_cell_y.paragraphs[0]
-            # values_para_x.text = f'{base_SF_avg_DE_x:,} kN' # 1000 자리마다 , 찍기
-            # values_para_y.text = f'{base_SF_avg_DE_y:,} kN'
-            # values_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER # 입력된 값 center alignment
-            # values_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
-            # 첫번째 표에 그래프 넣기            
-            plots_row = BR_plots_table.rows[0]
-            plots_cell = plots_row.cells[0]
-            plots_para = plots_cell.paragraphs[0]
-            plots_run = plots_para.add_run()
-            plots_run.add_picture(memfile, width=Cm(9))
-            plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
-        if len(MCE_load_name_list) != 0:
-            
-            fig2, ax2 = plt.subplots(1,1)
-
-            # DCR plot                
-            ax2.scatter(BR_plot['DCR(MCE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
-            ax2.scatter(BR_plot['DCR(MCE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
-
-            # 허용치(DCR) 기준선
-            ax2.axvline(x = DCR_criteria, color='r', linestyle='--')
-            ax2.axvline(x = -DCR_criteria, color='r', linestyle='--')
-
-            ax2.set_xlim(-xlim, xlim)
-            ax2.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
-
-            # 기타
-            ax2.grid(linestyle='-.')
-            ax2.set_xlabel('D/C Ratios')
-            ax2.set_ylabel('Story')
-            ax2.set_title('Beam Rotation (MCE)')
-            
-            # plt.tight_layout()   
-            memfile = BytesIO()
-            plt.savefig(memfile)
-            plt.close()
-
-        # 기준 넘는 점 확인
-            # error_beam_MCE = BR_plot[['Element Name', 'Property Name', 'Story Name', 'DCR(MCE_pos)', 'DCR(MCE_neg)']]\
-            #               [(BR_plot['DCR(MCE_pos)'] >= DCR_criteria) | (BR_plot['DCR(MCE_neg)'] >= DCR_criteria)]
-
-            # 첫번째 표에 그래프 넣기            
-            plots_row = BR_plots_table.rows[0]
-            plots_cell = plots_row.cells[1]
-            plots_para = plots_cell.paragraphs[0]
-            plots_run = plots_para.add_run()
-            plots_run.add_picture(memfile, width=Cm(9))
-            plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER   
-
-    '''
-            
+    
+    #%%        
     # 결과 저장할 경로
     # Path 지정
     result_path = os.path.dirname(result_xlsx_path[0])

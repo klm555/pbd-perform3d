@@ -32,6 +32,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     # Data Conversion Sheets
     # story_info = result.story_info
     # beam_info = result.beam_info
+    # rebar_info = result.rebar_info
 
     # # Analysis Result Sheets
     # node_data = result.node_data
@@ -134,6 +135,11 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     # Beam 이름 split
     beam_info[['Beam Name', 'Beam Number', 'Story Name']] = beam_info['Name'].str.split('_', expand=True)
     beam_info = pd.merge(beam_info, story_info, how='left')
+    # 결과값 없는 부재 제거
+    idx_to_slice = BR_output.iloc[:,1:].dropna().index # dropna로 결과값 있는 부재만 남긴 후 idx 추출
+    idx_to_slice2 = beam_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
+    beam_info = beam_info.iloc[idx_to_slice2,:]
+    beam_info.reset_index(inplace=True, drop=True)
     # 벽체 이름, 번호에 따라 grouping
     beam_name_list = list(beam_info.groupby(['Beam Name', 'Beam Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
@@ -193,20 +199,25 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     startrow, startcol = 5, 1
     
     # Results_C.Beam_Rotation 시트 입력
+    ws1.Range('A%s:DI%s' %(startrow, 5000)).ClearContents()
     ws1.Range('A%s:DI%s' %(startrow, startrow + BR_output.shape[0] - 1)).Value\
         = list(BR_output.itertuples(index=False, name=None))
         
     # Design_C.Beam 시트 입력
+    ws2.Range('A%s:AO%s' %(startrow, 5000)).ClearContents()
     ws2.Range('A%s:AO%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
         = list(beam_output.itertuples(index=False, name=None))
     
     # Table_C.Beam_DE 시트 입력
+    # 값을 입력하기 전에, 우선 해당 셀에 있는 값 지우기
+    ws3.Range('B%s:B%s' %(startrow, 5000)).ClearContents()
     ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(beam_name_list) # series -> list 형식만 입력가능
         
     # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, 5000)).ClearContents()
     ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
         = list(rebar_output.itertuples(index=False, name=None))
     
@@ -295,6 +306,7 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     # Data Conversion Sheets        
     # story_info = result.story_info
     # beam_info = result.beam_info
+    # rebar_info = result.rebar_info
 
     # # Analysis Result Sheets
     # node_data = result.node_data
@@ -405,6 +417,11 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     # Beam 이름 split
     beam_info[['Beam Name', 'Beam Number', 'Story Name']] = beam_info['Name'].str.split('_', expand=True)
     beam_info = pd.merge(beam_info, story_info, how='left')
+    # 결과값 없는 부재 제거
+    idx_to_slice = BSF_output.iloc[:,1:].dropna().index # dropna로 결과값 있는 부재만 남긴 후 idx 추출
+    idx_to_slice2 = beam_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
+    beam_info = beam_info.iloc[idx_to_slice2,:]
+    beam_info.reset_index(inplace=True, drop=True)
     # 벽체 이름, 번호에 따라 grouping
     beam_name_list = list(beam_info.groupby(['Beam Name', 'Beam Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
@@ -454,20 +471,25 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     startrow, startcol = 5, 1
     
     # Results_C.Beam_Rotation 시트 입력
+    ws1.Range('A%s:DM%s' %(startrow, 5000)).ClearContents()
     ws1.Range('A%s:DM%s' %(startrow, startrow + BSF_output.shape[0] - 1)).Value\
         = list(BSF_output.itertuples(index=False, name=None))
         
     # Design_C.Beam 시트 입력
+    ws2.Range('A%s:AO%s' %(startrow, 5000)).ClearContents()
     ws2.Range('A%s:AO%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
         = list(beam_output.itertuples(index=False, name=None))
     
     # Table_C.Beam_DE 시트 입력
+    # 값을 입력하기 전에, 우선 해당 셀에 있는 값 지우기
+    ws3.Range('B%s:B%s' %(startrow, 5000)).ClearContents()
     ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(beam_name_list) # series -> list 형식만 입력가능
         
     # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, 5000)).ClearContents()
     ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
         = list(rebar_output.itertuples(index=False, name=None))
     

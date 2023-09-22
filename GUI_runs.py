@@ -26,9 +26,9 @@ def run_worker1(self):
     self.status_browser.append('Running.....')
     
     # 변수 정리
-    input_xlsx_path = self.data_conv_path_editbox.text()
-    DL = self.DL_name_editbox.text()
-    LL = self.LL_name_editbox.text()
+    input_xlsx_path = self.data_conv_path_editbox.text().strip()
+    DL = self.DL_name_editbox.text().strip()
+    LL = self.LL_name_editbox.text().strip()
     import_node = self.import_node_checkbox.isChecked()
     import_beam = self.import_beam_checkbox.isChecked()
     import_col = self.import_col_checkbox.isChecked()
@@ -40,13 +40,23 @@ def run_worker1(self):
     import_mass = self.import_mass_checkbox.isChecked()
     import_nodal_load = self.import_nodal_load_checkbox.isChecked()
     
-    # 아무것도 check 안되어있는 경우 break
-    if (import_node == False) & (import_beam == False) & (import_col == False)\
-        & (import_wall == False) & (import_plate == False) & (import_WR_gage == False)\
-        & (import_WAS_gage == False) & (import_I_beam == False) & (import_mass == False)\
-        & (import_nodal_load == False):
-        self.status_browser.append('Nothing Checked')
-        return
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (import_node == False) & (import_beam == False) & (import_col == False)\
+            & (import_wall == False) & (import_plate == False) & (import_WR_gage == False)\
+            & (import_WAS_gage == False) & (import_I_beam == False) & (import_mass == False)\
+            & (import_nodal_load == False):
+            msg = 'Nothing Checked!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return # return nothing & break the function
+        elif (input_xlsx_path == '') | (DL == False) | (LL == False):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
+    
     
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self)
@@ -94,12 +104,21 @@ def run_worker2(self):
     self.status_browser.append('Running.....')
     
     # 변수 정리
-    input_xlsx_path = self.data_conv_path_editbox.text()
-    drift_pos_raw = self.drift_pos_editbox.text()
+    input_xlsx_path = self.data_conv_path_editbox.text().strip()
+    drift_pos_raw = self.drift_pos_editbox.text().strip()
     drift_position = []
     for i in range(drift_pos_raw.count(',')+1):
         drift_pos_elem = drift_pos_raw.split(',')[i].strip()
         drift_position.append(drift_pos_elem)
+        
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (input_xlsx_path == '') | (drift_pos_raw == False):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
     
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self) # Create a QThread object
@@ -144,13 +163,28 @@ def run_worker3(self):
     self.status_browser.append('Running.....')
     
     # 변수 정리
-    input_xlsx_path = self.data_conv_path_editbox.text()
+    input_xlsx_path = self.data_conv_path_editbox.text().strip()
     get_cbeam = self.convert_cbeam_checkbox.isChecked()
     get_gbeam = self.convert_gbeam_checkbox.isChecked()
     get_ebeam = self.convert_ebeam_checkbox.isChecked()
     get_gcol = self.convert_gcol_checkbox.isChecked()
     get_ecol = self.convert_ecol_checkbox.isChecked()
     get_wall = self.convert_wall_checkbox.isChecked()
+    
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (get_cbeam == False) & (get_gbeam == False) & (get_ebeam == False)\
+            & (get_gcol == False) & (get_ecol == False) & (get_wall == False):
+            msg = 'Nothing Checked!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (input_xlsx_path == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
     
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self) # Create a QThread object
@@ -199,11 +233,25 @@ def run_worker4(self):
     # 변수 정리
     result_xlsx_path = self.result_path_editbox.text()
     result_xlsx_path = result_xlsx_path.split('"')
-    result_xlsx_path = [i for i in result_xlsx_path if len(i) > 2]
-    input_xlsx_path = self.data_conv_path_editbox.text()
+    result_xlsx_path = [i.strip() for i in result_xlsx_path if len(i) > 2]
+    input_xlsx_path = self.data_conv_path_editbox.text().strip()
     get_gbeam = self.insert_gbeam_checkbox.isChecked()
     get_gcol = self.insert_gcol_checkbox.isChecked()
     get_ecol = self.insert_ecol_checkbox.isChecked()
+    
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (get_gbeam == False) & (get_gcol == False) & (get_ecol == False):
+            msg = 'Nothing Checked!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (input_xlsx_path == '') | (len(result_xlsx_path) == 0):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
     
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self) # Create a QThread object
@@ -252,11 +300,11 @@ def run_worker5(self):
     # 변수 정리
     result_xlsx_path = self.result_path_editbox.text()
     result_xlsx_path = result_xlsx_path.split('"')
-    result_xlsx_path = [i for i in result_xlsx_path if len(i) > 2]
-    input_xlsx_path = self.data_conv_path_editbox.text()
-    wall_design_xlsx_path = self.wall_design_path_editbox.text()
-    beam_design_xlsx_path = self.beam_design_path_editbox.text()
-    col_design_xlsx_path = self.col_design_path_editbox.text()
+    result_xlsx_path = [i.strip() for i in result_xlsx_path if len(i) > 2]
+    input_xlsx_path = self.data_conv_path_editbox.text().strip()
+    wall_design_xlsx_path = self.wall_design_path_editbox.text().strip()
+    beam_design_xlsx_path = self.beam_design_path_editbox.text().strip()
+    col_design_xlsx_path = self.col_design_path_editbox.text().strip()
     get_base_SF = self.base_SF_checkbox.isChecked()
     get_story_SF = self.story_SF_checkbox.isChecked()
     get_IDR = self.IDR_checkbox.isChecked()
@@ -270,14 +318,31 @@ def run_worker5(self):
     get_WR = self.WR_checkbox.isChecked()
     get_WSF = self.WSF_checkbox.isChecked()
     
-    BR_scale_factor = self.win_BR.BR_scale_factor_editbox.text()
+    BR_scale_factor = self.win_BR.BR_scale_factor_editbox.text().strip()
     
-    # 아무것도 check 안되어있는 경우 break
-    # if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
-    #     & (E_BSF == False) & (E_CSF == False) & (WAS == False) & (WR == False)\
-    #     & (WSF == False) & (WSF_each == False):
-    #     self.status_browser.append('Nothing Checked')
-    #     return
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (get_base_SF == False) & (get_story_SF == False) & (get_IDR == False)\
+            & (get_BR == False) & (get_BSF == False) & (get_E_BSF == False)\
+            & (get_CR == False) & (get_CSF == False) & (get_E_CSF == False)\
+            & (get_WAS == False) & (get_WR == False) & (get_WSF == False):
+            msg = 'Nothing Checked!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (input_xlsx_path == '') | (len(result_xlsx_path) == 0)\
+            | (BR_scale_factor == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (wall_design_xlsx_path == '') & (beam_design_xlsx_path == '')\
+            & (col_design_xlsx_path == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
 
     # story_gap = int(story_gap)
     # max_shear = int(max_shear)
@@ -342,7 +407,7 @@ def run_worker6(self):
     # 변수 정리
     result_xlsx_path = self.result_path_editbox.text()
     result_xlsx_path = result_xlsx_path.split('"')
-    result_xlsx_path = [i for i in result_xlsx_path if len(i) > 2]
+    result_xlsx_path = [i.strip() for i in result_xlsx_path if len(i) > 2]
     get_base_SF = self.base_SF_checkbox.isChecked()
     get_story_SF = self.story_SF_checkbox.isChecked()
     get_IDR = self.IDR_checkbox.isChecked()
@@ -356,20 +421,32 @@ def run_worker6(self):
     get_WR = self.WR_checkbox.isChecked()
     get_WSF = self.WSF_checkbox.isChecked()
 
-    project_name = self.win_print.project_name_editbox.text()
-    bldg_name = self.win_print.bldg_name_editbox.text()
-    story_gap = self.win_print.story_gap_editbox.text()
-    max_shear = self.win_print.max_shear_editbox.text()
+    project_name = self.win_print.project_name_editbox.text().strip()
+    bldg_name = self.win_print.bldg_name_editbox.text().strip()
+    story_gap = self.win_print.story_gap_editbox.text().strip()
+    max_shear = self.win_print.max_shear_editbox.text().strip()
 
     story_gap = int(story_gap)
     max_shear = int(max_shear)
     
-    # 아무것도 check 안되어있는 경우 break
-    # if (base_SF == False) & (story_SF == False) & (IDR == False) & (BR == False)\
-    #     & (E_BSF == False) & (E_CSF == False) & (WAS == False) & (WR == False)\
-    #     & (WSF == False) & (WSF_each == False):
-    #     self.status_browser.append('Nothing Checked')
-    #     return
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (get_base_SF == False) & (get_story_SF == False) & (get_IDR == False)\
+            & (get_BR == False) & (get_BSF == False) & (get_E_BSF == False)\
+            & (get_CR == False) & (get_CSF == False) & (get_E_CSF == False)\
+            & (get_WAS == False) & (get_WR == False) & (get_WSF == False):
+            msg = 'Nothing Checked!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (len(result_xlsx_path) == 0)\
+            | (project_name == '') | (bldg_name == '')\
+            | (story_gap == '') | (max_shear == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
 
 # '''
 #     if E_BSF == True:
@@ -507,7 +584,16 @@ def run_worker7(self):
     self.status_browser.append('Running.....')
     
     # 변수 정리
-    wall_design_xlsx_path = self.wall_design_path_editbox.text()
+    wall_design_xlsx_path = self.wall_design_path_editbox.text().strip()
+    
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (wall_design_xlsx_path == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
 
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self) # Create a QThread object
@@ -552,15 +638,35 @@ def run_worker8(self):
     self.status_browser.append('Running.....')
     
     # 변수 정리
-    wall_design_xlsx_path = self.wall_design_path_editbox.text()
-    beam_design_xlsx_path = self.beam_design_path_editbox.text()
-    col_design_xlsx_path = self.col_design_path_editbox.text()
+    wall_design_xlsx_path = self.wall_design_path_editbox.text().strip()
+    beam_design_xlsx_path = self.beam_design_path_editbox.text().strip()
+    col_design_xlsx_path = self.col_design_path_editbox.text().strip()
     get_cbeam = self.cbeam_pdf_checkbox.isChecked()
     get_ecol = self.ecol_pdf_checkbox.isChecked()
     get_wall = self.wall_pdf_checkbox.isChecked()
     
-    project_name = self.win_print.project_name_editbox.text()
-    bldg_name = self.win_print.bldg_name_editbox.text()
+    project_name = self.win_print.project_name_editbox.text().strip()
+    bldg_name = self.win_print.bldg_name_editbox.text().strip()
+    
+    # checkbox or editbox 비어있는 경우 break
+    while True:
+        if (get_cbeam == False) & (get_ecol == False) & (get_wall == False):
+            msg = 'Nothing Checked!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (project_name == '') | (bldg_name == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (wall_design_xlsx_path == '') & (beam_design_xlsx_path == '')\
+            & (col_design_xlsx_path == ''):
+            msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        else: break
 
     # QThread 오브젝트 생성
     self.thread = QThread(parent=self) # Create a QThread object

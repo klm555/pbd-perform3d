@@ -117,7 +117,7 @@ def plot_display(self, result_dict_and_time):
             sc1.axes.set_xlabel('Ground Motion No.')
             sc1.axes.set_ylabel('Base Shear(kN)')
             sc1.axes.legend(loc = 2)
-            sc1.axes.set_title('X DE')
+            sc1.axes.set_title('X 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar1 = NavigationToolbar2QT(sc1, self)
@@ -140,7 +140,7 @@ def plot_display(self, result_dict_and_time):
             sc2.axes.set_xlabel('Ground Motion No.')
             sc2.axes.set_ylabel('Base Shear(kN)')
             sc2.axes.legend(loc = 2)
-            sc2.axes.set_title('Y DE')
+            sc2.axes.set_title('Y 1.2$\star$DBE')
     
             toolbar2 = NavigationToolbar2QT(sc2, self)
     
@@ -233,7 +233,7 @@ def plot_display(self, result_dict_and_time):
             sc5.axes.set_xlabel('Story Shear(kN)')
             sc5.axes.set_ylabel('Story')
             sc5.axes.legend(loc=1, fontsize=8)
-            sc5.axes.set_title('X DE')
+            sc5.axes.set_title('X 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar5 = NavigationToolbar2QT(sc5, self)
@@ -259,7 +259,7 @@ def plot_display(self, result_dict_and_time):
             sc6.axes.set_xlabel('Story Shear(kN)')
             sc6.axes.set_ylabel('Story')
             sc6.axes.legend(loc=1, fontsize=8)
-            sc6.axes.set_title('Y DE')
+            sc6.axes.set_title('Y 1.2$\star$DBE')
 
             toolbar6 = NavigationToolbar2QT(sc6, self)
 
@@ -365,7 +365,7 @@ def plot_display(self, result_dict_and_time):
             sc9.axes.set_xlabel('Interstory Drift Ratios(m/m)')
             sc9.axes.set_ylabel('Story')
             sc9.axes.legend(loc=4, fontsize=8)
-            sc9.axes.set_title('X DE')
+            sc9.axes.set_title('X 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar9 = NavigationToolbar2QT(sc9, self)
@@ -405,7 +405,7 @@ def plot_display(self, result_dict_and_time):
             sc10.axes.set_xlabel('Interstory Drift Ratios(m/m)')
             sc10.axes.set_ylabel('Story')
             sc10.axes.legend(loc=4, fontsize=8)
-            sc10.axes.set_title('Y DE')
+            sc10.axes.set_title('Y 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar10 = NavigationToolbar2QT(sc10, self)
@@ -527,7 +527,7 @@ def plot_display(self, result_dict_and_time):
             sc13.axes.grid(linestyle='-.')
             sc13.axes.set_xlabel('D/C Ratios')
             sc13.axes.set_ylabel('Story')
-            sc13.axes.set_title('Beam Rotation (DE)')
+            sc13.axes.set_title('Beam Rotation (1.2$\star$DBE)')
 
             # toolbar 생성
             toolbar13 = NavigationToolbar2QT(sc13, self)
@@ -595,7 +595,7 @@ def plot_display(self, result_dict_and_time):
             sc15.axes.grid(linestyle='-.')
             sc15.axes.set_xlabel('D/C Ratios')
             sc15.axes.set_ylabel('Story')
-            sc15.axes.set_title('Shear Strength (DE)')
+            sc15.axes.set_title('Shear Strength (1.2$\star$DBE)')
     
             # toolbar 생성
             toolbar15 = NavigationToolbar2QT(sc15, self)
@@ -668,7 +668,7 @@ def plot_display(self, result_dict_and_time):
             sc17.axes.grid(linestyle='-.')
             sc17.axes.set_xlabel('Axial Strain (m/m)')
             sc17.axes.set_ylabel('Story')
-            sc17.axes.set_title('DE (Compressive)')
+            sc17.axes.set_title('1.2$\star$DBE (Compressive)')
 
             # toolbar 생성
             toolbar17 = NavigationToolbar2QT(sc17, self)
@@ -697,7 +697,7 @@ def plot_display(self, result_dict_and_time):
             sc18.axes.grid(linestyle='-.')
             sc18.axes.set_xlabel('Axial Strain (m/m)')
             sc18.axes.set_ylabel('Story')
-            sc18.axes.set_title('DE (Tensile)')
+            sc18.axes.set_title('1.2$\star$DBE (Tensile)')
 
             # toolbar 생성
             toolbar18 = NavigationToolbar2QT(sc18, self)
@@ -807,7 +807,7 @@ def plot_display(self, result_dict_and_time):
             sc21.axes.grid(linestyle='-.')
             sc21.axes.set_xlabel('D/C Ratios')
             sc21.axes.set_ylabel('Story')
-            sc21.axes.set_title('Wall Rotation (DE)')
+            sc21.axes.set_title('Wall Rotation (1.2$\star$DBE)')
 
             # toolbar 생성
             toolbar21 = NavigationToolbar2QT(sc21, self)
@@ -885,7 +885,7 @@ def plot_display(self, result_dict_and_time):
             sc23.axes.grid(linestyle='-.')
             sc23.axes.set_xlabel('D/C Ratios')
             sc23.axes.set_ylabel('Story')
-            sc23.axes.set_title('Shear Strength (DE)')
+            sc23.axes.set_title('Shear Strength (1.2$\star$DBE)')
 
             # toolbar 생성
             toolbar23 = NavigationToolbar2QT(sc23, self)

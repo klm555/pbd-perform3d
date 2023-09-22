@@ -24,24 +24,6 @@ class MainWindow(QMainWindow, ui_class):
         super().__init__()
         self.setupUi(self)
         
-        ##### QPixmap 객체 생성 (image 불러오기)
-        # P3D 로고
-        self.qPixmapVar = QPixmap()
-        self.qPixmapVar.load('./images/p3d_logo.png')
-        self.P3D_img.setPixmap(self.qPixmapVar.scaled(self.P3D_img.size()
-                                , transformMode=Qt.SmoothTransformation))
-        # CNP 동양 로고
-        self.qPixmapVar2 = QPixmap()
-        self.qPixmapVar2.load('./images/CNP_logo.png')
-        self.CNP_img.setPixmap(self.qPixmapVar2.scaled(self.CNP_img.size()
-                                , transformMode=Qt.SmoothTransformation))
-        
-        # 화살표 image
-        self.qPixmapVar2 = QPixmap()
-        self.qPixmapVar2.load('./images/arrow_ui.png')
-        self.arrow_img.setPixmap(self.qPixmapVar2.scaled(self.arrow_img.size()
-                                , transformMode=Qt.SmoothTransformation))
-        
         ##### setting에 저장된 value를 불러와서 입력
         # QSettings 클래스 생성
         QCoreApplication.setOrganizationName('CNP_Dongyang')
@@ -137,13 +119,7 @@ class MainWindow(QMainWindow, ui_class):
         self.action_release_note.triggered.connect(self.open_release_note)
         self.action_sheets.triggered.connect(self.open_sheets_folder)
         
-        ### etc
-        # Icon 설정
-        self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
-        
-        # 마우스 좌표 real-time tracking
-        self.setMouseTracking(True)
-        
+        ### Child Windows
         # BR Setting 창
         self.win_BR = QMainWindow()
         self.win_BR = BRSettingWindow(self.status_browser) # child window의 에러를 status_browser에 입력하기 위해
@@ -155,6 +131,31 @@ class MainWindow(QMainWindow, ui_class):
         # About Setting 창
         self.win_about = QMainWindow()
         self.win_about = AboutWindow()
+        
+        ##### QPixmap 객체 생성 (image 불러오기)
+        # P3D 로고
+        self.qPixmapVar = QPixmap()
+        self.qPixmapVar.load('./images/p3d_logo.png')
+        self.P3D_img.setPixmap(self.qPixmapVar.scaled(self.P3D_img.size()
+                                , transformMode=Qt.SmoothTransformation))
+        # CNP 동양 로고
+        self.qPixmapVar2 = QPixmap()
+        self.qPixmapVar2.load('./images/CNP_logo.png')
+        self.CNP_img.setPixmap(self.qPixmapVar2.scaled(self.CNP_img.size()
+                                , transformMode=Qt.SmoothTransformation))
+        
+        # 화살표 image
+        self.qPixmapVar2 = QPixmap()
+        self.qPixmapVar2.load('./images/arrow_ui.png')
+        self.arrow_img.setPixmap(self.qPixmapVar2.scaled(self.arrow_img.size()
+                                , transformMode=Qt.SmoothTransformation))
+        
+        ### etc
+        # Icon 설정
+        self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
+        
+        # 마우스 좌표 real-time tracking
+        self.setMouseTracking(True)
 
     # 파일 선택 function (QFileDialog)
     def find_input_xlsx(self): # Data Conversion Sheets
@@ -205,7 +206,8 @@ class MainWindow(QMainWindow, ui_class):
 
     def threshold2(self, value):
         self.offset_slider = value
-        
+    
+    # Child Window 또는 Menu Bar 띄우기 function
     def open_BRSettingWindow(self):
         self.win_BR.show()
         

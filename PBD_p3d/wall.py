@@ -334,6 +334,11 @@ def WAS(self, wall_design_xlsx_path, max_criteria=0.04, min_criteria=-0.002, yti
     # Wall 이름 split    
     wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
     wall_info = pd.merge(wall_info, story_info, how='left')
+    # 결과값 없는 부재 제거
+    idx_to_slice = AS_output.iloc[:,1:].dropna().index # dropna로 결과값 있는 부재만 남긴 후 idx 추출
+    idx_to_slice2 = wall_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
+    wall_info = wall_info.iloc[idx_to_slice2,:]
+    wall_info.reset_index(inplace=True, drop=True)
     # 벽체 이름, 번호에 따라 grouping
     wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
@@ -379,20 +384,25 @@ def WAS(self, wall_design_xlsx_path, max_criteria=0.04, min_criteria=-0.002, yti
     startrow, startcol = 5, 1
     
     # Results_S.Wall_Strain 시트 입력
+    # 값을 입력하기 전에, 우선 해당 셀에 있는 값 지우기
+    ws1.Range('A%s:DI%s' %(startrow, 5000)).ClearContents()
     ws1.Range('A%s:DI%s' %(startrow, startrow + AS_output.shape[0] - 1)).Value\
         = list(AS_output.itertuples(index=False, name=None))
     
     # Design_S.Wall 시트 입력
+    ws2.Range('A%s:P%s' %(startrow, 5000)).ClearContents()
     ws2.Range('A%s:P%s' %(startrow, startrow + wall_output.shape[0] - 1)).Value\
         = list(wall_output.itertuples(index=False, name=None))
     
     # Table_S.Wall_DE 시트 입력
+    ws3.Range('B%s:B%s' %(startrow, 5000)).ClearContents()
     ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(wall_name_list) # series -> list 형식만 입력가능
     
     # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, 5000)).ClearContents()
     ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
         = list(rebar_output.itertuples(index=False, name=None))
         
@@ -747,7 +757,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     
 #%% 결과 정리 후 Input Sheets에 넣기
 
-# 출력용 Dataframe 만들기
+    # 출력용 Dataframe 만들기
     # Results_S.Wall_Shear 시트
     SF_output = pd.DataFrame()
     SF_output['Name'] = wall_SF_data['Name'].drop_duplicates()
@@ -765,48 +775,12 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     steel_design_df = wall_info.iloc[:,[5,6,7,9,10]]
     wall_output = pd.concat([wall_info.iloc[:,0:11], steel_design_df], axis=1)
     
-    # Table_S.Wall_DE 시트
-    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
-    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
-    # story_info의 Index열을 1부터 시작하도록 재지정
-    story_info['Index'] = range(story_info.shape[0], 0, -1)
-    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 5에 배정
-    add_num_new_story = 5 - story_info.iloc[ground_level_idx, 0]
-    story_info['Index'] = story_info['Index'] + add_num_new_story
-    
-    # Wall 이름 split    
-    wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
-    wall_info = pd.merge(wall_info, story_info, how='left')
-    # 벽체 이름, 번호에 따라 grouping
-    wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
-    # 55 row짜리 empty dataframe 만들기
-    name_empty = pd.DataFrame(np.nan, index=range(55), columns=range(len(wall_name_list)))
-    # dataframe에 이름 채워넣기
-    count = 0
-    while True:
-        name_iter = wall_name_list[count][0][0]
-        num_iter = wall_name_list[count][0][1]
-        total_iter = wall_info['Name'][(wall_info['Wall Name'] == name_iter) 
-                                       & (wall_info['Wall Number'] == num_iter)]
-        idx_range = wall_info['Index'][(wall_info['Wall Name'] == name_iter) 
-                                       & (wall_info['Wall Number'] == num_iter)]
-        name_empty.iloc[idx_range, count] = total_iter
-        
-        count += 1
-        if count == len(wall_name_list):
-            break
-    # dataframe을 1열로 만들기
-    name_output_arr = np.array(name_empty)
-    name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
-    name_output = pd.DataFrame(name_output_arr)
-    
     # ETC 시트
     rebar_output = rebar_info.iloc[:,1:]
     
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     SF_output = SF_output.replace(np.nan, '', regex=True)
     wall_output = wall_output.replace(np.nan, '', regex=True)
-    name_output = name_output.replace(np.nan, '', regex=True)
     rebar_output = rebar_output.replace(np.nan, '', regex=True)
     
 # 엑셀로 출력(Using win32com)
@@ -825,20 +799,18 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     startrow, startcol = 5, 1
     
     # Results_S.Wall_Shear 시트 입력
+    # 값을 입력하기 전에, 우선 해당 셀에 있는 값 지우기
+    ws1.Range('A%s:DN%s' %(startrow, 5000)).ClearContents()
     ws1.Range('A%s:DN%s' %(startrow, startrow + SF_output.shape[0] - 1)).Value\
         = list(SF_output.itertuples(index=False, name=None))
     
     # Design_S.Wall 시트 입력
+    ws2.Range('A%s:P%s' %(startrow, 5000)).ClearContents()
     ws2.Range('A%s:P%s' %(startrow, startrow + wall_output.shape[0] - 1)).Value\
         = list(wall_output.itertuples(index=False, name=None))
     
-    # Table_S.Wall_DE 시트 입력
-    ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
-        = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
-    ws3.Range('A4:A4').Value\
-        = len(wall_name_list) # series -> list 형식만 입력가능
-    
     # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, 5000)).ClearContents()
     ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
         = list(rebar_output.itertuples(index=False, name=None))
         
@@ -981,15 +953,58 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     
     # wall_info 순서에 맞게 sort
     SWR_output = pd.merge(wall_info['Name'], SWR_output, how='left')
+
+#%% 결과 정리 후 Input Sheets에 넣기
+
+    # Table_S.Wall_DE 시트
+    # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+    ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+    # story_info의 Index열을 1부터 시작하도록 재지정
+    story_info['Index'] = range(story_info.shape[0], 0, -1)
+    # Ground Level(0mm, 1F)에 가장 가까운 층을 index 5에 배정
+    add_num_new_story = 5 - story_info.iloc[ground_level_idx, 0]
+    story_info['Index'] = story_info['Index'] + add_num_new_story
     
-    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+    # Wall 이름 split    
+    wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
+    wall_info = pd.merge(wall_info, story_info, how='left')
+    # 결과값 없는 부재 제거
+    idx_to_slice = SWR_output.iloc[:,1:].dropna().index # dropna로 결과값(DE,MCE) 있는 부재만 남긴 후 idx 추출
+    name_to_slice = SWR_output['Name'].iloc[idx_to_slice]
+    idx_to_slice2 = wall_info[wall_info['Name'].isin(name_to_slice)].index # 결과값 있는 부재만 slice 후 idx 추출
+    wall_info = wall_info.iloc[idx_to_slice2,:]
+    wall_info.reset_index(inplace=True, drop=True)
+    # 벽체 이름, 번호에 따라 grouping
+    wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
+    # 55 row짜리 empty dataframe 만들기
+    name_empty = pd.DataFrame(np.nan, index=range(55), columns=range(len(wall_name_list)))
+    # dataframe에 이름 채워넣기
+    count = 0
+    while True:
+        name_iter = wall_name_list[count][0][0]
+        num_iter = wall_name_list[count][0][1]
+        total_iter = wall_info['Name'][(wall_info['Wall Name'] == name_iter) 
+                                       & (wall_info['Wall Number'] == num_iter)]
+        idx_range = wall_info['Index'][(wall_info['Wall Name'] == name_iter) 
+                                       & (wall_info['Wall Number'] == num_iter)]
+        name_empty.iloc[idx_range, count] = total_iter
+        
+        count += 1
+        if count == len(wall_name_list):
+            break
+    # dataframe을 1열로 만들기
+    name_output_arr = np.array(name_empty)
+    name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
+    name_output = pd.DataFrame(name_output_arr)
+    
+    # nan인 칸을 ''로 바꿔주기
     SWR_output = SWR_output.replace(np.nan, '', regex=True)
+    name_output = name_output.replace(np.nan, '', regex=True)
     
     #%% ***조작용 코드
     # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total['DCR_DE_min'] > 0.6) | (SWR_avg_total['DCR_DE_max'] > 0.6)].index) # DE
     # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total['DCR_MCE_min'] > 0.6) | (SWR_avg_total['DCR_MCE_max'] > 0.6)].index) # DE
     # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total.iloc[:,4] < -0.0035) | (SWR_avg_total.iloc[:,3] > 0.0035)].index) # MCE
-    
     
     #%% 엑셀로 출력(Using win32com)
         
@@ -1003,7 +1018,15 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     
     startrow, startcol = 5, 1
     
+    # Table_S.Wall_DE 시트 입력
+    ws3.Range('B%s:B%s' %(startrow, 5000)).ClearContents()
+    ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
+        = [[i] for i in name_output[0]]
+    ws3.Range('A4:A4').Value\
+        = len(wall_name_list)
+    
     # Results_S.Wall_Rotation 시트 입력
+    ws5.Range('A%s:BE%s' %(startrow, 5000)).ClearContents()
     ws5.Range('A%s:BE%s' %(startrow, startrow + SWR_output.shape[0] - 1)).Value\
         = list(SWR_output.itertuples(index=False, name=None))
     
@@ -1335,6 +1358,11 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     # Wall 이름 split    
     wall_info[['Wall Name', 'Wall Number', 'Story Name']] = wall_info['Name'].str.split('_', expand=True)
     wall_info = pd.merge(wall_info, story_info, how='left')
+    # 결과값 없는 부재 제거
+    idx_to_slice = SF_output.iloc[:,6:].dropna().index # dropna로 결과값(DE,MCE) 있는 부재만 남긴 후 idx 추출
+    idx_to_slice2 = wall_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
+    wall_info = wall_info.iloc[idx_to_slice2,:]
+    wall_info.reset_index(inplace=True, drop=True)
     # 벽체 이름, 번호에 따라 grouping
     wall_name_list = list(wall_info.groupby(['Wall Name', 'Wall Number'], sort=False))
     # 55 row짜리 empty dataframe 만들기
@@ -1383,20 +1411,25 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
     startrow, startcol = 5, 1
     
     # Results_S.Wall_Shear 시트 입력
+    ws1.Range('A%s:DN%s' %(startrow, 5000)).ClearContents()
     ws1.Range('A%s:DN%s' %(startrow, startrow + SF_output.shape[0] - 1)).Value\
         = list(SF_output.itertuples(index=False, name=None))
     
     # Design_S.Wall 시트 입력
+    ws2.Range('A%s:P%s' %(startrow, 5000)).ClearContents()
     ws2.Range('A%s:P%s' %(startrow, startrow + wall_output.shape[0] - 1)).Value\
         = list(wall_output.itertuples(index=False, name=None))
     
     # Table_S.Wall_DE 시트 입력
+    # 값을 입력하기 전에, 우선 해당 셀에 있는 값 지우기
+    ws3.Range('B%s:B%s' %(startrow, 5000)).ClearContents()
     ws3.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
         = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
     ws3.Range('A4:A4').Value\
         = len(wall_name_list) # series -> list 형식만 입력가능 
         
     # Design_S.Wall 시트 입력
+    ws4.Range('D%s:L%s' %(startrow, 5000)).ClearContents()
     ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
         = list(rebar_output.itertuples(index=False, name=None))
     
