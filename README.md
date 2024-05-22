@@ -1,50 +1,8 @@
-$project
-========
-
-$project will solve your problem of where to start with documentation,
-by providing a basic explanation of how to do it easily.
-
-Look how easy it is to use:
-
-    import project
-    # Get your stuff done
-    project.do_stuff()
-
-Features
---------
-
-- Be awesome
-- Make things faster
-
-Installation
-------------
-
-Install $project by running:
-
-    install project
-
-Contribute
-----------
-
-- Issue Tracker: github.com/$project/$project/issues
-- Source Code: github.com/$project/$project
-
-Support
--------
-
-If you are having issues, please let us know.
-We have a mailing list located at: project@google-groups.com
-
-License
--------
-
-The project is licensed under the BSD license.
-
-$PBD_p3d
+PBD_p3d
 =========
+![Static Badge](https://img.shields.io/badge/python-3.9.12-%233776AB?style=plastic&logo=Python)
 
-PBD_p3d 매뉴얼에 찾아오신 것을 환영합니다.
-
+**PBD_p3d** 는 Perform-3D를 이용한 성능기반 내진설계를 보다 쉽고 빠르게 진행하기 위해 만들어진 Python 모듈입니다.
 
 PBD_p3d의 필요성
 --------------------
@@ -57,7 +15,7 @@ PBD_p3d의 사용에 필요한 소프트웨어
 
 
 
-**PBD_p3d** 는 Perform-3D를 이용한 성능기반 내진설계를 보다 쉽고 빠르게 진행하기 위해 만들어진 Python 모듈입니다.
+
 
 PBD_p3d를 사용하기 위해 필요한 것들은 아래와 같습니다.
 

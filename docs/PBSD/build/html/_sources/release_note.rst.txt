@@ -7,9 +7,174 @@ Release Notes
 .. role:: tealbold
 .. role:: maroonbold
 
+**2024.05.21**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.6.0*
+~~~~~~~~~~~~~~~~~~~~~
+
+  .. only:: html
+
+    .. button-ref:: FEATURE
+      :ref-type: ref
+      :color: success
+      :shadow:
+
+  * 후처리 그래프를 :maroonbold:`한글(hwp) 파일로 출력`\하는 기능 추가.
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * 각각의 지진파에 대해, :maroonbold:`모든 위치(ex. 1,5,7,11)의 층간변위비 게이지의 최대값`\을 구한 후, 모든 지진파들의 평균값을 계산하여 층간변위비로 산출하도록 수정.
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * :maroonbold:`그래프 사이즈, 제목 등의 디자인 변경`.
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * 그래프 미리보기(Preview) 시, :maroonbold:`그래프 제목이 출력되지 않도록` 수정.
+
+  .. only:: html
+
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+  * 벽체의 :maroonbold:`압축변형률, 인장변형률 그래프 크기가 다르게 출력되는 오류`` 수정.
+
+  .. only:: html
+
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+  * Seismic Design Sheets의 입력 여부에 관계없이, :maroonbold:`밑면전단력, 층전단력, 층간변위비의 그래프 미리보기(Preview) 기능이 항상 작동`\되도록 수정.
+
+**2024.02.20**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.5.3*
+~~~~~~~~~~~~~~~~~~~~~
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * 연결보 :maroonbold:`Seismic Design Coupling Beam Sheets의 Design_C.Beam 시트`\에 :maroonbold:`Boundary 열이 자동으로 입력`\되도록 수정.
+
+  .. only:: html
+
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+  * 층간변위비 그래프 미리보기(Preview)에서, :maroonbold:`최대고려지진(MCE) 범례에 CP가 아닌 LS로 표기되는 오류` 수정.
+
+**2024.02.15**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.5.2*
+~~~~~~~~~~~~~~~~~~~~~
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * 그래프 출력 시, :maroonbold:`그래프 제목이 출력되지 않도록` 수정.
+
+  .. only:: html
+
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+  * 층간변위비 그래프 출력 시, :maroonbold:`최대고려지진(MCE) 범례에 CP가 아닌 LS로 표기되는 오류` 수정.
+
+**2024.02.06**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.5.1*
+~~~~~~~~~~~~~~~~~~~~~
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * 연결보 :maroonbold:`Drift Gage 위치(location) 개수 제한 없도록` 수정.
+
+  .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+  * 연결보 :maroonbold:`Seismic Design Sheets의 수정`\에 따라, :maroonbold:`중력하중 결과도 자동으로 입력`\되도록 수정.
+
+**2024.01.15**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.4.2*
+~~~~~~~~~~~~~~~~~~~~~
+
+  .. only:: html
+
+    .. button-ref:: FEATURE
+      :ref-type: ref
+      :color: success
+      :shadow:
+
+  * 연결보 :maroonbold:`양단고정/1단고정` 설정 기능 추가.
+
+  .. only:: html
+   
+    .. button-ref:: FIXED
+      :ref-type: ref
+      :color: info
+      :shadow:
+
+  * :maroonbold:`Nodal Loads 값이 모두 Import되지 않는 오류` 수정.
+
+**2023.09.27**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*Version 2.4.1*
+~~~~~~~~~~~~~~~~~~~~~
+
+ .. only:: html
+
+    .. button-ref:: CHANGED
+      :ref-type: ref
+      :color: warning
+      :shadow:
+
+ * 후처리 시, :maroonbold:`Seismic Design Sheets의 입력`\과 그에 따른 :maroonbold:`그래프 출력`\을 구분하여 작동되도록 수정.
+
 **2023.09.22**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-*Version 2.3.2*
+*Version 2.4.0*
 ~~~~~~~~~~~~~~~~~~~~~
 
  .. only:: html
