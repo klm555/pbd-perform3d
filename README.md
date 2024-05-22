@@ -1,6 +1,8 @@
 PBD_p3d
 =========
 ![Static Badge](https://img.shields.io/badge/python-3.9.12-%233776AB?style=plastic&logo=Python)
+![Static Badge](https://img.shields.io/badge/PyQt5-5.15.7-%2341CD52?style=plastic&logo=Qt)
+![Static Badge](https://img.shields.io/badge/Sphinx-5.3.0-%23000000?style=plastic&logo=Sphinx)
 
 **PBD_p3d** 는 Perform-3D를 이용한 성능기반 내진설계를 보다 쉽고 빠르게 진행하기 위해 만들어진 Python 모듈입니다.
 
