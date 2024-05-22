@@ -10,8 +10,8 @@ from matplotlib.figure import Figure
 #%% Matplotlib Canvas
 class MplCanvas(FigureCanvasQTAgg):
     
-    def __init__(self, parent=None, width=5, height=4):
-        self.fig = Figure(figsize=(width, height), tight_layout=True)
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        self.fig = Figure(figsize=(width, height), tight_layout=True, dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         FigureCanvasQTAgg.__init__(self, self.fig)
         FigureCanvasQTAgg.setMinimumSize(self, self.size())
@@ -79,6 +79,11 @@ def plot_display(self, result_dict_and_time):
     WAS_gage_group='AS' # WAS
     WSF_graph = True # WSF
     
+    # matplotlib unit
+    fig_scale = 3/4 # 그래프 크기, 축, 글씨 등 scale up/down. (scale과 반비례함)
+    mm = 1/2.54/10
+    cm = mm * 10
+    
     # QScrollAreadp container QWidget 생성
     self.plot_display_area.setWidgetResizable(True)
     container = QWidget()
@@ -104,7 +109,7 @@ def plot_display(self, result_dict_and_time):
         # DE Plot
         if len(DE_load_name_list) != 0:
             # H1_DE                
-            sc1 = MplCanvas(self, width=6, height=4)
+            sc1 = MplCanvas(self, width=7*fig_scale, height=6.5*fig_scale)
     
             # MplCanvas에 그래프 그리기
             sc1.axes.bar(range(len(DE_load_name_list)), base_shear_H1.iloc[0, 0:len(DE_load_name_list)]\
@@ -117,18 +122,18 @@ def plot_display(self, result_dict_and_time):
             sc1.axes.set_xlabel('Ground Motion No.')
             sc1.axes.set_ylabel('Base Shear(kN)')
             sc1.axes.legend(loc = 2)
-            sc1.axes.set_title('X 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar1 = NavigationToolbar2QT(sc1, self)
     
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar1, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc1, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (X direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc1, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
     
             # H2_DE
-            sc2 = MplCanvas(self, width=6, height=4)
+            sc2 = MplCanvas(self, width=7*fig_scale, height=6.5*fig_scale)
     
             sc2.axes.bar(range(len(DE_load_name_list)), base_shear_H2.iloc[0, 0:len(DE_load_name_list)]\
                         , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
@@ -140,19 +145,19 @@ def plot_display(self, result_dict_and_time):
             sc2.axes.set_xlabel('Ground Motion No.')
             sc2.axes.set_ylabel('Base Shear(kN)')
             sc2.axes.legend(loc = 2)
-            sc2.axes.set_title('Y 1.2$\star$DBE')
     
             toolbar2 = NavigationToolbar2QT(sc2, self)
-    
+            
             layout.addWidget(toolbar2, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc2, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Y direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc2, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
     
         # MCE Plot
         if len(MCE_load_name_list) != 0:
     
             # H1_MCE
-            sc3 = MplCanvas(self, width=6, height=4)
+            sc3 = MplCanvas(self, width=7*fig_scale, height=6.5*fig_scale)
             
             sc3.axes.bar(range(len(MCE_load_name_list)), base_shear_H1\
                     .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
@@ -167,16 +172,16 @@ def plot_display(self, result_dict_and_time):
             sc3.axes.set_xlabel('Ground Motion No.')
             sc3.axes.set_ylabel('Base Shear(kN)')
             sc3.axes.legend(loc = 2)
-            sc3.axes.set_title('X MCE')
             
             toolbar3 = NavigationToolbar2QT(sc3, self)
     
             layout.addWidget(toolbar3, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc3, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (X direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc3, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
     
             # H2_MCE
-            sc4 = MplCanvas(self, width=6, height=4)
+            sc4 = MplCanvas(self, width=7*fig_scale, height=6.5*fig_scale)
             
             sc4.axes.bar(range(len(MCE_load_name_list)), base_shear_H2\
                     .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
@@ -191,13 +196,13 @@ def plot_display(self, result_dict_and_time):
             sc4.axes.set_xlabel('Ground Motion No.')
             sc4.axes.set_ylabel('Base Shear(kN)')
             sc4.axes.legend(loc = 2)
-            sc4.axes.set_title('Y MCE')
     
             toolbar4 = NavigationToolbar2QT(sc4, self)
     
             layout.addWidget(toolbar4, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc4, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Y direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc4, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
             
     #%% Story Shear Force 그래프
     if get_story_SF == True:
@@ -233,15 +238,15 @@ def plot_display(self, result_dict_and_time):
             sc5.axes.set_xlabel('Story Shear(kN)')
             sc5.axes.set_ylabel('Story')
             sc5.axes.legend(loc=1, fontsize=8)
-            sc5.axes.set_title('X 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar5 = NavigationToolbar2QT(sc5, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar5, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc5, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (X direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc5, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # H2_DE
             sc6 = MplCanvas(self, width=6, height=5)
@@ -259,13 +264,13 @@ def plot_display(self, result_dict_and_time):
             sc6.axes.set_xlabel('Story Shear(kN)')
             sc6.axes.set_ylabel('Story')
             sc6.axes.legend(loc=1, fontsize=8)
-            sc6.axes.set_title('Y 1.2$\star$DBE')
 
             toolbar6 = NavigationToolbar2QT(sc6, self)
 
             layout.addWidget(toolbar6, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc6, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Y direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc6, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -286,13 +291,13 @@ def plot_display(self, result_dict_and_time):
             sc7.axes.set_xlabel('Story Shear(kN)')
             sc7.axes.set_ylabel('Story')
             sc7.axes.legend(loc=1, fontsize=8)
-            sc7.axes.set_title('X MCE')
 
             toolbar7 = NavigationToolbar2QT(sc7, self)
 
             layout.addWidget(toolbar7, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc7, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (X direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc7, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # H2_MCE
             sc8 = MplCanvas(self, width=6, height=5)
@@ -310,13 +315,13 @@ def plot_display(self, result_dict_and_time):
             sc8.axes.set_xlabel('Story Shear(kN)')
             sc8.axes.set_ylabel('Story')
             sc8.axes.legend(loc=1, fontsize=8)
-            sc8.axes.set_title('Y MCE')
 
             toolbar8 = NavigationToolbar2QT(sc8, self)
 
             layout.addWidget(toolbar8, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc8, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Y direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc8, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
     
     #%% Inter-Story Drift 그래프
     if get_IDR == True:
@@ -365,15 +370,15 @@ def plot_display(self, result_dict_and_time):
             sc9.axes.set_xlabel('Interstory Drift Ratios(m/m)')
             sc9.axes.set_ylabel('Story')
             sc9.axes.legend(loc=4, fontsize=8)
-            sc9.axes.set_title('X 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar9 = NavigationToolbar2QT(sc9, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar9, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc9, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (X direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc9, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # H2_DE
             # MplCanvas 생성
@@ -405,15 +410,15 @@ def plot_display(self, result_dict_and_time):
             sc10.axes.set_xlabel('Interstory Drift Ratios(m/m)')
             sc10.axes.set_ylabel('Story')
             sc10.axes.legend(loc=4, fontsize=8)
-            sc10.axes.set_title('Y 1.2$\star$DBE')
             
             # toolbar 생성
             toolbar10 = NavigationToolbar2QT(sc10, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar10, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc10, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Y direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc10, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
         # DE Plot
         if len(MCE_load_name_list) != 0:
@@ -435,7 +440,7 @@ def plot_display(self, result_dict_and_time):
             sc11.axes.plot(IDR_result_avg[count_avg].iloc[:,1], story_name_window_reordered, color='k', linewidth=2)
             
             # reference line 그려서 허용치 나타내기
-            sc11.axes.axvline(x=-cri_MCE, color='r', linestyle='--', label='LS')
+            sc11.axes.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
             sc11.axes.axvline(x=cri_MCE, color='r', linestyle='--')
 
             sc11.axes.set_xlim(-0.025, 0.025)
@@ -446,15 +451,15 @@ def plot_display(self, result_dict_and_time):
             sc11.axes.set_xlabel('Interstory Drift Ratios(m/m)')
             sc11.axes.set_ylabel('Story')
             sc11.axes.legend(loc=4, fontsize=8)
-            sc11.axes.set_title('X MCE')
             
             # toolbar 생성
             toolbar11 = NavigationToolbar2QT(sc11, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar11, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc11, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (X direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc11, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # H2_MCE
             # MplCanvas 생성
@@ -475,7 +480,7 @@ def plot_display(self, result_dict_and_time):
             count_avg += 1
             
             # reference line 그려서 허용치 나타내기
-            sc12.axes.axvline(x=-cri_MCE, color='r', linestyle='--', label='LS')
+            sc12.axes.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
             sc12.axes.axvline(x=cri_MCE, color='r', linestyle='--')
 
             sc12.axes.set_xlim(-0.025, 0.025)
@@ -486,15 +491,15 @@ def plot_display(self, result_dict_and_time):
             sc12.axes.set_xlabel('Interstory Drift Ratios(m/m)')
             sc12.axes.set_ylabel('Story')
             sc12.axes.legend(loc=4, fontsize=8)
-            sc12.axes.set_title('Y MCE')
             
             # toolbar 생성
             toolbar12 = NavigationToolbar2QT(sc12, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar12, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc12, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Y direction)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc12, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
             
     #%% C.Beam Rotation 그래프
     if get_BR == True:
@@ -525,17 +530,17 @@ def plot_display(self, result_dict_and_time):
 
             # 기타
             sc13.axes.grid(linestyle='-.')
-            sc13.axes.set_xlabel('D/C Ratios')
+            sc13.axes.set_xlabel('DCR')
             sc13.axes.set_ylabel('Story')
-            sc13.axes.set_title('Beam Rotation (1.2$\star$DBE)')
 
             # toolbar 생성
             toolbar13 = NavigationToolbar2QT(sc13, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar13, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc13, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Beam Rotation)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc13, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
             
         if len(MCE_load_name_list) != 0:
             # MplCanvas 생성
@@ -554,17 +559,17 @@ def plot_display(self, result_dict_and_time):
 
             # 기타
             sc14.axes.grid(linestyle='-.')
-            sc14.axes.set_xlabel('D/C Ratios')
+            sc14.axes.set_xlabel('DCR')
             sc14.axes.set_ylabel('Story')
-            sc14.axes.set_title('Beam Rotation (MCE)')
 
             # toolbar 생성
             toolbar14 = NavigationToolbar2QT(sc14, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar14, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc14, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Beam Rotation)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc14, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
     #%% C.Beam Shear Force 그래프
     if get_BSF == True:
@@ -593,17 +598,17 @@ def plot_display(self, result_dict_and_time):
     
             # 기타
             sc15.axes.grid(linestyle='-.')
-            sc15.axes.set_xlabel('D/C Ratios')
+            sc15.axes.set_xlabel('DCR')
             sc15.axes.set_ylabel('Story')
-            sc15.axes.set_title('Shear Strength (1.2$\star$DBE)')
     
             # toolbar 생성
             toolbar15 = NavigationToolbar2QT(sc15, self)
     
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar15, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc15, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Beam Shear Force)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc15, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
             
         if len(MCE_load_name_list) != 0:
             # MplCanvas 생성
@@ -620,21 +625,17 @@ def plot_display(self, result_dict_and_time):
     
             # 기타
             sc16.axes.grid(linestyle='-.')
-            sc16.axes.set_xlabel('D/C Ratios')
+            sc16.axes.set_xlabel('DCR')
             sc16.axes.set_ylabel('Story')
-            sc16.axes.set_title('Shear Strength (MCE)')
     
             # toolbar 생성
             toolbar16 = NavigationToolbar2QT(sc16, self)
     
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar16, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc16, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
-
-    #%% E.Column 그래프
-    if get_E_CSF == True:
-        pass
+            layout.addWidget(QLabel('MCE (Beam Shear Force)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc16, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
     
     #%% Wall Axial Strain 그래프
     if get_WAS == True:
@@ -654,7 +655,7 @@ def plot_display(self, result_dict_and_time):
             sc17 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc17.axes.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc17.axes.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             sc17.axes.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -668,22 +669,22 @@ def plot_display(self, result_dict_and_time):
             sc17.axes.grid(linestyle='-.')
             sc17.axes.set_xlabel('Axial Strain (m/m)')
             sc17.axes.set_ylabel('Story')
-            sc17.axes.set_title('1.2$\star$DBE (Compressive)')
 
             # toolbar 생성
             toolbar17 = NavigationToolbar2QT(sc17, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar17, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc17, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Compressive Axial Strain)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc17, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # DE_2
             # MplCanvas 생성
             sc18 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc18.axes.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc18.axes.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             sc18.axes.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -697,15 +698,15 @@ def plot_display(self, result_dict_and_time):
             sc18.axes.grid(linestyle='-.')
             sc18.axes.set_xlabel('Axial Strain (m/m)')
             sc18.axes.set_ylabel('Story')
-            sc18.axes.set_title('1.2$\star$DBE (Tensile)')
 
             # toolbar 생성
             toolbar18 = NavigationToolbar2QT(sc18, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar18, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc18, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Tensile Axial Strain)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc18, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
             
             # 기준 넘는 점 확인
             # error_coord_DE = WAS_plot[(WAS_plot['DE(Tensile)'] >= max_criteria)
@@ -718,7 +719,7 @@ def plot_display(self, result_dict_and_time):
             sc19 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc19.axes.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc19.axes.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             sc19.axes.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -732,22 +733,22 @@ def plot_display(self, result_dict_and_time):
             sc19.axes.grid(linestyle='-.')
             sc19.axes.set_xlabel('Axial Strain (m/m)')
             sc19.axes.set_ylabel('Story')
-            sc19.axes.set_title('MCE (Compressive)')
 
             # toolbar 생성
             toolbar19 = NavigationToolbar2QT(sc19, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar19, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc19, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Compressive Axial Strain)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc19, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # MCE_2
             # MplCanvas 생성
             sc20 = pbd.ShowResult(self, width=5, height=4)
 
             # WAS plot
-            sc20.axes.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            sc20.axes.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             sc20.axes.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -761,15 +762,15 @@ def plot_display(self, result_dict_and_time):
             sc20.axes.grid(linestyle='-.')
             sc20.axes.set_xlabel('Axial Strain (m/m)')
             sc20.axes.set_ylabel('Story')
-            sc20.axes.set_title('MCE (Tensile)')
 
             # toolbar 생성
             toolbar20 = NavigationToolbar2QT(sc20, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar20, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc20, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Tensile Axial Strain)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc20, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # 기준 넘는 점 확인
             # error_coord_MCE = WAS_plot[(WAS_plot['MCE(Tensile)'] >= max_criteria)
@@ -805,17 +806,17 @@ def plot_display(self, result_dict_and_time):
             
             # 기타
             sc21.axes.grid(linestyle='-.')
-            sc21.axes.set_xlabel('D/C Ratios')
+            sc21.axes.set_xlabel('DCR')
             sc21.axes.set_ylabel('Story')
-            sc21.axes.set_title('Wall Rotation (1.2$\star$DBE)')
 
             # toolbar 생성
             toolbar21 = NavigationToolbar2QT(sc21, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar21, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc21, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Wall Rotation)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc21, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # 기준 넘는 벽체 확인
             error_wall_DE = WR_plot[['Name', 'DCR(DE_pos)', 'DCR(DE_neg)']]
@@ -839,17 +840,17 @@ def plot_display(self, result_dict_and_time):
 
             # 기타
             sc22.axes.grid(linestyle='-.')
-            sc22.axes.set_xlabel('D/C Ratios')
+            sc22.axes.set_xlabel('DCR')
             sc22.axes.set_ylabel('Story')
-            sc22.axes.set_title('Wall Rotation (MCE)')
 
             # toolbar 생성
             toolbar22 = NavigationToolbar2QT(sc22, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar22, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc22, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Wall Rotation)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc22, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
             # 기준 넘는 벽체 확인
             error_wall_MCE = WR_plot[['Name', 'DCR(MCE_pos)', 'DCR(MCE_neg)']]
@@ -883,17 +884,17 @@ def plot_display(self, result_dict_and_time):
 
             # 기타
             sc23.axes.grid(linestyle='-.')
-            sc23.axes.set_xlabel('D/C Ratios')
+            sc23.axes.set_xlabel('DCR')
             sc23.axes.set_ylabel('Story')
-            sc23.axes.set_title('Shear Strength (1.2$\star$DBE)')
 
             # toolbar 생성
             toolbar23 = NavigationToolbar2QT(sc23, self)
             
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar23, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc23, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('1.2 X DBE (Wall Shear Force)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc23, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
 
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -912,18 +913,112 @@ def plot_display(self, result_dict_and_time):
 
             # 기타
             sc24.axes.grid(linestyle='-.')
-            sc24.axes.set_xlabel('D/C Ratios')
+            sc24.axes.set_xlabel('DCR')
             sc24.axes.set_ylabel('Story')
-            sc24.axes.set_title('Shear Strength (MCE)')
 
             # toolbar 생성
             toolbar24 = NavigationToolbar2QT(sc24, self)
 
             # layout에 toolbar, canvas 추가
             layout.addWidget(toolbar24, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            layout.addWidget(sc24, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-            row_count += 2
+            layout.addWidget(QLabel('MCE (Wall Shear Force)'), row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            layout.addWidget(sc24, row_count+2, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+            row_count += 3
+    
+    #%% E.Column 그래프
+    if get_E_CSF == True:
+        pass            
+    
+    #%% E.Beam Shear Force 그래프
+    # if get_E_BSF == True:         
+# '''
+#         # E_BSF 결과값 가져오기
+#         node_map_z, node_map_list, element_map_list = result.E_BSF()
+
+#         # V, M 크기에 따른 Color 지정
+#         cmap_V = plt.get_cmap('Reds')
+#         cmap_M = plt.get_cmap('YlOrBr')
+        
+#         # 층별 Loop
+#         for i in node_map_z:   
+#             # 해당 층에 해당하는 Nodes와 Elements만 Extract
+#             node_map_list_extracted = node_map_list[node_map_list['V'] == i]
+#             element_map_list_extracted = element_map_list[element_map_list['i-V'] == i]
+#             element_map_list_extracted.reset_index(inplace=True, drop=True)
             
+#             # Colorbar, 그래프 Coloring을 위한 설정
+#             norm_V = plt.Normalize(vmin = element_map_list_extracted['DCR(V)'].min()\
+#                                 , vmax = element_map_list_extracted['DCR(V)'].max())
+#             cmap_V_elem = cmap_V(norm_V(element_map_list_extracted['DCR(V)']))
+#             scalar_map_V = mpl.cm.ScalarMappable(norm_V, cmap_V)
+            
+#             norm_M = plt.Normalize(vmin = element_map_list_extracted['DCR(M)'].min()\
+#                                 , vmax = element_map_list_extracted['DCR(M)'].max())
+#             cmap_M_elem = cmap_M(norm_M(element_map_list_extracted['DCR(M)']))
+#             scalar_map_M = mpl.cm.ScalarMappable(norm_M, cmap_M)
+            
+#             # E.Beam Contour 그래프 그리기
+#             # V(전단)
+#             # MplCanvas 생성
+#             sc15 = pbd.ShowResult(self, width=6, height=3)
+            
+#             # Contour plot             
+#             sc15.axes.scatter(node_map_list_extracted['H1'], node_map_list_extracted['H2'], color='k', s=1)
+            
+#             for idx, row in element_map_list_extracted.iterrows():
+                
+#                 element_map_x = [row['i-H1'], row['j-H1']]
+#                 element_map_y = [row['i-H2'], row['j-H2']]
+                
+#                 sc15.axes.plot(element_map_x, element_map_y, c = cmap_V_elem[idx])
+            
+#             # Colorbar 만들기
+#             sc15.fig.colorbar(scalar_map_V, shrink=0.7, label='DCR (V)')
+        
+#             # 기타
+#             sc15.axes.set_axis_off()
+#             sc15.axes.set_aspect('equal') # aspect 알아서 맞춤
+#             sc15.axes.set_title(result.story_info['Story Name'][result.story_info['Height(mm)'] == i].iloc[0])
+
+#             # toolbar 생성
+#             toolbar15 = NavigationToolbar(sc15, self)
+
+#             # layout에 toolbar, canvas 추가
+#             layout.addWidget(toolbar15, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+#             layout.addWidget(sc15, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+#             row_count += 3
+            
+#             ## M(모멘트)     
+#             # Graph    
+#             sc16 = pbd.ShowResult(self, width=6, height=3)
+            
+#             # Contour plot
+#             sc16.axes.scatter(node_map_list_extracted['H1'], node_map_list_extracted['H2'], color='k', s=1)
+            
+#             for idx, row in element_map_list_extracted.iterrows():
+                
+#                 element_map_x = [row['i-H1'], row['j-H1']]
+#                 element_map_y = [row['i-H2'], row['j-H2']]
+                
+#                 sc16.axes.plot(element_map_x, element_map_y, c = cmap_M_elem[idx])
+            
+#             # Colorbar 만들기
+#             sc16.fig.colorbar(scalar_map_M, shrink=0.7, label='DCR (M)')
+        
+#             # 기타
+#             sc16.axes.set_axis_off()
+#             sc16.axes.set_aspect('equal') # aspect 알아서 맞춤
+#             sc16.axes.set_title(result.story_info['Story Name'][result.story_info['Height(mm)'] == i].iloc[0])
+
+#             # toolbar 생성
+#             toolbar16 = NavigationToolbar(sc16, self)
+
+#             # layout에 toolbar, canvas 추가
+#             layout.addWidget(toolbar16, row_count, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+#             layout.addWidget(sc16, row_count+1, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+#             row_count += 3
+# '''
+
 #%% 실행 시간 계산
     time_end = time.time()
     time_run = (time_end-time_start)/60            

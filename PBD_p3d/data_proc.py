@@ -95,8 +95,7 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     
     '''
     
-    #%% 변수, 이름 지정
-    
+    #%% 변수, 이름 지정    
     DL_name = [DL_name] # DL에 포함시킬 하중이름 포함("DL_XX"와 같은 형태의 하중들만 있을 경우, "DL"만 넣어주면 됨)
     LL_name = [LL_name]
     
@@ -133,8 +132,8 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
     
         # Nodal Load 정보 load
         nodal_load = pd.read_excel(input_xlsx_path, sheet_name = nodal_load_raw_xlsx_sheet
-                                   , skiprows = 3, usecols=[0,1,2,3,4], index_col = 0)
-        nodal_load.columns = ['Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)']
+                                   , skiprows = 3, usecols=[0,1,2,3,4])
+        nodal_load.columns = ['Node', 'Loadcase', 'FX(kN)', 'FY(kN)', 'FZ(kN)']
         
         nodal_load = nodal_load.drop_duplicates()
         
@@ -161,9 +160,12 @@ def import_midas(input_xlsx_path, DL_name='DL', LL_name='LL'\
         LL2 = LL.drop('Loadcase', axis=1)  # 필요없어진 Loadcase 열은 drop으로 떨굼
         
         # Node와 Nodal Load를 element number 기준으로 병합
-        node_DL_merged = pd.merge(node, DL2, left_index=True, right_index=True)  # node 좌표와 하중을 결합하여 dataframe 만들기, merge : 공통된 index를 기준으로 합침
-        node_LL_merged = pd.merge(node, LL2, left_index=True, right_index=True)  # left_index, right_index는 뭔지 기억은 안나는데 오류고치기위해서 더함
+        node_DL_merged = pd.merge(node, DL2, left_index=True, right_on='Node', how='right')  # node 좌표와 하중을 결합하여 dataframe 만들기, merge : 공통된 index를 기준으로 합침
+        node_LL_merged = pd.merge(node, LL2, left_index=True, right_on='Node', how='right')  # left_index, right_index는 뭔지 기억은 안나는데 오류고치기위해서 더함
         
+        node_DL_merged = node_DL_merged.drop('Node', axis=1)
+        node_LL_merged = node_LL_merged.drop('Node', axis=1)
+
         # DL, LL 결과값을 csv로 변환
         if import_DL == True:
             node_DL_merged.to_csv(output_csv_dir+'\\'+node_DL_merged_csv, mode='w', index=False)  # to_csv 사용. index=False로 index 열은 떨굼
@@ -1787,12 +1789,12 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     # 불러온 Beam 정보 정리
     if get_cbeam == True:
         # Beam 정보 load
-        cbeam = input_data_sheets['Prop_C.Beam'].iloc[:,0:22]
+        cbeam = input_data_sheets['Prop_C.Beam'].iloc[:,0:23]
         cbeam.columns = ['Name', 'Story(from)', 'Story(to)', 'Length(mm)', 'b(mm)',\
                         'h(mm)', '배근', '내진상세 여부', 'Main Rebar Type', 'Main Rebar(DXX)'\
-                        , 'Stirrup Type', 'Stirrup Rebar(DXX)', 'X-Bracing Type'
-                        , 'X-Bracing Rebar(DXX)', 'Top(1)', 'Top(2)',\
-                        'Top(3)', 'EA(Stirrup)', 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'D(mm)']
+                        , 'Stirrup Type', 'Stirrup Rebar(DXX)', 'X-Bracing Type'\
+                        , 'X-Bracing Rebar(DXX)', 'Top(1)', 'Top(2)', 'Top(3)', 'EA(Stirrup)'\
+                        , 'Spacing(Stirrup)', 'EA(Diagonal)', 'Degree(Diagonal)', 'Boundary', 'D(mm)']
 
         cbeam = cbeam.dropna(axis=0, how='all')
         cbeam.reset_index(inplace=True, drop=True)
@@ -1990,14 +1992,17 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         cbeam_ongoing.reset_index(inplace=True, drop=True)
     
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,22,23,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]]  
+        cbeam_output = cbeam_ongoing.iloc[:,[0,4,5,6,23,24,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]]  
         
-        # gcol_output에 붙이기 위한 보강 후(after) dataframe
+        # cbeam_output에 붙이기 위한 보강 후(after) dataframe
         rebar_after = cbeam_ongoing.iloc[:,[10,12,14,15,16,17,18,19,20,21]]
         rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
         
+        # Boundary dataframe
+        boundary = cbeam_ongoing.iloc[:,22]
+        
         # (gcol_output) + (보강 후 df) concat
-        cbeam_output = pd.concat([cbeam_output, rebar_after], axis=1)
+        cbeam_output = pd.concat([cbeam_output, rebar_after, boundary], axis=1)
     
         # 철근지름에 다시 D붙이기
         cbeam_output.loc[:,'Main Rebar(DXX)'] = 'D' + cbeam_output['Main Rebar(DXX)'].astype(str)
@@ -2452,7 +2457,7 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     startrow, startcol = 5, 1
     
     # Input converted data to Excel
-    if get_wall == True:    
+    if get_wall == True:
         ws_wall.Range(ws_wall.Cells(startrow, startcol),\
                       ws_wall.Cells(startrow + wall_output.shape[0]-1,\
                                     startcol + wall_output.shape[1]-1)).Value\
@@ -2461,31 +2466,31 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     if get_gcol == True:        
         ws_gcol.Range(ws_gcol.Cells(startrow, startcol),\
                         ws_gcol.Cells(startrow + gcol_output.shape[0]-1,\
-                                        startcol + gcol_output.shape[1]-1)).Value\
+                                      startcol + gcol_output.shape[1]-1)).Value\
         = list(gcol_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
         
     if get_ecol == True:        
         ws_ecol.Range(ws_ecol.Cells(startrow, startcol),\
                         ws_ecol.Cells(startrow + ecol_output.shape[0]-1,\
-                                        startcol + ecol_output.shape[1]-1)).Value\
+                                      startcol + ecol_output.shape[1]-1)).Value\
         = list(ecol_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
         
     if get_cbeam == True:        
         ws_cbeam.Range(ws_cbeam.Cells(startrow, startcol),\
                       ws_cbeam.Cells(startrow + cbeam_output.shape[0]-1,\
-                                    startcol + cbeam_output.shape[1]-1)).Value\
+                                     startcol + cbeam_output.shape[1]-1)).Value\
         = list(cbeam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
         
     if get_gbeam == True:        
         ws_gbeam.Range(ws_gbeam.Cells(startrow, startcol),\
                       ws_gbeam.Cells(startrow + gbeam_output.shape[0]-1,\
-                                    startcol + gbeam_output.shape[1]-1)).Value\
+                                     startcol + gbeam_output.shape[1]-1)).Value\
         = list(gbeam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
         
     if get_ebeam == True:        
         ws_ebeam.Range(ws_ebeam.Cells(startrow, startcol),\
                       ws_ebeam.Cells(startrow + ebeam_output.shape[0]-1,\
-                                    startcol + ebeam_output.shape[1]-1)).Value\
+                                     startcol + ebeam_output.shape[1]-1)).Value\
         = list(ebeam_output.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
 
 
@@ -2496,11 +2501,12 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
             h_space = ws_cbeam.Range('AC%s:AC%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
             # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_cbeam.Range('AI%s:AI%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
-            vy_vn_array = np.array([1 if 'N.G' in i[0] else 0 for i in vy_vn]) # (NG = 1, OK = 0)
+            vy_vn = ws_cbeam.Range('AM%s:AM%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            vy_vn_array = np.array([1 if ('허용안됨' in i[0]) & (j > 10)
+                                    else 0 for i, j in zip(vy_vn, h_space_array)]) # (허용안됨 = 1, OK = 0)
             
-            # If there is no NG element or Hoop space is less than 0, break
-            if (np.all(vy_vn_array == 0)) | (np.any(h_space_array <= 0)):
+            # If there is no 허용안됨 element or Hoop space is less than 0, break
+            if np.all(vy_vn_array == 0):
                 break
     
             # Reduce Hoop space of NG elements(-10mm every iteration)

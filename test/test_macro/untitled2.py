@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 17 16:59:25 2023
-
-@author: hwlee
-"""
-
 import cv2
 import numpy as np
 import win32gui, win32ui, win32con

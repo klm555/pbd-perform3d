@@ -8,16 +8,13 @@ from io import BytesIO # 파일처럼 취급되는 문자열 객체 생성(메�
 import PBD_p3d.output_to_docx as otd
 import PBD_p3d as pbd
 
-#%% 시간 측정(START)
-time_start = time.time()
-
 #%% USER INPUT
 
 ###########################   FILE 경로    ####################################
 # Analysis Result
-result_xlsx_1 = r"'K:\2104-박재성\성능기반 내진설계\창원 신월\03_1. Analysis Result\104D\SW2R_104_2_Analysis Result_DE.xlsx'"
-result_xlsx_2 = r"'K:\2104-박재성\성능기반 내진설계\창원 신월\03_1. Analysis Result\104D\SW2R_104_2_Analysis Result_MCE.xlsx'"
-result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-RM-200 창원 신월2구역 재건축 아파트 신축공사 성능기반 내진설계\08. Analysis Results\111D\SW2R_111_1_Analysis Result_MCE.xlsx'"
+result_xlsx_1 = r"'D:\이형우\성능기반 내진설계\용현학익7단지\708D\YH-708_Analysis Result_DE.xlsx'"
+result_xlsx_2 = r"'D:\이형우\성능기반 내진설계\용현학익7단지\708D\YH-708_Analysis Result_MCE.xlsx'"
+# result_xlsx_3 = r"'D:\이형우\성능기반 내진설계\22-RM-200 창원 신월2구역 재건축 아파트 신축공사 성능기반 내진설계\08. Analysis Results\111D\SW2R_111_1_Analysis Result_MCE.xlsx'"
 result_xlsx_path = result_xlsx_1 + ',' + result_xlsx_2 # + ',' + result_xlsx_3  # + ',' + result_xlsx_4 + ',' + result_xlsx_5
 result_xlsx_path = result_xlsx_path.split(',')
 result_xlsx_path = [i.strip("'") for i in result_xlsx_path]
@@ -25,13 +22,13 @@ result_xlsx_path = [i.strip('"') for i in result_xlsx_path]
 to_load_list = result_xlsx_path
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'K:\2104-박재성\성능기반 내진설계\창원 신월\02. Data Conversion\SW-104D_Data Conversion_Ver.2.0_230904.xlsx'
-wall_design_xlsx_path = r'K:\2104-박재성\성능기반 내진설계\창원 신월\03_1. Analysis Result\104D\test.xlsx'
-beam_design_xlsx_path = r'K:\2104-박재성\성능기반 내진설계\창원 신월\03_1. Analysis Result\104D\test.xlsx'
-col_design_xlsx_path = r'K:\2104-박재성\성능기반 내진설계\창원 신월\03_1. Analysis Result\104D\test.xlsx'
+input_xlsx_path = r'D:\이형우\성능기반 내진설계\용현학익7단지\708D\YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
+wall_design_xlsx_path = r'K:\2104-박재성\성능기반 내진설계\용현학익7단지\구조심의\YH-708\YH-708_Seismic Design_Shear Wall_Ver.2.0_240123.xlsx'
+beam_design_xlsx_path = r'D:\이형우\성능기반 내진설계\용현학익7단지\708D\YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
+# col_design_xlsx_path = r'K:\2104-박재성\성능기반 내진설계\창원 신월\03_1. Analysis Result\104D\test.xlsx'
 #########################   DOCX 출력 변수    ##################################
-bldg_name = '101동'
-DCR = 0.91
+bldg_name = '708동'
+DCR = 1
 
 # 전체 결과
 output_docx = '101_2_base_SF_test.docx' 
@@ -66,7 +63,7 @@ col_group = 'COLUMN'
 
 #%% Post Processing - TOTAL (Word로 출력)
 
-result = pbd.PostProc(input_xlsx_path, result_xlsx_path, get_E_CSF=True)
+result = pbd.PostProc(input_xlsx_path, result_xlsx_path, get_BR=True, get_BSF=True)
 
 # Execute functions for data analysis
 base_SF = result.base_SF(ylim=max_shear) # 밑면 전단력
@@ -77,7 +74,7 @@ IDR = result.IDR(yticks=story_gap) # 층간변위비
 # WR = result.WR(input_xlsx_path, yticks=story_gap, xlim=3) # 벽체 소성회전각(DCR)
 # WSF = result.WSF(input_xlsx_path, graph=True, yticks=story_gap, xlim=3) # 벽체 전단강도
 
-BR = result.BR(yticks=story_gap, xlim=3) # 연결보 소성회전각(DCR)
+BR = result.BR(input_xlsx_path, beam_design_xlsx_path, scale_factor=1) # 연결보 소성회전각(DCR)
 # BSF = result.BSF(input_xlsx_path) # 연결보 전단강도
 
 CR = result.CR(yticks=story_gap, xlim=3) # 일반기둥 소성회전각(DCR)                                                    

@@ -9,7 +9,6 @@ from pynput import keyboard
 
 from PIL import ImageGrab
 from functools import partial
-ImageGrab.grab = partial(ImageGrab.grab, all_screens=True) # pag.locateOnScreen이 듀얼 모니터에서 안되는 문제 해결
 
 import numpy as np
 import cv2
@@ -21,18 +20,20 @@ import mss
 
 #%% 
 
-# 자동 좌표 획득
+# pag.locateOnScreen이 듀얼 모니터에서 안되는 문제 해결
+ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
 
+# 자동 좌표 획득
+# negative coord 안 읽힘...
 position_test = pag.locateCenterOnScreen('images/test.png'
                                                 , confidence=0.8, grayscale=True) 
-# test
 pag.moveTo(position_test)
 
 obj_target = cv2.imread('images/H1_big_blue.png')
 obj_target = cv2.cvtColor(obj_target, cv2.COLOR_BGR2GRAY)
 obj_target = cv2.Canny(obj_target, 20, 20)
 
-template = cv2.imread('.png')
+template = cv2.imread('images/test.png')
 template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
 template = cv2.Canny(template, 20, 20)
 

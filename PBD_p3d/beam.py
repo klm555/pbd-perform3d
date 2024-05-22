@@ -9,7 +9,7 @@ import win32com.client
 import pythoncom
 
 #%% Beam Rotation (DCR)
-def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1, yticks=3, xlim=3, scale_factor=1.0):
+def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, scale_factor=1.0):
 
 #%% Load Data
     # Data Conversion Sheets
@@ -28,23 +28,6 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     seismic_load_name_list = self.seismic_load_name_list
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
-    
-    # Data Conversion Sheets
-    # story_info = result.story_info
-    # beam_info = result.beam_info
-    # rebar_info = result.rebar_info
-
-    # # Analysis Result Sheets
-    # node_data = result.node_data
-    # element_data = result.frame_data
-    # beam_rot_data = result.beam_rot_data
-
-    # # Seismic Loads List
-    # load_name_list = result.load_name_list
-    # gravity_load_name = result.gravity_load_name
-    # seismic_load_name_list = result.seismic_load_name_list
-    # DE_load_name_list = result.DE_load_name_list
-    # MCE_load_name_list = result.MCE_load_name_list
     
 #%% Process Data    
     # node, element data에서 필요한 정보만 추출
@@ -111,16 +94,41 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
                 # 해당 지진하중의 해석결과가 없는 경우 Blank Column 생성
                 if load_name not in seismic_load_name_list: 
                     blank_col = pd.Series([''] * len(prop_name))
-                    BR_output = pd.concat([BR_output, blank_col], axis=1)    
+                    BR_output = pd.concat([BR_output, blank_col], axis=1)   
                     
+    # 중력하중, i,j 노드, Max,Min loop 돌리기
+    BR_G_output = pd.DataFrame(prop_name)
+    for point_id in ['1', '5']:
+        for max_min in ['Max', 'Min']:
+            # 중력하중의 해석결과가 없는 경우 Blank Column 생성
+            if len(gravity_load_name) == 0: 
+                blank_col = pd.Series([''] * len(prop_name))
+                BR_G_output = pd.concat([BR_G_output, blank_col], axis=1)   
+            else:    
+                for BR_grouped in BR_grouped_list:
+                    if (gravity_load_name[0] in BR_grouped[0][0]) & (BR_grouped[0][1] == int(point_id)) & (BR_grouped[0][2] == max_min):
+                        # 같은 결과가 2개씩 있어서 drop_duplicates
+                        BR_grouped_df = BR_grouped[1].drop_duplicates()
+                        # Element Name이 같은 경우(부재가 잘려서 모델링 된 경우 등), 큰 값만 선택
+                        BR_grouped_df['Absolute Rotation(rad)'] = BR_grouped_df['Major Rotation(rad)'].abs()
+                        BR_grouped_df = BR_grouped_df.sort_values(by='Absolute Rotation(rad)')
+                        BR_grouped_df = BR_grouped_df.drop_duplicates(subset=['Element Name'], keep='last')
+                        # Input 시트의 부재 순서대로 재정렬
+                        BR_grouped_df = pd.merge(prop_name, BR_grouped_df, how='left')
+                        BR_grouped_df.reset_index(inplace=True, drop=True)
+                        BR_G_output = pd.concat([BR_G_output, BR_grouped_df['Major Rotation(rad)']], axis=1)
+                        BR_G_output = BR_G_output.iloc[:, 1:]
+                                    
 #%% Scale Factor 적용하기
-    BR_output.iloc[:,1:] *= scale_factor
+    for i in range(1, BR_output.shape[1]):
+        BR_output.iloc[:,i] = pd.to_numeric(BR_output.iloc[:,i], errors='coerce')
+    BR_output.iloc[:, 1:] *= scale_factor
                     
 #%% 결과 정리 후 Input Sheets에 넣기
 
     # 출력용 Dataframe 만들기
     # Design_C.Beam 시트
-    steel_design_df = beam_info.iloc[:,21:31]
+    steel_design_df = beam_info.iloc[:,21:32]
     beam_output = pd.concat([beam_info, steel_design_df], axis=1)
     
     # Table_C.Beam_DE 시트
@@ -136,6 +144,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     beam_info[['Beam Name', 'Beam Number', 'Story Name']] = beam_info['Name'].str.split('_', expand=True)
     beam_info = pd.merge(beam_info, story_info, how='left')
     # 결과값 없는 부재 제거
+    BR_output = BR_output.replace(np.nan, '', regex=True)
     idx_to_slice = BR_output.iloc[:,1:].dropna().index # dropna로 결과값 있는 부재만 남긴 후 idx 추출
     idx_to_slice2 = beam_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
     beam_info = beam_info.iloc[idx_to_slice2,:]
@@ -169,6 +178,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
 
     # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
     BR_output = BR_output.replace(np.nan, '', regex=True)
+    BR_G_output = BR_G_output.replace(np.nan, '', regex=True)
     beam_output = beam_output.replace(np.nan, '', regex=True)
     name_output = name_output.replace(np.nan, '', regex=True)
     rebar_output = rebar_output.replace(np.nan, '', regex=True)
@@ -203,9 +213,14 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
     ws1.Range('A%s:DI%s' %(startrow, startrow + BR_output.shape[0] - 1)).Value\
         = list(BR_output.itertuples(index=False, name=None))
         
+    # Results_C.Beam_Rotation 시트 입력 (중력하중)
+    ws1.Range('FZ%s:GC%s' %(startrow, 5000)).ClearContents()
+    ws1.Range('FZ%s:GC%s' %(startrow, startrow + BR_G_output.shape[0] - 1)).Value\
+        = list(BR_G_output.itertuples(index=False, name=None))
+        
     # Design_C.Beam 시트 입력
-    ws2.Range('A%s:AO%s' %(startrow, 5000)).ClearContents()
-    ws2.Range('A%s:AO%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
+    ws2.Range('A%s:AP%s' %(startrow, 5000)).ClearContents()
+    ws2.Range('A%s:AP%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
         = list(beam_output.itertuples(index=False, name=None))
     
     # Table_C.Beam_DE 시트 입력
@@ -272,7 +287,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1,
             pickle.dump(BR_result, f)
 
 #%% C.Beam SF (DCR)
-def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1, yticks=2, xlim=3):
+def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True):
     ''' 
 
     Perform-3D 해석 결과에서 일반기둥의 축력, 전단력을 불러와 Results_G.Column 엑셀파일을 작성. \n
@@ -302,23 +317,6 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
     seismic_load_name_list = self.seismic_load_name_list
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
-
-    # Data Conversion Sheets        
-    # story_info = result.story_info
-    # beam_info = result.beam_info
-    # rebar_info = result.rebar_info
-
-    # # Analysis Result Sheets
-    # node_data = result.node_data
-    # element_data = result.frame_data
-    # SF_info_data = result.beam_shear_force_data
-
-    # # Seismic Loads List
-    # load_name_list = result.load_name_list
-    # gravity_load_name = result.gravity_load_name
-    # seismic_load_name_list = result.seismic_load_name_list
-    # DE_load_name_list = result.DE_load_name_list
-    # MCE_load_name_list = result.MCE_load_name_list
 
 #%% Process Data
 
@@ -396,13 +394,13 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
         # 해당 지진하중의 해석결과가 없는 경우 Blank Column 생성
         if load_name not in seismic_load_name_list: 
             blank_col = pd.Series([''] * len(prop_name))
-            BSF_output = pd.concat([BSF_output, blank_col], axis=1)       
+            BSF_output = pd.concat([BSF_output, blank_col, blank_col, blank_col, blank_col], axis=1)       
 
 #%% 결과 정리 후 Input Sheets에 넣기
 
     # 출력용 Dataframe 만들기
     # Design_C.Beam 시트
-    steel_design_df = beam_info.iloc[:,21:31]
+    steel_design_df = beam_info.iloc[:,21:32]
     beam_output = pd.concat([beam_info, steel_design_df], axis=1)
     
     # Table_C.Beam_DE 시트
@@ -476,8 +474,8 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True, DCR_criteria=1
         = list(BSF_output.itertuples(index=False, name=None))
         
     # Design_C.Beam 시트 입력
-    ws2.Range('A%s:AO%s' %(startrow, 5000)).ClearContents()
-    ws2.Range('A%s:AO%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
+    ws2.Range('A%s:AP%s' %(startrow, 5000)).ClearContents()
+    ws2.Range('A%s:AP%s' %(startrow, startrow + beam_output.shape[0] - 1)).Value\
         = list(beam_output.itertuples(index=False, name=None))
     
     # Table_C.Beam_DE 시트 입력
@@ -842,72 +840,178 @@ def E_BSF(input_xlsx_path, result_xlsx_path, contour=True):
         count += 1
         yield fig2
 
-#%% C.Beam SF (elementwise)
-
-def BSF_each(input_xlsx_path, retrofit_sheet=None): 
-    ''' 
-
-    완성된 Results_Wall 시트에서 보강이 필요한 부재들이 OK될 때까지 자동으로 배근함. \n
-    
-       
-    세로 생성되는 Results_Wall_보강 시트에 보강 결과 출력 (철근 type 변경, 해결 안될 시 spacing은 10mm 간격으로 down)
-    
+#%% Coupling Beam Rotation (Preview)
+def BR_plot(self, beam_design_xlsx_path:str) -> pd.DataFrame:
+    '''
     Parameters
     ----------
-    input_path : str
-                 Data Conversion 엑셀 파일의 경로.
-                 
-    input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
+    beam_design_xlsx_path : str
+        File path of "Seismic Design_Coupling Beam" EXCEL file
 
-    Yields
+    Returns
     -------
-    Min, Max값 모두 출력됨. 
-    
-    fig1 : matplotlib.pyplot.figure or None
-           DE(설계지진) 발생 시 벽체 회전각 DCR 그래프                                      
-    
-    Raises
-    -------
-    
-    References
-    -------
-    .. [1] "철근콘크리트 건축구조물의 성능기반 내진설계 지침", 대한건축학회, p.79, 2021
-    
+    BR.pkl : pickle
+        Coupling Beam Rotation results in pd.DataFrame type is saved as pickle in BR.pkl
+
     '''
-#%% Input Sheet
-        
-    # Input Sheets 불러오기
-    input_xlsx_sheet = 'Results_C.Beam'
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, [input_xlsx_sheet, retrofit_sheet], skiprows=3
-                                 , usecols=[0,10,15,16,29])
-    input_data_raw.close()
-    
-    beam_before = input_data_sheets[input_xlsx_sheet]
-    beam_after = input_data_sheets[retrofit_sheet]
 
-    beam_before.columns = ['Name', 'Rebar Type(before)', 'Rebar EA(before)', 'Rebar Spacing(before)', 'Results(before)']
-    beam_after.columns = ['Name', 'Rebar Type(after)', 'Rebar EA(after)', 'Rebar Spacing(after)', 'Results(after)']
-    
-#%% 보강 전,후 Wall dataframe 정리
-    
-    # DCR 열 반올림하기(소수점 5자리까지)
-    beam_before['Results(before)'] = beam_before['Results(before)'].round(5)
-    beam_after['Results(after)'] = beam_after['Results(after)'].round(5)
+    ### Load Data
+    # Data Conversion Sheets
+    story_info = self.story_info
 
-    # 필요한 열만 추출
-    beam_output = pd.merge(beam_before, beam_after, how='left')
-
-    # 이름 분리(벽체 이름, 번호, 층)
-    beam_output['Property Name'] = beam_output['Name'].str.split('_', expand=True)[0]
-    beam_output['Number'] = beam_output['Name'].str.split('_', expand=True)[1]
-    beam_output['Story'] = beam_output['Name'].str.split('_', expand=True)[2]
-
-    # 벽체 이름과 번호(W1_1)이 같은 부재들끼리 groupby로 묶고, list of dataframes 생성
-    beam_output_list = list(beam_output.groupby(['Property Name', 'Number'], sort=False))
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
     
-    yield beam_output_list
+    ##### Excel 파일 읽는 Function (w/ Xlsx2csv & joblib)
+    def read_excel(path:str, sheet_name:str, skip_rows:list=[0,2,3]) -> pd.DataFrame:
+        import pandas as pd
+        from io import StringIO # if not import, error occurs when using multiprocessing
+        from xlsx2csv import Xlsx2csv
+        data_buffer = StringIO()
+        Xlsx2csv(path, outputencoding="utf-8", ignore_formats='float').convert(data_buffer, sheetname=sheet_name)
+        data_buffer.seek(0)
+        data_df = pd.read_csv(data_buffer, low_memory=False, skiprows=skip_rows)
+        return data_df
+    
+    ### Read Excel Files (Data Conversion Sheets & Analysis Result Sheets)
+    # DE result & name_output
+    DE_result = read_excel(beam_design_xlsx_path, sheet_name='Table_C.Beam_DE')
+    name_output = pd.DataFrame(DE_result.iloc[:,1])
+    name_output.dropna(how='all', inplace=True)
+    name_output.reset_index(inplace=True, drop=True)
+    DE_result = DE_result.iloc[:,[10,11]]
+    DE_result.dropna(how='all', inplace=True)
+    DE_result_arr = np.array(DE_result)
+    # MCE result
+    MCE_result = read_excel(beam_design_xlsx_path, sheet_name='Table_C.Beam_MCE')
+    MCE_result = MCE_result.iloc[:,[10,11]]
+    MCE_result.dropna(how='all', inplace=True)
+    MCE_result_arr = np.array(MCE_result)
+    # Performance Criteria
+    perform_lv = read_excel(beam_design_xlsx_path, sheet_name='Table_C.Beam_MCE')
+    perform_lv = perform_lv.iloc[:,[12,13,14]]
+    perform_lv.dropna(how='all', inplace=True)
+    perform_lv_arr = np.array(perform_lv)
+    
+    # DCR 계산을 위해 결과값, Performance Level 합쳐서 Dataframe 생성
+    BR_plot = np.concatenate((DE_result_arr, MCE_result_arr, perform_lv_arr), axis=1)
+    BR_plot = pd.DataFrame(BR_plot)
+    BR_plot.columns = ['DE_pos', 'DE_neg', 'MCE_pos', 'MCE_neg', 'IO', 'LS', 'CP']
+    # DCR 계산
+    BR_plot = BR_plot.apply(pd.to_numeric)
+    BR_plot['DCR(DE_pos)'] = BR_plot['DE_pos'] / BR_plot['LS']
+    BR_plot['DCR(DE_neg)'] = BR_plot['DE_neg'] / BR_plot['LS'] * (-1)
+    BR_plot['DCR(MCE_pos)'] = BR_plot['MCE_pos'] / BR_plot['CP']
+    BR_plot['DCR(MCE_neg)'] = BR_plot['MCE_neg'] / BR_plot['CP'] * (-1)
+    
+    BR_plot['Name'] = name_output.copy()
+    
+    # 벽체 해당하는 층 높이 할당
+    story = []
+    for i in BR_plot['Name']:
+        if i == '':
+            story.append(np.nan)
+        else:
+            story.append(i.split('_')[-1])        
+    BR_plot['Story Name'] = story
+    
+    BR_plot = pd.merge(BR_plot, story_info.iloc[:,[1,2]], how='left')
+    
+    # 결과 dataframe -> pickle
+    BR_result = []
+    BR_result.append(BR_plot)
+    BR_result.append(story_info)
+    BR_result.append(DE_load_name_list)
+    BR_result.append(MCE_load_name_list)
+    with open('pkl/BR.pkl', 'wb') as f:
+        pickle.dump(BR_result, f)
+
+#%% Coupling Beam Shear Force (Preview)
+def BSF_plot(self, beam_design_xlsx_path) -> pd.DataFrame:
+    '''
+    Parameters
+    ----------
+    beam_design_xlsx_path : str
+        File path of "Seismic Design_Coupling Beam" EXCEL file
+
+    Returns
+    -------
+    BSF.pkl : pickle
+        Coupling Beam Shear Force results in pd.DataFrame type is saved as pickle in BSF.pkl
+
+    '''
+    
+    ### Load Data
+    # Data Conversion Sheets     
+    story_info = self.story_info
+
+    # Seismic Loads List
+    load_name_list = self.load_name_list
+    gravity_load_name = self.gravity_load_name
+    seismic_load_name_list = self.seismic_load_name_list
+    DE_load_name_list = self.DE_load_name_list
+    MCE_load_name_list = self.MCE_load_name_list
+
+    ##### Excel 파일 읽는 Function (w/ Xlsx2csv & joblib)
+    def read_excel(path:str, sheet_name:str, skip_rows:list=[0,2,3]) -> pd.DataFrame:
+        import pandas as pd
+        from io import StringIO # if not import, error occurs when using multiprocessing
+        from xlsx2csv import Xlsx2csv
+        data_buffer = StringIO()
+        Xlsx2csv(path, outputencoding="utf-8", ignore_formats='float').convert(data_buffer, sheetname=sheet_name)
+        data_buffer.seek(0)
+        data_df = pd.read_csv(data_buffer, low_memory=False, skiprows=skip_rows)
+        return data_df
+    
+    ### Read Excel Files (Data Conversion Sheets & Analysis Result Sheets)
+    # DE result & name_output
+    DE_result = read_excel(beam_design_xlsx_path, sheet_name='Table_C.Beam_DE')
+    name_output = pd.DataFrame(DE_result.iloc[:,1])
+    name_output.dropna(how='all', inplace=True)
+    DE_result = DE_result.iloc[:,20]
+    DE_result.dropna(how='all', inplace=True)
+    DE_result_arr = np.array(DE_result)
+    # MCE result
+    MCE_result = read_excel(beam_design_xlsx_path, sheet_name='Table_C.Beam_MCE')
+    MCE_result = MCE_result.iloc[:,20]
+    MCE_result.dropna(how='all', inplace=True)
+    MCE_result_arr = np.array(MCE_result)
+    
+    beam_result = name_output.copy()
+    beam_result['DE'] = DE_result_arr
+    beam_result['MCE'] = MCE_result_arr
+    beam_result.columns = ['Name', 'DE', 'MCE']
+    
+    # 벽체 해당하는 층 높이 할당
+    story = []
+    for i in beam_result['Name']:
+        if i == '':
+            story.append(np.nan)
+        else:
+            story.append(i.split('_')[-1])        
+    beam_result['Story Name'] = story
+    
+    beam_result = pd.merge(beam_result, story_info.iloc[:,[1,2]], how='left')
+    
+    # Change non-numeric objects(e.g. str) into int or float as appropriate.
+    beam_result['DE'] = pd.to_numeric(beam_result['DE'])
+    beam_result['MCE'] = pd.to_numeric(beam_result['MCE'])
+    # Delete rows with missing name or DCR over 1.0e+09
+    beam_result = beam_result[beam_result['Name'] != '']
+    beam_result = beam_result[beam_result['DE'].abs() < 1.0e+09]
+    
+    # 결과 dataframe -> pickle
+    BSF_result = []
+    BSF_result.append(beam_result)
+    BSF_result.append(story_info)
+    BSF_result.append(DE_load_name_list)
+    BSF_result.append(MCE_load_name_list)
+    with open('pkl/BSF.pkl', 'wb') as f:
+        pickle.dump(BSF_result, f)
 
 #%% Plastic Hinge Detector(Beam, Column)
 
@@ -969,8 +1073,7 @@ def p_hinge(input_xlsx_path, result_xlsx_path, beam_group='C.Beam'
     rot_data = rot_data[rot_data['Property Name'].notna()]
     rot_data.reset_index(inplace=True, drop=True)
 
-    #%% Beam, Column 정보만 추출
-
+    # Beam, Column 정보만 추출
     beam_rot_data = rot_data[rot_data['Group Name'] == beam_group]
     col_rot_data = rot_data[rot_data['Group Name'] == col_group]
 
@@ -1001,7 +1104,7 @@ def p_hinge(input_xlsx_path, result_xlsx_path, beam_group='C.Beam'
     # 필요한 정보들만 다시 모아서 new dataframe
     beam_rot_data = beam_rot_data.iloc[:, [0,1,7,10,2,3,11]]
 
-#%% col_rot_data에서 필요한 정보들만 다시 모아서 new dataframe
+    # col_rot_data에서 필요한 정보들만 다시 모아서 new dataframe
     col_rot_data = col_rot_data.iloc[:, [0,1,7,10,2,3,5,6]]
     
 #%% DE, MCE 각각의 load case에 대해 max, min 값 추출 / 지진파별 avg 값 계산
@@ -1281,497 +1384,3 @@ def p_hinge(input_xlsx_path, result_xlsx_path, beam_group='C.Beam'
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
-
-#%% C.Beam SF - 허무원 박사
-def BSF_HMW(input_xlsx_path, result_xlsx_path):
-    ''' 
-
-    Perform-3D 해석 결과에서 일반기둥의 축력, 전단력을 불러와 Results_G.Column 엑셀파일을 작성. \n
-    result_path : Perform-3D에서 나온 해석 파일의 경로. \n
-    result_xlsx : Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다. \n
-    input_path : Data Conversion 엑셀 파일의 경로 \n
-    input_xlsx : Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다. \n
-    column_xlsx : Results_E.Column 엑셀 파일의 이름.확장자명(.xlsx)까지 기입해줘야한다. \n
-    export_to_pdf : 입력된 값에 따른 각 부재들의 결과 시트를 pdf로 출력. True = pdf 출력, False = pdf 미출력(Results_E.Column 엑셀파일만 작성됨).
-    pdf_name = 출력할 pdf 파일 이름.
-    
-    '''
-#%% Input Sheet 정보 load
-        
-    story_info = pd.DataFrame()
-    element_name = pd.DataFrame()
-
-    input_xlsx_sheet = 'Output_C.Beam Properties'
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', input_xlsx_sheet], skiprows=3)
-    input_data_raw.close()
-
-    story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    element_name = input_data_sheets[input_xlsx_sheet].iloc[:,0]
-
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    element_name.name = 'Property Name'
-
-#%% Analysis Result 불러오기
-    to_load_list = result_xlsx_path
-
-    # 전단력 Data
-    SF_info_data = pd.DataFrame()
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(i)
-        result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - End Forces'
-                                           , 'Node Coordinate Data', 'Element Data - Frame Types']
-                                          , skiprows=[0, 2]) # usecols로 원하는 열만 불러오기
-        
-        SF_info_data_temp = result_data_sheets['Frame Results - End Forces'].iloc[:,[0,2,5,7,10,12]]
-        SF_info_data = pd.concat([SF_info_data, SF_info_data_temp])
-
-    node_data = result_data_sheets['Node Coordinate Data'].iloc[:,[1,4]]
-    element_data = result_data_sheets['Element Data - Frame Types'].iloc[:,[0,2,5,7]] # beam의 양 nodes중 한 node에서의 rotation * 2
-
-    # 필요한 부재만 선별
-    # 필요한 부재만 선별
-    element_data = element_data[element_data['Group Name'] == 'BEAM']
-    element_data['Property Name'] = element_data['Property Name'] + '_1_'
-
-#%% element 이름 재명명(101동 부재 섞어서 쓰심)     ########## 허무원 ##########
-    node_data_101 = result_data_sheets['Node Coordinate Data'].iloc[:,[1,2,3,4]]
-    element_data_101 = pd.merge(element_data, node_data_101, how='left', left_on='I-Node ID', right_on='Node ID')
-    
-    list_101 = []    
-    
-    # for idx, row in element_data_101.iterrows():
-    #     if (row['Property Name'] == 'LB4_1_') & (row['H1'] == 2172.5):
-    #         list_101.append('LB104_1_')
-    #     elif (row['Property Name'] == 'LB4_1_') & (row['H2'] == -930.5):
-    #         list_101.append('LB5_1_')
-    #     elif (row['Property Name'] == 'LB7_1_') & (row['H1'] == 1982):
-    #         list_101.append('LB101_1_')
-    #     elif (row['Property Name'] == 'LB102_1_') & (row['H2'] == -465):
-    #         list_101.append('LB103_1_')
-    #     else:    
-    #         list_101.append(row['Property Name'])
-    
-    for idx, row in element_data_101.iterrows():
-        if (row['Property Name'] == 'LB4LB5LB104_1_'):
-            list_101.append('LB104_1_')
-        elif (row['Property Name'] == 'LB102LB103_1_'):
-            list_101.append('LB103_1_')
-        elif (row['Property Name'] == 'LB7LB101_1_'):
-            list_101.append('LB101_1_')
-
-        else:    
-            list_101.append(row['Property Name'])
-            
-    element_data['Property Name'] = list_101
-
-#%% Analysis Result에 Element, Node 정보 매칭
-
-    element_data = element_data.drop_duplicates()
-    
-    element_data = pd.merge(element_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
-    SF_ongoing = pd.merge(element_data.iloc[:, [1,2,5]], SF_info_data.iloc[:, 1:], how='left')
-    SF_ongoing.reset_index(inplace=True, drop=True)
-    
-#%% 허무원    
-    # 이름에 층정보 붙이기
-    SF_ongoing_copy = pd.merge(SF_ongoing, story_info, how='left', left_on = 'V', right_on = 'Height(mm)')
-    new_name = SF_ongoing_copy['Property Name'] + SF_ongoing_copy['Story Name']
-    SF_ongoing['Property Name'] = new_name    
-
-#%% 지진파 이름 list 만들기 ########## 허무원 ##########
-
-    load_name_list = []
-    for i in SF_ongoing['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-
-    gravity_load_name = [x for x in load_name_list if 'GL' in x]
-    seismic_load_name_list = [x for x in load_name_list if 'GL' not in x]
-
-    seismic_load_name_list.sort()
-
-    DE_load_name_list = [x for x in load_name_list if ('GL' not in x) & ('MCE' not in x)]
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-
-#%% V, M값에 절대값, 최대값, 평균값 뽑기
-
-    # 절대값
-    SF_ongoing.iloc[:,5] = SF_ongoing.iloc[:,5].abs()
-
-    # V2의 최대값을 저장하기 위해 필요한 데이터 slice
-    SF_ongoing_max = SF_ongoing.iloc[[2*x for x in range(int(SF_ongoing.shape[0]/2))],[0,1,2,3]] 
-    # [2*x for x in range(int(SF_ongoing.shape[0]/2] -> [짝수 index]
-    
-    # V2, V3의 최대값을 저장
-    SF_ongoing_max['V2 max'] = SF_ongoing.groupby(SF_ongoing.index // 2)['V2 I-End'].max().tolist()
-
-    # 필요한 하중만 포함된 데이터 slice (MCE)
-    SF_ongoing_max_MCE = SF_ongoing_max[SF_ongoing_max['Load Case']\
-                                        .str.contains('|'.join(MCE_load_name_list))]
-    SF_ongoing_max_G = SF_ongoing_max[SF_ongoing_max['Load Case']\
-                                      .str.contains('|'.join(gravity_load_name))]
-    # function equivalent of a combination of df.isin() and df.str.contains()
-    
-    # 부재별(Element Name) 평균값을 저장하기 위해 필요한 데이터프레임 생성
-    SF_ongoing_max_avg = SF_ongoing_max_MCE.iloc[:,[0,1,2]]
-    SF_ongoing_max_avg = SF_ongoing_max_avg.drop_duplicates()
-    SF_ongoing_max_avg.set_index('Element Name', inplace=True)    
-    # 부재별(Element Name) 평균값 뽑기
-    SF_ongoing_max_avg['V2 max(MCE)'] = SF_ongoing_max_MCE.groupby(['Element Name'])['V2 max'].mean()
-    SF_ongoing_max_avg['V2 max(G)'] = SF_ongoing_max_G.groupby(['Element Name'])['V2 max'].mean()
-    
-    # 이름별(Property Name) 최대값을 저장하기 위해 필요한 데이터프레임 생성
-    SF_ongoing_max_avg_max = SF_ongoing_max_avg.copy()
-    SF_ongoing_max_avg_max = SF_ongoing_max_avg_max.drop_duplicates(subset=['Property Name'], ignore_index=True)
-    SF_ongoing_max_avg_max.set_index('Property Name', inplace=True) 
-    # 같은 부재(그러나 잘려있는) 경우(Property Name) 최대값 뽑기
-    SF_ongoing_max_avg_max = pd.merge(SF_ongoing_max_avg_max
-                                      , SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(MCE)'].max()
-                                      , left_on='Property Name', right_index=True, suffixes=('_before', '_after'))
-    SF_ongoing_max_avg_max = pd.merge(SF_ongoing_max_avg_max
-                                      , SF_ongoing_max_avg.groupby(['Property Name'])['V2 max(G)'].max()
-                                      , left_on='Property Name', right_index=True, suffixes=('_before', '_after'))
-    
-    # MCE에 대해 1.2배, G에 대해 0.2배
-    SF_ongoing_max_avg_max['V2 max(MCE)_after'] = SF_ongoing_max_avg_max['V2 max(MCE)_after'] * 1.2
-    SF_ongoing_max_avg_max['V2 max(G)_after'] = SF_ongoing_max_avg_max['V2 max(G)_after'] * 0.2
-    
-    SF_ongoing_max_avg_max.reset_index(inplace=True, drop=False)
-
-#%% 결과값 정리
-    
-    SF_output = pd.merge(element_name, SF_ongoing_max_avg_max, how='left')
-        
-    SF_output = SF_output.dropna()
-    SF_output.reset_index(inplace=True, drop=True)
-        
-    # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
-    SF_output = SF_output.replace(np.nan, '', regex=True)
-    
-    # 기존 시트에 V값 넣기
-    SF_output1 = SF_output.iloc[:,0]
-    SF_output2 = SF_output.iloc[:,[4,5]]
-
-#%% 출력 (Using win32com...)
-    
-    # Using win32com...
-    # Call CoInitialize function before using any COM object
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
-    excel.Visible = True # 엑셀창 안보이게
-
-    wb = excel.Workbooks.Open(input_xlsx_path)
-    ws = wb.Sheets('Results_C.Beam')
-    
-    startrow, startcol = 5, 1    
-    ws.Range(ws.Cells(startrow, startcol),\
-              ws.Cells(startrow+SF_output1.shape[0]-1, startcol)).Value\
-    = [[i] for i in SF_output1]
-    
-    startrow, startcol = 5, 20    
-    ws.Range(ws.Cells(startrow, startcol),\
-              ws.Cells(startrow+SF_output2.shape[0]-1,\
-                      startcol+SF_output2.shape[1]-1)).Value\
-    = list(SF_output2.itertuples(index=False, name=None)) # dataframe -> tuple list 형식만 입력가능
-    
-    wb.Save()            
-    # wb.Close(SaveChanges=1) # Closing the workbook
-    # excel.Quit() # Closing the application
-    
-#%% Beam Rotation - 허무원 박사
-def BR_HMW(input_xlsx_path, result_xlsx_path
-           , c_beam_group='C.Beam', DCR_criteria=1, yticks=3, xlim=3):
-
-#%% Input Sheets 정보 load
-    story_info = pd.DataFrame()
-    deformation_cap = pd.DataFrame()
-    
-    input_data_raw = pd.ExcelFile(input_xlsx_path)
-    input_data_sheets = pd.read_excel(input_data_raw, ['Story Data', 'Output_C.Beam Properties'], skiprows=3)
-    input_data_raw.close()
-    
-    story_info = input_data_sheets['Story Data'].iloc[:,[0,1,2]]
-    deformation_cap = input_data_sheets['Output_C.Beam Properties'].iloc[:,[0,80,81]]
-    
-    story_info.columns = ['Index', 'Story Name', 'Height(mm)']
-    deformation_cap.columns = ['Name', 'LS', 'CP']
-    
-#%% Analysis Result 불러오기
-    to_load_list = result_xlsx_path
-    
-    beam_rot_data = pd.DataFrame()
-    
-    for i in to_load_list:
-        result_data_raw = pd.ExcelFile(i)
-        result_data_sheets = pd.read_excel(result_data_raw, ['Frame Results - Bending Deform', 'Node Coordinate Data',\
-                                                         'Element Data - Frame Types'], skiprows=[0,2])
-        
-        beam_rot_data_temp = result_data_sheets['Frame Results - Bending Deform'].iloc[:,[0,2,5,7,10,13,14]]
-        beam_rot_data = pd.concat([beam_rot_data, beam_rot_data_temp])
-        
-    node_data = result_data_sheets['Node Coordinate Data'].iloc[:,[1,4]]
-    
-    element_data = result_data_sheets['Element Data - Frame Types'].iloc[:,[2,5,7]] # beam의 양 nodes중 한 node에서의 rotation * 2
-    
-                
-    beam_rot_data.columns = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'Distance from I-End', 'H2 Rotation(rad)', 'H3 Rotation(rad)']
-    node_data.columns = ['Node ID', 'V']
-    element_data.columns = ['Element Name', 'Property Name', 'I-Node ID']
-    
-    #%% 필요없는 부재 빼기, 필요한 부재만 추출
-    beam_rot_data = beam_rot_data[beam_rot_data['Group Name'] == beam_group]
-    beam_rot_data = beam_rot_data[beam_rot_data['Distance from I-End'] == 0]
-    
-#%% element 이름 재명명(101동 부재 섞어서 쓰심)     ########## 허무원 ##########
-    element_data['Property Name'] = element_data['Property Name'] + '_1_'
-    
-    node_data_101 = result_data_sheets['Node Coordinate Data'].iloc[:,[1,2,3,4]]
-    element_data_101 = pd.merge(element_data, node_data_101, how='left', left_on='I-Node ID', right_on='Node ID')
-    
-    list_101 = []    
-    
-    # for idx, row in element_data_101.iterrows():
-    #     if (row['Property Name'] == 'LB4_1_') & (row['H1'] == 2172.5):
-    #         list_101.append('LB104_1_')
-    #     elif (row['Property Name'] == 'LB4_1_') & (row['H2'] == -930.5):
-    #         list_101.append('LB5_1_')
-    #     elif (row['Property Name'] == 'LB7_1_') & (row['H1'] == 1982):
-    #         list_101.append('LB101_1_')
-    #     elif (row['Property Name'] == 'LB102_1_') & (row['H2'] == -465):
-    #         list_101.append('LB103_1_')
-    #     else:    
-    #         list_101.append(row['Property Name'])
-    
-    for idx, row in element_data_101.iterrows():
-        if (row['Property Name'] == 'LB2LB3_1_'):
-            list_101.append('LB3_1_')
-        elif (row['Property Name'] == 'LB101LB105_1_'):
-            list_101.append('LB101_1_')
-        elif (row['Property Name'] == 'LB103LB104_1_'):
-            list_101.append('LB103_1_')
-
-        else:    
-            list_101.append(row['Property Name'])
-            
-    element_data['Property Name'] = list_101
-    
-    #%% Analysis Result에 Element, Node 정보 매칭    
-    element_data = element_data.drop_duplicates()
-    node_data = node_data.drop_duplicates()
-    
-    beam_rot_data = pd.merge(beam_rot_data, element_data, how='left')
-    beam_rot_data = pd.merge(beam_rot_data, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
-    
-    beam_rot_data = beam_rot_data[beam_rot_data['Property Name'].notna()]
-    
-    beam_rot_data.reset_index(inplace=True, drop=True)
-    
-    
-    # 이름에 층정보 붙이기
-    beam_rot_data_copy = pd.merge(beam_rot_data, story_info, how='left', left_on = 'V', right_on = 'Height(mm)')
-    new_name = beam_rot_data_copy['Property Name'] + beam_rot_data_copy['Story Name']
-    beam_rot_data['Property Name'] = new_name  
-
-#%% 지진파 이름 list 만들기 ########## 허무원 ##########
-
-    ################## 허무원 박사님용 지진파 이름 변경 #########################
-    existing = list(range(14,0,-1)) + ['MCE-14', 'MCE-13', 'MCE-12', 'MCE-11'
-                                       , 'MCE-10', 'MCE-09', 'MCE-08', 'MCE-07'
-                                       , 'MCE-06', 'MCE-05', 'MCE-04', 'MCE-03'
-                                       , 'MCE-02', 'MCE-01']
-    renewed = ['DE72', 'DE71', 'DE62', 'DE61', 'DE52', 'DE51', 'DE42', 'DE41'
-               , 'DE32', 'DE31', 'DE22', 'DE21', 'DE12', 'DE11', 'MCE72', 'MCE71'
-               , 'MCE62', 'MCE61', 'MCE52', 'MCE51', 'MCE42', 'MCE41', 'MCE32'
-               , 'MCE31', 'MCE22', 'MCE21', 'MCE12', 'MCE11']
-    for i, j in zip(existing, renewed):
-        beam_rot_data['Load Case'] = beam_rot_data['Load Case'].str.replace('[1] + %s'%i, '[1] + %s'%j, regex=False)
-    ###########################################################################
-
-#%% 지진파 이름 list 만들기
-    load_name_list = []
-    for i in beam_rot_data['Load Case'].drop_duplicates():
-        new_i = i.split('+')[1]
-        new_i = new_i.strip()
-        load_name_list.append(new_i)
-    
-    gravity_load_name = [x for x in load_name_list if ('DE' not in x) and ('MCE' not in x)]
-    seismic_load_name_list = [x for x in load_name_list if ('DE' in x) or ('MCE' in x)]
-    
-    seismic_load_name_list.sort()
-    
-    DE_load_name_list = [x for x in load_name_list if 'DE' in x]
-    MCE_load_name_list = [x for x in load_name_list if 'MCE' in x]
-    
-#%% beam_rot_data의 값 수정(H1, H2 방향 중 major한 방향의 rotation값만 추출, 그리고 2배)
-    major_rot = []
-    for i, j in zip(beam_rot_data['H2 Rotation(rad)'], beam_rot_data['H3 Rotation(rad)']):
-        if abs(i) >= abs(j):
-            major_rot.append(i)
-        else: major_rot.append(j)
-    
-    beam_rot_data['Major Rotation(rad)'] = major_rot
-     
-    # 필요한 정보들만 다시 모아서 new dataframe
-    beam_rot_data = beam_rot_data.iloc[:, [0,1,2,3,7,9,10,11]]
-    
-#%% 성능기준(LS, CP) 정리해서 merge
-    
-    beam_rot_data = pd.merge(beam_rot_data, deformation_cap, how='left', left_on='Property Name', right_on='Name')
-    
-    beam_rot_data['DE Rotation(rad)'] = beam_rot_data['Major Rotation(rad)'].abs() / beam_rot_data['LS']
-    beam_rot_data['MCE Rotation(rad)'] = beam_rot_data['Major Rotation(rad)'].abs() / beam_rot_data['CP']
-    
-    beam_rot_data = beam_rot_data[beam_rot_data['Name'].notna()]
-    
-    # beam_rot_data = pd.merge(deformation_cap['Name'], beam_rot_data, how='left', left_on='Name', right_on='Property Name')
-    
-#%% 조작용 코드
-    # 없애고 싶은 부재의 이름 입력(error_beam 확인 후!, DE, MCE에서 다 없어짐)
-    beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('PB'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('PB1-8_1'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB1A_2'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB1A_4'))].index)
-    beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('LB101_1'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB4B_'))].index)
-    # beam_rot_data = beam_rot_data.drop(beam_rot_data[(beam_rot_data['Property Name'].str.contains('WB3D_'))].index)
-
-#%% DE 결과 Plot
-    count = 1
-    
-    if len(DE_load_name_list) != 0:
-        
-        beam_rot_data_total_DE = pd.DataFrame()    
-        
-        for load_name in DE_load_name_list:
-        
-            temp_df_max = beam_rot_data[(beam_rot_data['Load Case'].str.contains('{}'.format(load_name)))\
-                                        & (beam_rot_data['Step Type'] == 'Max')]\
-                          .groupby(['Element Name'])['DE Rotation(rad)']\
-                          .agg(**{'Rotation avg':'mean'})['Rotation avg']
-                          
-            beam_rot_data_total_DE['{}_max'.format(load_name)] = temp_df_max.tolist()
-            
-            temp_df_min = beam_rot_data[(beam_rot_data['Load Case'].str.contains('{}'.format(load_name)))\
-                                        & (beam_rot_data['Step Type'] == 'Min')]\
-                          .groupby(['Element Name'])['DE Rotation(rad)']\
-                          .agg(**{'Rotation avg':'mean'})['Rotation avg']
-                          
-            beam_rot_data_total_DE['{}_min'.format(load_name)] = temp_df_min.tolist()
-            
-        beam_rot_data_total_DE['Element Name'] = temp_df_max.index
-        
-        beam_rot_data_total_DE.reset_index(inplace=True, drop=True)
-        
-        beam_rot_data_total_DE = pd.merge(beam_rot_data_total_DE, element_data, how='left')
-        beam_rot_data_total_DE = pd.merge(beam_rot_data_total_DE, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
-        beam_rot_data_total_DE = pd.merge(beam_rot_data_total_DE, story_info, how='left', left_on='V', right_on='Height(mm)')
-        beam_rot_data_total_DE.sort_values('Height(mm)', inplace=True)
-        # beam_rot_data_total_DE.reset_index(inplace=True, drop=True)
-        
-    # 평균 열 생성
-        
-        beam_rot_data_total_DE['DE Max avg'] = beam_rot_data_total_DE.iloc[:,list(range(0,len(DE_load_name_list)*2,2))].mean(axis=1)
-        beam_rot_data_total_DE['DE Min avg'] = beam_rot_data_total_DE.iloc[:,list(range(1,len(DE_load_name_list)*2,2))].mean(axis=1)
-        
-    # 전체 Plot
-            
-        ### DE 
-        fig1 = plt.figure(count, dpi=150, figsize=(5,6))
-        plt.xlim(0, xlim)
-        
-        plt.scatter(beam_rot_data_total_DE['DE Max avg'], beam_rot_data_total_DE.loc[:,'V'], color='k', s=1)
-        plt.scatter(beam_rot_data_total_DE['DE Min avg'], beam_rot_data_total_DE.loc[:,'V'], color='k', s=1)
-        
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        # plt.xticks(range(14), range(1,15))
-        
-        plt.axvline(x= DCR_criteria, color='r', linestyle='--')
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('D/C Ratios')
-        plt.ylabel('Story')
-        plt.title('Beam Rotation (DE)')
-        
-        plt.tight_layout()   
-        plt.close()
-
-    # 기준 넘는 점 확인
-        error_beam_DE = beam_rot_data_total_DE[['Element Name', 'Property Name', 'Story Name', 'DE Max avg', 'DE Min avg']]\
-                      [(beam_rot_data_total_DE['DE Max avg'] >= DCR_criteria) | (beam_rot_data_total_DE['DE Min avg'] >= DCR_criteria)]
-        
-        count += 1
-        
-        yield fig1
-        yield error_beam_DE
-        yield 'DE' # Marker 출력
-        
-#%% MCE 결과 Plot
-    
-    if len(MCE_load_name_list) != 0:
-        
-        beam_rot_data_total_MCE = pd.DataFrame()    
-        
-        for load_name in MCE_load_name_list:
-        
-            temp_df_max = beam_rot_data[(beam_rot_data['Load Case'].str.contains('{}'.format(load_name)))\
-                                        & (beam_rot_data['Step Type'] == 'Max')]\
-                          .groupby(['Element Name'])['MCE Rotation(rad)']\
-                          .agg(**{'Rotation avg':'mean'})['Rotation avg']
-                          
-            beam_rot_data_total_MCE['{}_max'.format(load_name)] = temp_df_max.tolist()
-            
-            temp_df_min = beam_rot_data[(beam_rot_data['Load Case'].str.contains('{}'.format(load_name)))\
-                                        & (beam_rot_data['Step Type'] == 'Min')]\
-                          .groupby(['Element Name'])['MCE Rotation(rad)']\
-                          .agg(**{'Rotation avg':'mean'})['Rotation avg']
-                          
-            beam_rot_data_total_MCE['{}_min'.format(load_name)] = temp_df_min.tolist()
-            
-        beam_rot_data_total_MCE['Element Name'] = temp_df_max.index
-        
-        beam_rot_data_total_MCE.reset_index(inplace=True, drop=True)
-        
-        beam_rot_data_total_MCE = pd.merge(beam_rot_data_total_MCE, element_data, how='left')
-        beam_rot_data_total_MCE = pd.merge(beam_rot_data_total_MCE, node_data, how='left', left_on='I-Node ID', right_on='Node ID')
-        beam_rot_data_total_MCE = pd.merge(beam_rot_data_total_MCE, story_info, how='left', left_on='V', right_on='Height(mm)')
-        beam_rot_data_total_MCE.sort_values('Height(mm)', inplace=True)
-        # beam_rot_data_total_MCE.reset_index(inplace=True, drop=True)
-        
-    # 평균 열 생성
-        
-        beam_rot_data_total_MCE['MCE Max avg'] = beam_rot_data_total_MCE.iloc[:,list(range(0,len(MCE_load_name_list)*2,2))].mean(axis=1)
-        beam_rot_data_total_MCE['MCE Min avg'] = beam_rot_data_total_MCE.iloc[:,list(range(1,len(MCE_load_name_list)*2,2))].mean(axis=1)
-            
-
-        # 전체 Plot 
-        ### MCE 
-        fig2 = plt.figure(count, dpi=150, figsize=(5,6))
-        plt.xlim(0, xlim)
-        
-        # 평균 plot
-        plt.scatter(beam_rot_data_total_MCE['MCE Max avg'], beam_rot_data_total_MCE.loc[:,'V'], color='k', s=1)
-        plt.scatter(beam_rot_data_total_MCE['MCE Min avg'], beam_rot_data_total_MCE.loc[:,'V'], color='k', s=1)
-        
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        # plt.xticks(range(14), range(1,15))
-        
-        plt.axvline(x= DCR_criteria, color='r', linestyle='--')
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('D/C Ratios')
-        plt.ylabel('Story')
-        plt.title('Beam Rotation (MCE)')
-        
-        plt.tight_layout()
-        plt.close()
-    
-        # 기준 넘는 점 확인    
-        error_beam_MCE = beam_rot_data_total_MCE[['Element Name', 'Property Name', 'Story Name', 'MCE Max avg', 'MCE Min avg']]\
-                      [(beam_rot_data_total_MCE['MCE Max avg'] >= DCR_criteria) | (beam_rot_data_total_MCE['MCE Min avg'] >= DCR_criteria)]
-        
-        yield fig2
-        yield error_beam_MCE
-        yield 'MCE' # Marker 출력

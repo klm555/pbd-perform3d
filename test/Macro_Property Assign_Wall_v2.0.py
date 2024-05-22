@@ -2,12 +2,13 @@ import pyautogui as pag
 import pandas as pd
 
 ########################################### 처음에 입력해야 할 부분 ############################################
-### 초기 경로 설정
-data_path = r'K:\2105-이형우\성능기반 내진설계\KHSM\104' # Input Sheets 및 Output Sheets 가 있는 폴더 경로
-Input_sheet_name = 'Data Conversion_Ver.1.3M_104D.xlsx' # Input Sheets 이름
 
-### 초기 좌표 획득(해당 위치에 마우스 올려놓고 ctrl+Enter 로 실행하면 순서대로 좌표 획득 가능)
-# 반드시 H1 view 에서 좌표 획득하기
+### Data Path
+data_path = r'D:\이형우\성능기반 내진설계\22-RM-200 창원 신월2구역 재건축 아파트 신축공사 성능기반 내진설계\06. Data Conversion Sheets\103D_Data Conversion_Ver.1.5.xlsx'
+
+### Mouse Coordinates 
+# Locate mouse on the specific location on the monitor and Run
+# Recommended to get the coords from H1 view
 position_lefttop = pag.position() # 좌상단점
 position_righttop = pag.position() # 우상단점
 position_leftbot = pag.position() # 좌하단점
@@ -21,22 +22,20 @@ position_nextprop = pag.position() # 다음 property로 넘어가기 화살표
 position_missingdata = pag.position() # Missing Data 알람 확인(아무 부재도 선택하지 않고 Assign 누를 시 뜨는 팝업 창에서의 확인 버튼)
 position_nextframe = pag.position() # 다음 프레임 넘어가기 화살표
 
-################ 옵션 ###############
+################################ Macro Options ################################
 drag_duration = 0.3 # drag 하는 속도(너무 빨리하면 팅길 수 있으므로 적당한 속도 권장)
 offset = 2 # 픽셀 오차 방지용 여유치, 단위 : pixel
-wall_index = 1300 # wall_material_data_repeat 에서 시작하고자 하는 material name의 index 입력, 처음부터일때는 0 입력
+wall_name = 'W1_1_B2' # wall_material_data_repeat 에서 시작하고자 하는 material name의 index 입력, 처음부터일때는 0 입력
 #####################################
 
 ##############################################################################################################
 
 # Story 정보 load
-story_info = pd.read_excel(data_path + '\\' + Input_sheet_name
-                           , sheet_name='Story Data', keep_default_na=False
+story_info = pd.read_excel(data_path, sheet_name='Story Data', keep_default_na=False
                            , index_col= None, skiprows=[0,2,3]).iloc[:,[1,2]]
 
 # # Section 정보 불러오기
-# section_info = pd.read_excel(data_path + '\\' + Input_sheet_name
-#                              , sheet_name = 'Naming'
+# section_info = pd.read_excel(data_path, sheet_name = 'Naming'
 #                              , skiprows=[0,1,2]).iloc[:, [8,9,10,11]]
 # section_info.columns = ['Wall Name', 'Story(from)', 'Story(to)', 'Amount']
 
@@ -49,7 +48,7 @@ story_info.reset_index(level=0, inplace=True) # level은 index를 몇번째 colu
 
 # # wall material 정보 load
 # wall_material_data = pd.read_excel(data_path + '\\' + Input_sheet_name
-#                                    , sheet_name='Output_Wall Properties'
+#                                    , sheet_name='Input_S.Wall'
 #                                    , skiprows=[0, 2, 3]).iloc[:, 0]
 # wall_material_data = pd.DataFrame(wall_material_data) # series to df
 # wall_material_data.columns = ['wall']
@@ -128,8 +127,7 @@ story_info.reset_index(level=0, inplace=True) # level은 index를 몇번째 colu
 # wall_material_data_repeat = wall_material_data_repeat.join(section_info.set_index('Wall Name')['material num'], on='Head')
 
 # Section 정보 불러오기
-section_info = pd.read_excel(data_path + '\\' + Input_sheet_name
-                             , sheet_name = 'Output_Wall Properties', skiprows=[0,2,3]).iloc[:,0]
+section_info = pd.read_excel(data_path, sheet_name = 'Input_S.Wall', skiprows=[0,2,3]).iloc[:,0]
 
 section_info_splited_1 = section_info.apply(lambda x: x.split('_')[0])
 section_info_splited_2 = section_info.apply(lambda x: x.split('_')[1])
@@ -151,6 +149,8 @@ section_info.columns = ['Name', 'Wall Name', 'Story Name', 'Divide']
 section_info = pd.merge(section_info, story_info[['Story Name', 'index']], how='left')
 
 ###################################### Property Assign 매크로 ##########################################
+# 해당 Wall name의 index 찾기
+wall_index = section_info[section_info['Name'] == wall_name]['index'][0]
 
 wall_name_count = section_info.iloc[wall_index,0].split('_') # loop 돌면서 전 row와 비교하고, 부재 바뀔 때 프레임 넘기기
 # wall_num_count = 

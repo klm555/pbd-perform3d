@@ -2,8 +2,8 @@ import sys
 import os
 import shutil
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt, pyqtSlot
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import QSettings, QCoreApplication, Qt
+from PyQt5.QtGui import QPixmap
 
 from PyQt5 import uic # ui 파일을 사용하기 위한 모듈
 

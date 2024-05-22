@@ -3,7 +3,7 @@ import pandas as pd
 
 ########################################### 처음에 입력해야 할 부분 ############################################
 ### Data Path
-data_path = r'D:\이형우\성능기반 내진설계\22-RM-200 창원 신월2구역 재건축 아파트 신축공사 성능기반 내진설계\06. Data Conversion Sheets\103D_Data Conversion_Ver.1.5.xlsx'
+data_path = r'D:\이형우\성능기반 내진설계\용현학익7단지\708D\YH-708_Data Conversion_Ver.3.2_구조심의.xlsx'
 beam_sheet = 'Input_C.Beam'
 
 ### 초기 좌표 획득(해당 위치에 마우스 올려놓고 ctrl+Enter 로 실행하면 순서대로 좌표 획득 가능)

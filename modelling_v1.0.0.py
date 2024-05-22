@@ -19,7 +19,7 @@ time_start = time.time()
 #%% User Input
 
 # Data Conversion Sheet, Column Sheet, Beam Sheet
-input_xlsx_path = r'C:\Users\hwlee\Documents\하이웍스 받은파일\Data Conversion_Ver.2.0_230825_103D.xlsx'
+input_xlsx_path = r'D:\이형우\성능기반 내진설계\용현학익7단지\706D\YH-706_Data Conversion_Ver.3.1_test.xlsx'
 # result_path = r'K:\2105-이형우\from 박재성\Results_E.Column'
 # result_xlsx = 'Analysis Result'
 
@@ -55,7 +55,7 @@ g_col_group_name = 'G.Column'
 # pbd.naming(input_xlsx_path)
 
 #%% Properties 변환
-pbd.convert_property(input_xlsx_path, get_beam=False, get_column=True, get_wall=False)
+pbd.convert_property(input_xlsx_path, get_cbeam=True, get_wall=False)
 
 #%% Properties 변환 (기둥, Nu값 포함)
 # pbd.convert_property_col_Nu(input_xlsx_path, result_path, result_xlsx=result_xlsx)

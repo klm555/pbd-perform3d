@@ -1,25 +1,28 @@
 import sys
 import os
 import shutil
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt, pyqtSlot
-from PyQt5.QtGui import QIcon, QPixmap, QFontDatabase, QFont
-
-from PyQt5 import uic # ui 파일을 사용하기 위한 모듈
 import multiprocess as mp
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import QSettings, QCoreApplication, Qt
+from PyQt5.QtGui import QIcon, QPixmap, QFontDatabase, QFont, QKeySequence
+from PyQt5 import uic # ui 파일을 사용하기 위한 모듈
+
+import pyautogui as pag
+import numpy as np
 
 from GUI_second import *
 
-#%% UI
+#%% Main 윈도우 UI
+# .ui 파일(designer에서 만든 파일) 불러오기
 ui_class = uic.loadUiType('PBD_p3d.ui')[0]
 
 class MainWindow(QMainWindow, ui_class):
-
-    # Import external classes/functions
-    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker, PdfWorker, DocxWorker
-    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker6, run_worker7, run_worker8
+    # Import external classes/functions 
+    # 여기서 import해야 / 사용되는 함수를 일일이 import해야 오류가 안남 (이유는 모름)
+    from GUI_runs import run_worker1, run_worker2, run_worker3, run_worker4, run_worker5, run_worker6, run_worker7, run_worker8, run_worker9, run_worker10, run_worker11
     from GUI_plots import plot_display
-
+    from GUI_workers import ImportWorker, NameWorker, ConvertWorker, InsertWorker, LoadWorker, RedesignWorker, PdfWorker, DocxWorker, HwpWorker
+    
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -69,10 +72,28 @@ class MainWindow(QMainWindow, ui_class):
         self.insert_gbeam_checkbox.setChecked(self.setting.value('insert_gbeam', False, type=bool))
         self.insert_gcol_checkbox.setChecked(self.setting.value('insert_gcolumn', False, type=bool))
         self.insert_ecol_checkbox.setChecked(self.setting.value('insert_ecolumn', False, type=bool))
+        self.up_left_coord_editbox.setText(self.setting.value('upleft_coord', ' 0 , 0'))
+        self.up_right_coord_editbox.setText(self.setting.value('upright_coord', ' 0 , 0'))
+        self.low_left_coord_editbox.setText(self.setting.value('lowleft_coord', ' 0 , 0'))
+        self.low_right_coord_editbox.setText(self.setting.value('lowright_coord', ' 0 , 0'))
+        self.p3d_bar_editbox.setText(self.setting.value('p3d_bar_coord', ' 0 , 0'))
+        self.add_cuts_editbox.setText(self.setting.value('add_cuts_coord', ' 0 , 0'))
+        self.delete_cuts_editbox.setText(self.setting.value('delete_cuts_coord', ' 0 , 0'))
+        self.ok_editbox.setText(self.setting.value('ok_coord', ' 0 , 0'))
+        self.next_section_editbox.setText(self.setting.value('next_section_coord', ' 0 , 0'))
+        self.next_frame_editbox.setText(self.setting.value('next_frame_coord', ' 0 , 0'))
+        self.ok_delete_editbox.setText(self.setting.value('ok_delete_coord', ' 0 , 0'))
+        self.missing_data_editbox.setText(self.setting.value('missing_data_coord', ' 0 , 0'))
+        self.assign_comp_editbox.setText(self.setting.value('assign_comp_coord', ' 0 , 0'))
+        self.clear_elem_editbox.setText(self.setting.value('clear_element_coord', ' 0 , 0'))
+        self.elem_name_editbox.setText(self.setting.value('element_name', 'W1_1_B2'))
         self.setting.endGroup()
         # self.drag_duration_slider.setValue(2)        
         # Tab 3
         self.setting.beginGroup('setting_tab3')
+        self.load_cbeam_checkbox.setChecked(self.setting.value('load_cbeam', True, type=bool))
+        self.load_wall_checkbox.setChecked(self.setting.value('load_wall', True, type=bool))
+        self.load_ecol_checkbox.setChecked(self.setting.value('load_ecolumn', False, type=bool))
         self.base_SF_checkbox.setChecked(self.setting.value('base_SF', True, type=bool))
         self.story_SF_checkbox.setChecked(self.setting.value('story_SF', False, type=bool))
         self.IDR_checkbox.setChecked(self.setting.value('IDR', True, type=bool))
@@ -86,7 +107,7 @@ class MainWindow(QMainWindow, ui_class):
         self.WR_checkbox.setChecked(self.setting.value('WR', True, type=bool))
         self.WSF_checkbox.setChecked(self.setting.value('WSF', True, type=bool))
         self.cbeam_pdf_checkbox.setChecked(self.setting.value('cbeam_to_pdf', True, type=bool))
-        self.ecol_pdf_checkbox.setChecked(self.setting.value('ecolumn_to_pdf', True, type=bool))
+        self.ecol_pdf_checkbox.setChecked(self.setting.value('ecolumn_to_pdf', False, type=bool))
         self.wall_pdf_checkbox.setChecked(self.setting.value('wall_to_pdf', True, type=bool))
         self.setting.endGroup()
 
@@ -104,11 +125,19 @@ class MainWindow(QMainWindow, ui_class):
         self.convert_prop_btn.clicked.connect(self.run_worker3)    
         # Tab 2
         self.insert_force_btn.clicked.connect(self.run_worker4)
+        self.coord_shortcut = QShortcut(QKeySequence('F10'), self) # Shortcuts 설정
+        self.coord_shortcut.activated.connect(self.get_mouse_coords)
+        self.start_shortcut = QShortcut(QKeySequence('F2'), self)
+        self.start_shortcut.activated.connect(self.run_worker10) # 1: start, 0: end
+        # self.end_shortcut = QShortcut(QKeySequence('Escape'), self)
+        # self.end_shortcut.activated.connect(self.run_worker10(0))
         # Tab 3
         self.load_result_btn.clicked.connect(self.run_worker5)
         self.print_docx_btn.clicked.connect(self.run_worker6)
         self.design_wall_btn.clicked.connect(self.run_worker7)
         self.print_pdf_btn.clicked.connect(self.run_worker8)
+        self.preview_result_btn.clicked.connect(self.run_worker9)
+        self.print_hwp_btn.clicked.connect(self.run_worker11)
         
         # Child Windows
         self.BR_setting_btn.clicked.connect(self.open_BRSettingWindow)
@@ -117,6 +146,7 @@ class MainWindow(QMainWindow, ui_class):
         # Menu Bar
         self.action_about.triggered.connect(self.open_about)
         self.action_release_note.triggered.connect(self.open_release_note)
+        self.action_docs.triggered.connect(self.open_docs)
         self.action_sheets.triggered.connect(self.open_sheets_folder)
         
         ### Child Windows
@@ -144,12 +174,6 @@ class MainWindow(QMainWindow, ui_class):
         self.CNP_img.setPixmap(self.qPixmapVar2.scaled(self.CNP_img.size()
                                 , transformMode=Qt.SmoothTransformation))
         
-        # 화살표 image
-        self.qPixmapVar2 = QPixmap()
-        self.qPixmapVar2.load('./images/arrow_ui.png')
-        self.arrow_img.setPixmap(self.qPixmapVar2.scaled(self.arrow_img.size()
-                                , transformMode=Qt.SmoothTransformation))
-        
         ### etc
         # Icon 설정
         self.setWindowIcon(QIcon('./images/icon_earthquake.ico'))
@@ -157,7 +181,7 @@ class MainWindow(QMainWindow, ui_class):
         # 마우스 좌표 real-time tracking
         self.setMouseTracking(True)
 
-    # 파일 선택 function (QFileDialog)
+    # 파일 선택 function (using QFileDialog)
     def find_input_xlsx(self): # Data Conversion Sheets
         # global input_xlsx_path
         input_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Choose Data Conversion Sheets'
@@ -197,9 +221,25 @@ class MainWindow(QMainWindow, ui_class):
             self.col_design_path_editbox.setText(col_design_xlsx_path)
     
     # Macro 사용을 위한 function
-    def mouseMoveEvent(self, event):
-        self.up_left_coord_editbox.setText('( %d : %d )' %(event.globalX(), event.globalY()))
-        
+    def get_mouse_coords(self):
+        # 현재 focus된 widget
+        focused_widget = QApplication.focusWidget()                
+        # 마우스 좌표를 입력할 LineEdit widget list(in order)
+        coord_widget_list = [self.up_left_coord_editbox, self.up_right_coord_editbox
+                             , self.low_left_coord_editbox, self.low_right_coord_editbox
+                             , self.p3d_bar_editbox, self.add_cuts_editbox, self.delete_cuts_editbox
+                             , self.ok_editbox, self.next_section_editbox, self.next_frame_editbox
+                             , self.ok_delete_editbox, self.missing_data_editbox
+                             , self.assign_comp_editbox, self.clear_elem_editbox]
+        # 마우스 좌표 입력 LineEdit이 focus되어 있는 경우, 입력값 받음
+        if focused_widget in coord_widget_list:
+            focused_widget.setText(' %d , %d' %(pag.position().x, pag.position().y))
+            # 다음 LineEdit으로 focus 변경
+            focused_idx = coord_widget_list.index(focused_widget)
+            next_widget = coord_widget_list[np.clip(focused_idx + 1, 0, 13)] 
+            # np.clip: Clip (limit) the values, ex) if last editbox is focused, prevent to go to last + 1 editbox 
+            next_widget.setFocus()
+    
     def threshold1(self, value):
         self.drag_duration_slider = value
         self.test.setText("Value : " + str(value))
@@ -225,6 +265,14 @@ class MainWindow(QMainWindow, ui_class):
         else:
             os.startfile(note)
             
+    def open_docs(self):
+        docs = os.path.join(os.getcwd(), 'docs/PBSD/build/html/pbd_p3d_manual.html')
+        
+        if sys.platform == 'linux2':
+            subprocess.call(["xdg-open", note])
+        else:
+            os.startfile(docs)
+
     def open_sheets_folder(self):
        folder = r'K:\2104-박재성\성능기반 내진설계\Excel Sheet'
        
@@ -277,9 +325,27 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.setValue('insert_gbeam', self.insert_gbeam_checkbox.isChecked())
             self.setting.setValue('insert_gcolumn', self.insert_gcol_checkbox.isChecked())
             self.setting.setValue('insert_ecolumn', self.insert_ecol_checkbox.isChecked())
+            self.setting.setValue('upleft_coord', self.up_left_coord_editbox.text())
+            self.setting.setValue('upright_coord', self.up_right_coord_editbox.text())
+            self.setting.setValue('lowleft_coord', self.low_left_coord_editbox.text())
+            self.setting.setValue('lowright_coord', self.low_right_coord_editbox.text())
+            self.setting.setValue('p3d_bar_coord', self.p3d_bar_editbox.text())
+            self.setting.setValue('add_cuts_coord', self.add_cuts_editbox.text())
+            self.setting.setValue('delete_cuts_coord', self.delete_cuts_editbox.text())
+            self.setting.setValue('ok_coord', self.ok_editbox.text())
+            self.setting.setValue('next_section_coord', self.next_section_editbox.text())
+            self.setting.setValue('next_frame_coord', self.next_frame_editbox.text())
+            self.setting.setValue('ok_delete_coord', self.ok_delete_editbox.text())
+            self.setting.setValue('missing_data_coord', self.missing_data_editbox.text())
+            self.setting.setValue('assign_comp_coord', self.assign_comp_editbox.text())
+            self.setting.setValue('clear_element_coord', self.clear_elem_editbox.text())
+            self.setting.setValue('element_name', self.elem_name_editbox.text())
             self.setting.endGroup()
 
             self.setting.beginGroup('setting_tab3')
+            self.setting.setValue('load_cbeam', self.load_cbeam_checkbox.isChecked())
+            self.setting.setValue('load_wall', self.load_wall_checkbox.isChecked())
+            self.setting.setValue('load_ecolumn', self.load_ecol_checkbox.isChecked())
             self.setting.setValue('base_SF', self.base_SF_checkbox.isChecked())
             self.setting.setValue('story_SF', self.story_SF_checkbox.isChecked())
             self.setting.setValue('IDR', self.IDR_checkbox.isChecked())
@@ -320,10 +386,9 @@ class MainWindow(QMainWindow, ui_class):
 # pbd.property_assign_macro(drag_duration=0.15, offset=2, start_material_index=761)
 
 #%% 실행
-
 if __name__ == '__main__':
     mp.freeze_support() # multiprocessing fix
     app = QApplication(sys.argv) # QApplication : 프로그램을 실행시켜주는 class
     mywindow = MainWindow() # WindowClass의 인스턴스 생성   
-    mywindow.show() # 프로그램 보여주기
+    mywindow.show() # 프로그램 보여주기    
     app.exec_() # 프로그램을 작동시키는 코드

@@ -9,24 +9,20 @@ from collections import deque
 
 #%% Base SF
 
-def base_SF(self, ylim=70000):
+def base_SF(self, ylim=70000) -> pd.DataFrame:
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)
     
     Parameters
-    ----------
-    result_path : str
-                  Perform-3D에서 나온 해석 파일의 경로.
-                  
-    result_xlsx : str, optional, default='Analysis Result'
-                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
-                  
+    ----------                  
     ylim : int, optional, default=70000
            그래프의 y축 limit 값. y축 limit 안의 값만 표기되므로, limit를 넘어가는 값을 확인하고 싶을 시에는 ylim 값을 더 크게 설정하면 된다.
-    
+
     Returns
     -------
+    base_SF.pkl : pickle
+        Base Shear Force results in pd.DataFrame type is saved as pickle in base_SF.pkl
     '''
 #%% Load Data
     # Shear Force
@@ -89,139 +85,16 @@ def base_SF(self, ylim=70000):
         pickle.dump(base_SF_result, f)
 
     count = 1
-'''    
-# DE Plot
-  
-    if len(DE_load_name_list) != 0:
-    
-# H1_DE
-        fig1 = plt.figure(count, dpi=150)
-        plt.ylim(0, ylim)
-        
-        plt.bar(range(len(DE_load_name_list)), base_shear_H1.iloc[0, 0:len(DE_load_name_list)]\
-                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        plt.axhline(y= base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
-        plt.xticks(range(14), range(1,15))
-        # plt.xticks(range(14), load_name[0:14], fontsize=8.5)
-        
-        plt.xlabel('Ground Motion No.')
-        plt.ylabel('Base Shear(kN)')
-        plt.legend(loc = 2)
-        plt.title('X DE')
-        
-        # plt.savefig(memfile)
-        plt.close()
-        count += 1        
-        yield fig1
-        
-        getcontext().rounding = ROUND_HALF_UP
-        base_SF_avg_DE_x = round(Decimal(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()), 2)
-        yield base_SF_avg_DE_x       
-        
-        # H2_DE
-        fig2 = plt.figure(count, dpi=150)
-        plt.ylim(0, ylim)
-        
-        plt.bar(range(len(DE_load_name_list)), base_shear_H2.iloc[0, 0:len(DE_load_name_list)], color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        plt.axhline(y= base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
-        plt.xticks(range(14), range(1,15))
-        # plt.xticks(range(14), load_name[0:14], fontsize=8.5)
-        
-        plt.xlabel('Ground Motion No.')
-        plt.ylabel('Base Shear(kN)')
-        plt.legend(loc = 2)
-        plt.title('Y DE')
-        
-        # plt.savefig(memfile2)
-        plt.close()
-        count += 1
-        yield fig2
-        
-        base_SF_avg_DE_y = round(Decimal(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()), 2)
-        yield base_SF_avg_DE_y
-        
-        # Marker 출력
-        yield 'DE'
 
-# MCE Plot
-  
-    if len(MCE_load_name_list) != 0:
-    
-        # H1_MCE
-        fig3 = plt.figure(count, dpi=150)
-        plt.ylim(0, ylim)
-        
-        plt.bar(range(len(MCE_load_name_list)), base_shear_H1\
-                .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        plt.axhline(y= base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                    .mean(), color='r', linestyle='-', label='Average')
-        plt.xticks(range(14), range(1,15))
-        # plt.xticks(range(14), load_name[0:14], fontsize=8.5)
-        
-        plt.xlabel('Ground Motion No.')
-        plt.ylabel('Base Shear(kN)')
-        plt.legend(loc = 2)
-        plt.title('X MCE')
-        
-        # plt.savefig(memfile3)
-        plt.close()
-        count += 1
-        yield fig3
-        
-        getcontext().rounding = ROUND_HALF_UP
-        base_SF_avg_MCE_x = round(Decimal(base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()), 2)
-        yield base_SF_avg_MCE_x
-
-        # H2_MCE
-        fig4 = plt.figure(count, dpi=150)
-        plt.ylim(0, ylim)
-        
-        plt.bar(range(len(MCE_load_name_list)), base_shear_H2\
-                .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
-        plt.axhline(y= base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
-                    .mean(), color='r', linestyle='-', label='Average')
-        plt.xticks(range(14), range(1,15))
-        # plt.xticks(range(14), load_name[0:14], fontsize=8.5)
-        
-        plt.xlabel('Ground Motion No.')
-        plt.ylabel('Base Shear(kN)')
-        plt.legend(loc = 2)
-        plt.title('Y MCE')
-        
-        # plt.savefig(memfile4)
-        plt.close()
-        count += 1
-        yield fig4
-        
-        base_SF_avg_MCE_y = round(Decimal(base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()), 2)
-        yield base_SF_avg_MCE_y
-        
-        # Marker 출력
-        yield 'MCE'
-'''
 #%% Story SF
 
-def story_SF(self, yticks=2, xlim=70000):
+def story_SF(self, yticks=2, xlim=70000) -> pd.DataFrame:
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 각 층의 전단력을 그래프로 출력(kN).
     
     Parameters
     ----------
-    input_path : str
-                 Data Conversion 엑셀 파일의 경로.
-                 
-    input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
-                 
-    result_path : str
-                  Perform-3D에서 나온 해석 파일의 경로.
-                  
-    result_xlsx : str, optional, default='Analysis Result'
-                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
-                 
     yticks : int, optional, default=2
              그래프의 y축 눈금 간격(층간격). 층이 너무 높으면 y축에 너무 많은 층이 표기되기 때문에, 층간격을 조절해서 정돈된 그래프를 표기할 수 있다.
     
@@ -230,6 +103,8 @@ def story_SF(self, yticks=2, xlim=70000):
     
     Returns
     -------
+    story_SF.pkl : pickle
+        Story Shear Force results in pd.DataFrame type is saved as pickle in story_SF.pkl
     '''    
 #%% Load Data
     shear_force_data = self.shear_force_data
@@ -241,16 +116,6 @@ def story_SF(self, yticks=2, xlim=70000):
     seismic_load_name_list = self.seismic_load_name_list
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
-    
-    # shear_force_data = result.shear_force_data
-    # story_info = result.story_info
-
-    # # Seismic Loads List
-    # load_name_list = result.load_name_list
-    # gravity_load_name = result.gravity_load_name
-    # seismic_load_name_list = result.seismic_load_name_list
-    # DE_load_name_list = result.DE_load_name_list
-    # MCE_load_name_list = result.MCE_load_name_list
 
 #%% Process Data   
     # 필요없는 전단력 제거(층전단력)
@@ -300,160 +165,14 @@ def story_SF(self, yticks=2, xlim=70000):
     with open('pkl/story_SF.pkl', 'wb') as f:
         pickle.dump(story_SF_result, f)
 
-#%% Story Shear 그래프 그리기
-'''
-    count = 1
-    
-    # DE Plot    
-    if len(DE_load_name_list) != 0:
-
-        ### H1_DE
-        fig1 = plt.figure(count, dpi=150)
-        plt.xlim(0, xlim)
-        
-        # 지진파별 plot
-        for i in range(len(DE_load_name_list)):
-            plt.plot(shear_force_H1_max.iloc[:,i], range(shear_force_H1_max.shape[0]), label=DE_load_name_list[i], linewidth=0.7)
-            
-        # 평균 plot
-        plt.plot(shear_force_H1_max.iloc[:,0:len(DE_load_name_list)]\
-                 .mean(axis=1), range(shear_force_H1_max.shape[0]), color='k', label='Average', linewidth=2)
-        
-        plt.yticks(range(shear_force_H1_max.shape[0])[::yticks], shear_force_H1_max.index[::yticks], fontsize=8.5)
-        # plt.xticks(range(14), range(1,15))
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('Story Shear(kN)')
-        plt.ylabel('Story')
-        plt.legend(loc=1, fontsize=8)
-        plt.title('X DE')
-        
-        plt.tight_layout()
-        # plt.savefig(memfile5)
-        plt.close()
-        count += 1
-
-        yield fig1
-        
-        # H2_DE
-        fig2 = plt.figure(count, dpi=150)
-        plt.xlim(0, xlim)
-        
-        # 지진파별 plot
-        for i in range(len(DE_load_name_list)):
-            plt.plot(shear_force_H2_max.iloc[:,i], range(shear_force_H2_max.shape[0]), label=DE_load_name_list[i], linewidth=0.7)
-            
-        # 평균 plot
-        plt.plot(shear_force_H2_max.iloc[:,0:len(DE_load_name_list)]\
-                 .mean(axis=1), range(shear_force_H2_max.shape[0]), color='k', label='Average', linewidth=2)
-        
-        plt.yticks(range(shear_force_H2_max.shape[0])[::yticks], shear_force_H2_max.index[::yticks], fontsize=8.5)
-        # plt.xticks(range(14), range(1,15))
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('Story Shear(kN)')
-        plt.ylabel('Story')
-        plt.legend(loc=1, fontsize=8)
-        plt.title('Y DE')
-        
-        plt.tight_layout()
-        # plt.savefig(memfile6)
-        plt.close()
-        count += 1
-
-        yield fig2
-
-        # Marker 출력
-        yield 'DE'
-    
-    # DE Plot    
-    if len(MCE_load_name_list) != 0:    
-    
-        ### H1_MCE
-        fig3 = plt.figure(count, dpi=150)
-        plt.xlim(0, xlim)
-        
-        # 지진파별 plot
-        for i in range(len(MCE_load_name_list)):
-            plt.plot(shear_force_H1_max.iloc[:,i+len(DE_load_name_list)], range(shear_force_H1_max.shape[0]), label=MCE_load_name_list[i], linewidth=0.7)
-            
-        # 평균 plot
-        plt.plot(shear_force_H1_max.iloc[:,len(DE_load_name_list)\
-                                         :len(DE_load_name_list)+len(MCE_load_name_list)]\
-                 .mean(axis=1), range(shear_force_H1_max.shape[0]), color='k', label='Average', linewidth=2)
-        
-        plt.yticks(range(shear_force_H1_max.shape[0])[::yticks], shear_force_H1_max.index[::yticks], fontsize=8.5)
-        # plt.xticks(range(14), range(1,15))
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('Story Shear(kN)')
-        plt.ylabel('Story')
-        plt.legend(loc=1, fontsize=8)
-        plt.title('X MCE')
-        
-        plt.tight_layout()
-        # plt.savefig(memfile7)
-        plt.close()
-        count += 1
-
-        yield fig3
-        
-        # H2_MCE
-        fig4 = plt.figure(count, dpi=150)
-        plt.xlim(0, xlim)
-        
-        # 지진파별 plot
-        for i in range(len(MCE_load_name_list)):
-            plt.plot(shear_force_H2_max.iloc[:,i+len(DE_load_name_list)], range(shear_force_H2_max.shape[0]), label=MCE_load_name_list[i], linewidth=0.7)
-            
-        # 평균 plot
-        plt.plot(shear_force_H2_max.iloc[:,len(DE_load_name_list)\
-                                         :len(DE_load_name_list)+len(MCE_load_name_list)]\
-                 .mean(axis=1), range(shear_force_H2_max.shape[0]), color='k', label='Average', linewidth=2)
-        
-        plt.yticks(range(shear_force_H2_max.shape[0])[::yticks], shear_force_H2_max.index[::yticks], fontsize=8.5)
-        # plt.xticks(range(14), range(1,15))
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('Story Shear(kN)')
-        plt.ylabel('Story')
-        plt.legend(loc=1, fontsize=8)
-        plt.title('Y MCE')
-        
-        plt.tight_layout()
-        # plt.savefig(memfile8)
-        plt.close()
-        count += 1
-
-        yield fig4
-
-        # Marker 출력
-        yield 'MCE'
-'''
 #%% IDR
-def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):   
+def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2) -> pd.DataFrame:
     ''' 
 
     Perform-3D 해석 결과에서 각 지진파에 대한 층간변위비를 그래프로 출력.  
     
     Parameters
     ----------                  
-    input_path : str
-                 Data Conversion 엑셀 파일의 경로.
-                 
-    input_xlsx : str
-                 Data Conversion 엑셀 파일의 이름. result_xlsx와는 달리 확장자명(.xlsx)까지 기입해줘야한다. 하나의 파일만 불러온다.
-    
-    result_path : str
-                  Perform-3D에서 나온 해석 파일의 경로.
-                  
-    result_xlsx : str, optional, default='Analysis Result'
-                  Perform-3D에서 나온 해석 파일의 이름. 해당 파일 이름이 포함된 파일들을 모두 불러온다.
-                  
     cri_DE : float, optional, default=0.015
              LS(인명보호)를 만족하는 층간변위비 허용기준.
              
@@ -463,22 +182,10 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
     yticks : int, optional, default=2
              그래프의 y축 눈금 간격(층간격). 층이 너무 높으면 y축에 너무 많은 층이 표기되기 때문에, 층간격을 조절해서 정돈된 그래프를 표기할 수 있다.
     
-    Yields
+    Returns
     -------
-    fig1 : matplotlib.pyplot.figure or None
-           DE(설계지진) 발생 시 x방향 층간변위비 그래프
-    
-    fig2 : matplotlib.pyplot.figure or None
-           DE(설계지진) 발생 시 y방향 층간변위비 그래프
-    
-    fig3 : matplotlib.pyplot.figure or None
-           MCE(최대고려지진) 발생 시 x방향 층간변위비 그래프
-    
-    fig4 : matplotlib.pyplot.figure or None
-           MCE(최대고려지진) 발생 시 y방향 층간변위비 그래프
-    
-    Raises
-    -------
+    IDR.pkl : pickle
+        Interstory Drift Ratio results in pd.DataFrame type is saved as pickle in IDR.pkl
     
     References
     -------
@@ -499,9 +206,9 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
 #%% Process Data
 
     #  Drift Name에서 story, direction 뽑아내기    
-    story = []
-    direction = []
-    position = []
+    story = [] # 1F, 2F
+    direction = [] # X, Y
+    position = [] # 1,5,7,11,NE,SE,SW,NW
     for i in drift_data['Drift Name']:
         i = i.strip()  # drift name 앞뒤에 있는 blank 제거
     
@@ -526,36 +233,35 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         load_striped.append(i.strip().split(' ')[-1])        
     drift_data['Load Case'] = load_striped
 
-#%% IDR값(방향에 따른)
-    ### 지진파별 평균
-    
+#%% 각 지진파에 대한 IDR 최대값
     # 각 지진파들로 변수 생성 후, 값 대입
     for load_name in seismic_load_name_list:
         globals()['IDR_x_max_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
                                                                       (drift_data['Direction'] == 'X') &\
                                                                       (drift_data['Step Type'] == 'Max')].groupby(['Name', 'Position'])['Drift']\
-                                                                      .agg(**{'X Max avg':'mean'}).groupby('Name').max()
+                                                                      .agg(**{'X Max avg':'max'}).groupby('Name').max() # extract 최대값
         
         globals()['IDR_x_min_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
                                                                       (drift_data['Direction'] == 'X') &\
                                                                       (drift_data['Step Type'] == 'Min')].groupby(['Name'])['Drift']\
-                                                                      .agg(**{'X Min avg':'mean'}).groupby('Name').min()
+                                                                      .agg(**{'X Min avg':'min'}).groupby('Name').min() # extract 최소값
             
         globals()['IDR_y_max_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
                                                                       (drift_data['Direction'] == 'Y') &\
                                                                       (drift_data['Step Type'] == 'Max')].groupby(['Name'])['Drift']\
-                                                                      .agg(**{'Y Max avg':'mean'}).groupby('Name').max()
+                                                                      .agg(**{'Y Max avg':'max'}).groupby('Name').max() # extract 최대값
         
         globals()['IDR_y_min_{}_avg'.format(load_name)] = drift_data[(drift_data['Load Case'] == '{}'.format(load_name)) &\
                                                                       (drift_data['Direction'] == 'Y') &\
                                                                       (drift_data['Step Type'] == 'Min')].groupby(['Name'])['Drift']\
-                                                                      .agg(**{'Y Min avg':'mean'}).groupby('Name').min()
+                                                                      .agg(**{'Y Min avg':'min'}).groupby('Name').min() # extract 최소값
             
         globals()['IDR_x_max_{}_avg'.format(load_name)].reset_index(inplace=True)
         globals()['IDR_x_min_{}_avg'.format(load_name)].reset_index(inplace=True)
         globals()['IDR_y_max_{}_avg'.format(load_name)].reset_index(inplace=True)
         globals()['IDR_y_min_{}_avg'.format(load_name)].reset_index(inplace=True)
-        
+   
+#%% Story에 따라 IDR 정렬
     # Story 정렬하기
     story_name = story_info.loc[:, 'Story Name']
     story_name_window = drift_data['Name'].drop_duplicates()
@@ -586,7 +292,7 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         result_each.append(globals()['IDR_y_max_{}_avg'.format(load_name)])
         result_each.append(globals()['IDR_y_min_{}_avg'.format(load_name)])
         
-#%% IDR값(방향에 따른) 전체 평균 (여기부터 2023.03.20 수정)
+#%% 모든 지진파에 대한 IDR 평균
     result_avg = []
     if len(DE_load_name_list) != 0:
             
@@ -595,12 +301,13 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
         IDR_y_max_DE_total = pd.concat([globals()['IDR_y_max_{}_avg'.format(x)].iloc[:,-1] for x in DE_load_name_list], axis=1)
         IDR_y_min_DE_total = pd.concat([globals()['IDR_y_min_{}_avg'.format(x)].iloc[:,-1] for x in DE_load_name_list], axis=1)
         
+        # 모든 지진파에 대한 x_max, x_min, y_max, y_min 평균
         IDR_x_max_DE_avg = IDR_x_max_DE_total.mean(axis=1)
         IDR_x_min_DE_avg = IDR_x_min_DE_total.mean(axis=1)
         IDR_y_max_DE_avg = IDR_y_max_DE_total.mean(axis=1)
         IDR_y_min_DE_avg = IDR_y_min_DE_total.mean(axis=1)
         
-        # x,y 방향 min,max 값들을 하나의 dataframe으로 합치기
+        # x_max, x_min, y_max, y_min 결과값을 dataframe으로 합치기
         IDR_DE_avg = pd.concat([IDR_x_max_DE_avg, IDR_x_min_DE_avg, IDR_y_max_DE_avg, IDR_y_min_DE_avg], axis=1)
         result_avg.append(IDR_DE_avg)
     
@@ -629,168 +336,16 @@ def IDR(self, cri_DE=0.015, cri_MCE=0.02, yticks=2):
     with open('pkl/IDR.pkl', 'wb') as f:
         pickle.dump(IDR_result, f)
     
-#%% 그래프 (방향에 따른)
-'''
-    count = 1
-
-    # DE Plot
-    if len(DE_load_name_list) != 0:
-
-        ### H1 DE 그래프
-        fig1 = plt.figure(count, figsize=(5, 7), dpi=150)
-        plt.xlim(-0.025, 0.025)
-        
-        # 지진파별 plot
-        for load_name in DE_load_name_list:
-            plt.plot(globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], label='{}'.format(load_name), linewidth=0.7)
-            plt.plot(globals()['IDR_x_min_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], linewidth=0.7)
-                
-        # 평균 plot      
-        plt.plot(IDR_x_max_DE_avg, globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], color='k', label='Average', linewidth=2)
-        plt.plot(IDR_x_min_DE_avg, globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], color='k', linewidth=2)
-        
-        # reference line 그려서 허용치 나타내기
-        plt.axvline(x=-cri_DE, color='r', linestyle='--', label='LS')
-        plt.axvline(x=cri_DE, color='r', linestyle='--')
-        
-        # 기타
-        plt.yticks(story_name_window_reordered[::yticks], story_name_window_reordered[::yticks])
-        plt.grid(linestyle='-.')
-        plt.xlabel('Interstory Drift Ratios(m/m)')
-        plt.ylabel('Story')
-        plt.legend(loc=4, fontsize=8)
-        plt.title('X DE')
-        
-        plt.tight_layout()
-        # plt.savefig(result_path + '\\' + 'IDR_H1_DE')
-        plt.close()
-        count += 1
-        
-        yield fig1
-        
-        ### H2 DE 그래프
-        fig2 = plt.figure(count, figsize=(5, 7), dpi=150)
-        plt.xlim(-0.025, 0.025)
-        
-        # 지진파별 plot
-        for load_name in DE_load_name_list:
-            plt.plot(globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], label='{}'.format(load_name), linewidth=0.7)
-            plt.plot(globals()['IDR_y_min_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], linewidth=0.7)
-               
-        # 평균 plot      
-        plt.plot(IDR_y_max_DE_avg, globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], color='k', label='Average', linewidth=2)
-        plt.plot(IDR_y_min_DE_avg, globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], color='k', linewidth=2)
-        
-        # reference line 그려서 허용치 나타내기
-        plt.axvline(x=-cri_DE, color='r', linestyle='--', label='LS')
-        plt.axvline(x=cri_DE, color='r', linestyle='--')
-        
-        # 기타
-        plt.yticks(story_name_window_reordered[::yticks], story_name_window_reordered[::yticks])
-        plt.grid(linestyle='-.')
-        plt.xlabel('Interstory Drift Ratios(m/m)')
-        plt.ylabel('Story')
-        plt.legend(loc=4, fontsize=8)
-        plt.title('Y DE')
-        
-        plt.tight_layout()
-        # plt.savefig(result_path + '\\' + 'IDR_H2_DE')
-        plt.close()
-        count += 1
-        
-        yield fig2
-        
-        # Marker 출력
-        yield 'DE'
-
-    # MCE Plot
-    if len(MCE_load_name_list) != 0:
-    
-        ### H1 MCE 그래프
-        fig3 = plt.figure(count, figsize=(5, 7), dpi=150)
-        plt.xlim(-0.025, 0.025)
-        
-        # 지진파별 plot
-        for load_name in MCE_load_name_list:
-            plt.plot(globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], label='{}'.format(load_name), linewidth=0.7)
-            plt.plot(globals()['IDR_x_min_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], linewidth=0.7)
-                
-        # 평균 plot      
-        plt.plot(IDR_x_max_MCE_avg, globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], color='k', label='Average', linewidth=2)
-        plt.plot(IDR_x_min_MCE_avg, globals()['IDR_x_max_{}_avg'.format(load_name)].iloc[:,0], color='k', linewidth=2)
-        
-        # reference line 그려서 허용치 나타내기
-        plt.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
-        plt.axvline(x=cri_MCE, color='r', linestyle='--')
-        
-        # 기타
-        plt.yticks(story_name_window_reordered[::yticks], story_name_window_reordered[::yticks])
-        plt.grid(linestyle='-.')
-        plt.xlabel('Interstory Drift Ratios(m/m)')
-        plt.ylabel('Story')
-        plt.legend(loc=4, fontsize=8)
-        plt.title('X MCE')
-        
-        plt.tight_layout()
-        # plt.savefig(result_path + '\\' + 'IDR_H1_DE')
-        plt.close()
-        count += 1
-        
-        yield fig3
-        
-        # H2 MCE 그래프
-        fig4 = plt.figure(count, figsize=(5, 7), dpi=150)
-        plt.xlim(-0.025, 0.025)
-        
-        # 지진파별 plot
-        for load_name in MCE_load_name_list:
-            plt.plot(globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], label='{}'.format(load_name), linewidth=0.7)
-            plt.plot(globals()['IDR_y_min_{}_avg'.format(load_name)].iloc[:,-1]
-                     , globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], linewidth=0.7)
-               
-        # 평균 plot      
-        plt.plot(IDR_y_max_MCE_avg, globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], color='k', label='Average', linewidth=2)
-        plt.plot(IDR_y_min_MCE_avg, globals()['IDR_y_max_{}_avg'.format(load_name)].iloc[:,0], color='k', linewidth=2)
-        
-        # reference line 그려서 허용치 나타내기
-        plt.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
-        plt.axvline(x=cri_MCE, color='r', linestyle='--')
-        
-        # 기타
-        plt.yticks(story_name_window_reordered[::yticks], story_name_window_reordered[::yticks])
-        plt.grid(linestyle='-.')
-        plt.xlabel('Interstory Drift Ratios(m/m)')
-        plt.ylabel('Story')
-        plt.legend(loc=4, fontsize=8)
-        plt.title('Y MCE')
-        
-        plt.tight_layout()
-        # plt.savefig(result_path + '\\' + 'IDR_H2_DE')
-        plt.close()
-        count += 1
-        
-        yield fig4
-        
-        # Marker 출력
-        yield 'MCE'
-'''        
 #%% Pushover
 
 def Pushover(result_xlsx_path, x_result_txt, y_result_txt, base_SF_design=None, pp_x=None, pp_y=None):
     ''' 
 
-    Perform-3D 해석 결과에서 각 지진파에 대한 Base층의 전단력을 막대그래프 형식으로 출력. (kN)
+    Perform-3D의 Pushover 해석 결과로 성능곡선 그래프 출력 (아직 코드로만 실행 가능)
     
     Parameters
     ----------
-    result_path : str
+    result_xlsx_path : str
                   Perform-3D에서 나온 해석 파일의 경로.
                   
     result_xlsx : str, optional, default='Analysis Result'
@@ -798,6 +353,8 @@ def Pushover(result_xlsx_path, x_result_txt, y_result_txt, base_SF_design=None, 
                   
     ylim : int, optional, default=70000
            그래프의 y축 limit 값. y축 limit 안의 값만 표기되므로, limit를 넘어가는 값을 확인하고 싶을 시에는 ylim 값을 더 크게 설정하면 된다.
+    
+    pp_x : float
     
     Returns
     -------

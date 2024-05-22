@@ -7,6 +7,7 @@ import multiprocess as mp
 import win32com.client
 import pythoncom
 from PyPDF2 import PdfMerger, PdfFileReader
+import shutil
 
 import docx
 from docx.shared import Pt
@@ -20,9 +21,6 @@ from docx.oxml.ns import qn
 import matplotlib.pyplot as plt
 from decimal import Decimal, ROUND_UP
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QSettings, QCoreApplication, QThread, QObject, Qt
-
 #%% Post-Processing Class
 
 class PostProc():
@@ -30,7 +28,7 @@ class PostProc():
     def __init__(self, input_xlsx_path, result_xlsx_path, get_base_SF=False
                  , get_story_SF=False, get_IDR=False, get_BR=False, get_BSF=False
                  , get_E_BSF=False, get_CR=False, get_CSF=False, get_E_CSF=False
-                 , get_WAS=False, get_WR=False, get_WSF=False, BR_scale_factor=1.0):
+                 , get_WAS=False, get_WR=False, get_WSF=False, BR_scale_factor=1.0) -> None:
         
         ##### Load Excel Files (Analysis Result Sheets)
         to_load_list = result_xlsx_path    
@@ -69,7 +67,7 @@ class PostProc():
         # C.Beam Info
         if (get_BR == True) | (get_BSF == True):
             self.beam_info = read_excel(input_xlsx_path, sheet_name='Input_C.Beam', skip_rows=[0,1,2])
-            self.beam_info = self.beam_info.iloc[:,0:31]
+            self.beam_info = self.beam_info.iloc[:,0:32]
             self.beam_info.dropna(how='all', inplace=True)
             self.beam_info.columns = ['Name', 'Length(mm)', 'b(mm)', 'h(mm)', 'd(mm)', 'Concrete Grade'
                                       , 'Arrangement', 'Seismic Detail', 'Main Rebar Type', 'Main Rebar(DXX)'
@@ -77,7 +75,8 @@ class PostProc():
                                       , 'Top(1)', 'Top(2)', 'Top(3)', 'Stirrup EA', 'Stirrup Space(mm)'
                                       , 'X-Bracing EA', 'X-Bracing deg', 'Main Rebar(DXX)_after', 'Stirrup(DXX)_after'
                                       , 'X-Bracing(DXX)_after', 'Top(1)_after', 'Top(2)_after', 'Top(3)_after'
-                                      , 'Stirrup EA_after', 'Stirrup Space(mm)_after', 'X-Bracing EA_after', 'X-Bracing deg_after']
+                                      , 'Stirrup EA_after', 'Stirrup Space(mm)_after', 'X-Bracing EA_after', 'X-Bracing deg_after'
+                                      , 'Boundary']
         # E.Column Info
         if get_E_CSF == True:
             self.ecol_info = read_excel(input_xlsx_path, sheet_name='Input_E.Column', skip_rows=[0,1,2])
@@ -181,14 +180,10 @@ class PostProc():
         create_dir('pkl')        
 
     ##### Import Post-Processing Methods
-    # from PBD_p3d.system import base_SF, story_SF, IDR
-    # from PBD_p3d.wall import WAS, WR, WSF
-    # from PBD_p3d.beam import BR, BSF
-    # from PBD_p3d.column import CR, CSF
-    from .system import base_SF, story_SF, IDR
-    from .wall import WAS, WR, WSF
-    from .beam import BR, BSF
-    from .column import CR, CSF, E_CSF
+    from PBD_p3d.system import base_SF, story_SF, IDR
+    from PBD_p3d.wall import WAS, WR, WSF, WAS_plot, WR_plot, WSF_plot
+    from PBD_p3d.beam import BR, BSF, BR_plot, BSF_plot
+    from PBD_p3d.column import CR, CSF, E_CSF
 
 #%% Function to Print the Result into PDF
 
@@ -406,6 +401,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
     xlim = 2 # BR
     WAS_gage_group='AS' # WAS
     
+    fig_scale = 3/4 # 그래프 크기, 축, 글씨 등 scale up/down. (scale과 반비례함)
+    
     # Create docx Class (with Template)
     document = docx.Document("template/report_template.docx")
     
@@ -446,7 +443,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
             # H1_DE
-            fig1, ax1 = plt.subplots(1,1)
+            fig1, ax1 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig1.tight_layout() # 이거 안하면 크기 맘대로 바뀜 ㅠ
             ax1.set_ylim(0, max_shear)
         
             ax1.bar(range(len(DE_load_name_list)), base_shear_H1.iloc[0, 0:len(DE_load_name_list)]\
@@ -457,17 +455,18 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax1.set_xlabel('Ground Motion No.')
             ax1.set_ylabel('Base Shear(kN)')
             ax1.legend(loc = 2)
-            ax1.set_title('X 1.2$\star$DBE')
+            # ax1.set_title('X 1.2$\star$DBE')
             
             base_SF_avg_DE_x = Decimal(str(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()))\
                 .quantize(Decimal('.01'), rounding=ROUND_UP)        
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight") # bbox_inches=tight : 이미지 크기에 그래프가 맞도록
             plt.close()
             
             # H2_DE
-            fig2, ax2 = plt.subplots(1,1)
+            fig2, ax2 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig2.tight_layout()
             ax2.set_ylim(0, max_shear)
             
             ax2.bar(range(len(DE_load_name_list)), base_shear_H2.iloc[0, 0:len(DE_load_name_list)], color='darkblue', edgecolor='k', label = 'Max. Base Shear')
@@ -477,13 +476,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax2.set_xlabel('Ground Motion No.')
             ax2.set_ylabel('Base Shear(kN)')
             ax2.legend(loc = 2)
-            ax2.set_title('Y 1.2$\star$DBE')
+            # ax2.set_title('Y 1.2$\star$DBE')
             
             base_SF_avg_DE_y = Decimal(str(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()))\
                 .quantize(Decimal('.01'), rounding=ROUND_UP)
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()
 
             # 첫번째 표에 avg 값 넣기
@@ -505,15 +504,16 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(6.5))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(6.5))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
             # H1_MCE
-            fig3, ax3 = plt.subplots(1,1)
+            fig3, ax3 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig3.tight_layout()
             ax3.set_ylim(0, max_shear)
             
             ax3.bar(range(len(MCE_load_name_list)), base_shear_H1\
@@ -526,17 +526,18 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax3.set_xlabel('Ground Motion No.')
             ax3.set_ylabel('Base Shear(kN)')
             ax3.legend(loc = 2)
-            ax3.set_title('X MCE')
+            # ax3.set_title('X MCE')
             
             base_SF_avg_MCE_x = Decimal(str(base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
                 .quantize(Decimal('.01'), rounding=ROUND_UP)
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
-            plt.close()
+            plt.savefig(memfile, bbox_inches="tight")           
+            plt.close()            
 
             # H2_MCE
-            fig4, ax4 = plt.subplots(1,1)
+            fig4, ax4 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig4.tight_layout()
             ax4.set_ylim(0, max_shear)
             
             plt.bar(range(len(MCE_load_name_list)), base_shear_H2\
@@ -549,13 +550,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax4.set_xlabel('Ground Motion No.')
             ax4.set_ylabel('Base Shear(kN)')
             ax4.legend(loc = 2)
-            ax4.set_title('Y MCE')
+            # ax4.set_title('Y MCE')
             
             base_SF_avg_MCE_y = Decimal(str(base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
                 .quantize(Decimal('.01'), rounding=ROUND_UP)
 
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()            
 
             # 첫번째 표에 avg 값 넣기
@@ -577,8 +578,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(6.5))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(6.5))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER               
             
@@ -601,7 +602,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
             # H1_DE
-            fig5, ax5 = plt.subplots(1,1, figsize=(6,5))
+            fig5, ax5 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig5.tight_layout()
             
             # 지진파별 plot
             for i in range(len(DE_load_name_list)):
@@ -619,14 +621,15 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax5.set_xlabel('Story Shear(kN)')
             ax5.set_ylabel('Story')
             ax5.legend(loc=1, fontsize=8)
-            ax5.set_title('X 1.2$\star$DBE')
+            # ax5.set_title('X 1.2$\star$DBE')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
             
             # H2_DE
-            fig6, ax6 = plt.subplots(1,1, figsize=(6,5))
+            fig6, ax6 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig6.tight_layout()
             
             for i in range(len(DE_load_name_list)):
                 ax6.plot(shear_force_H2_max.iloc[:,i], range(shear_force_H2_max.shape[0]), label=DE_load_name_list[i], linewidth=0.7)
@@ -641,10 +644,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax6.set_xlabel('Story Shear(kN)')
             ax6.set_ylabel('Story')
             ax6.legend(loc=1, fontsize=8)
-            ax6.set_title('Y 1.2$\star$DBE')
+            # ax6.set_title('Y 1.2$\star$DBE')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()
             
             # 표에 그래프 넣기            
@@ -655,15 +658,16 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(9.5))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(9.5))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
             # H1_MCE
-            fig7, ax7 = plt.subplots(1,1, figsize=(6,5))
+            fig7, ax7 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig7.tight_layout()
             
             for i in range(len(MCE_load_name_list)):
                 ax7.plot(shear_force_H1_max.iloc[:,i+len(DE_load_name_list)], range(shear_force_H1_max.shape[0]), label=MCE_load_name_list[i], linewidth=0.7)
@@ -678,14 +682,15 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax7.set_xlabel('Story Shear(kN)')
             ax7.set_ylabel('Story')
             ax7.legend(loc=1, fontsize=8)
-            ax7.set_title('X MCE')
+            # ax7.set_title('X MCE')
         
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
             
             # H1_MCE
-            fig8, ax8 = plt.subplots(1,1, figsize=(6,5))
+            fig8, ax8 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig8.tight_layout()
             
             for i in range(len(MCE_load_name_list)):
                 ax8.plot(shear_force_H2_max.iloc[:,i+len(DE_load_name_list)], range(shear_force_H2_max.shape[0]), label=MCE_load_name_list[i], linewidth=0.7)
@@ -700,10 +705,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax8.set_xlabel('Story Shear(kN)')
             ax8.set_ylabel('Story')
             ax8.legend(loc=1, fontsize=8)
-            ax8.set_title('Y MCE')
+            # ax8.set_title('Y MCE')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()
             
             # 표에 그래프 넣기            
@@ -714,8 +719,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(9.5))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(9.5))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
@@ -743,7 +748,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
             # H1_DE   
-            fig9, ax9 = plt.subplots(1,1, figsize=(5,7))
+            fig9, ax9 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig9.tight_layout()
             
             # 지진파별 plot
             for load_name in DE_load_name_list:
@@ -769,14 +775,15 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax9.set_xlabel('Interstory Drift Ratios(m/m)')
             ax9.set_ylabel('Story')
             ax9.legend(loc=4, fontsize=8)
-            ax9.set_title('X 1.2$\star$DBE')
+            # ax9.set_title('X 1.2$\star$DBE')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
             
             # H2_DE
-            fig10, ax10 = plt.subplots(1,1, figsize=(5,7))
+            fig10, ax10 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig10.tight_layout()
 
             # 지진파별 plot
             for load_name in DE_load_name_list:
@@ -803,10 +810,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax10.set_xlabel('Interstory Drift Ratios(m/m)')
             ax10.set_ylabel('Story')
             ax10.legend(loc=4, fontsize=8)
-            ax10.set_title('Y 1.2$\star$DBE')
+            # ax10.set_title('Y 1.2$\star$DBE')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()
 
             # 표에 그래프 넣기            
@@ -817,15 +824,16 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(10))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(10))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
             # H1_MCE
-            fig11, ax11 = plt.subplots(1,1, figsize=(5,7))
+            fig11, ax11 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig11.tight_layout()
             
             # 지진파별 plot
             for load_name in MCE_load_name_list:
@@ -840,7 +848,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax11.plot(IDR_result_avg[count_avg].iloc[:,1], story_name_window_reordered, color='k', linewidth=2)
             
             # reference line 그려서 허용치 나타내기
-            ax11.axvline(x=-cri_MCE, color='r', linestyle='--', label='LS')
+            ax11.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
             ax11.axvline(x=cri_MCE, color='r', linestyle='--')
             
             ax11.set_xlim(-0.025, 0.025)
@@ -851,14 +859,15 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax11.set_xlabel('Interstory Drift Ratios(m/m)')
             ax11.set_ylabel('Story')
             ax11.legend(loc=4, fontsize=8)
-            ax11.set_title('X MCE')
+            # ax11.set_title('X MCE')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
 
             # H2_MCE
-            fig12, ax12 = plt.subplots(1,1, figsize=(5,7))
+            fig12, ax12 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig12.tight_layout()
 
             # 지진파별 plot
             for load_name in MCE_load_name_list:
@@ -874,7 +883,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             count_avg += 1
             
             # reference line 그려서 허용치 나타내기
-            ax12.axvline(x=-cri_MCE, color='r', linestyle='--', label='LS')
+            ax12.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
             ax12.axvline(x=cri_MCE, color='r', linestyle='--')
             
             ax12.set_xlim(-0.025, 0.025)
@@ -885,10 +894,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax12.set_xlabel('Interstory Drift Ratios(m/m)')
             ax12.set_ylabel('Story')
             ax12.legend(loc=4, fontsize=8)
-            ax12.set_title('Y MCE')
+            # ax12.set_title('Y MCE')
 
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()            
             
             # 표에 그래프 넣기            
@@ -899,8 +908,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(10))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(10))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER       
 
@@ -925,7 +934,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
 
-            fig13, ax13 = plt.subplots(1,1, figsize=(5,6))
+            fig13, ax13 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig13.tight_layout()
             
             # DCR plot                
             ax13.scatter(BR_plot['DCR(DE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
@@ -940,13 +950,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
 
             # 기타
             ax13.grid(linestyle='-.')
-            ax13.set_xlabel('D/C Ratios')
+            ax13.set_xlabel('DCR')
             ax13.set_ylabel('Story')
-            ax13.set_title('Beam Rotation (1.2$\star$DBE)')
+            # ax13.set_title('Beam Rotation (1.2$\star$DBE)')
             
             # plt.tight_layout()
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)
+            plt.savefig(memfile, bbox_inches="tight")
             plt.close()
             
             # 첫번째 표에 그래프 넣기            
@@ -954,12 +964,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_cell = plots_row.cells[0]
             plots_para = plots_cell.paragraphs[0]
             plots_run = plots_para.add_run()
-            plots_run.add_picture(memfile, width=Cm(9))
+            plots_run.add_picture(memfile, width=Cm(7), height=Cm(9.5))
             plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
         if len(MCE_load_name_list) != 0:
             
-            fig14, ax14 = plt.subplots(1,1, figsize=(5,6))
+            fig14, ax14 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig14.tight_layout()
 
             # DCR plot                
             ax14.scatter(BR_plot['DCR(MCE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
@@ -974,13 +985,13 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
 
             # 기타
             ax14.grid(linestyle='-.')
-            ax14.set_xlabel('D/C Ratios')
+            ax14.set_xlabel('DCR')
             ax14.set_ylabel('Story')
-            ax14.set_title('Beam Rotation (MCE)')
+            # ax14.set_title('Beam Rotation (MCE)')
             
             # plt.tight_layout()   
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)
+            plt.savefig(memfile, bbox_inches="tight")
             plt.close()
 
             # 첫번째 표에 그래프 넣기            
@@ -988,7 +999,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_cell = plots_row.cells[1]
             plots_para = plots_cell.paragraphs[0]
             plots_run = plots_para.add_run()
-            plots_run.add_picture(memfile, width=Cm(9))
+            plots_run.add_picture(memfile, width=Cm(7), height=Cm(9.5))
             plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER   
             
     #%% Beam Shear Force
@@ -1010,7 +1021,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # Plot
         # DE Plot
         if len(DE_load_name_list) != 0:
-            fig15, ax15 = plt.subplots(1,1, figsize=(5,6))
+            fig15, ax15 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig15.tight_layout()
             
             # DCR plot                
             ax15.axes.scatter(BSF_plot['DE'], BSF_plot['Height(mm)'], color='k', s=1)
@@ -1023,12 +1035,12 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
     
             # 기타
             ax15.axes.grid(linestyle='-.')
-            ax15.axes.set_xlabel('D/C Ratios')
+            ax15.axes.set_xlabel('DCR')
             ax15.axes.set_ylabel('Story')
-            ax15.axes.set_title('Shear Strength (1.2$\star$DBE)')
+            # ax15.axes.set_title('Shear Strength (1.2$\star$DBE)')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)
+            plt.savefig(memfile, bbox_inches="tight")
             plt.close()
             
             # 첫번째 표에 그래프 넣기            
@@ -1036,13 +1048,14 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_cell = plots_row.cells[0]
             plots_para = plots_cell.paragraphs[0]
             plots_run = plots_para.add_run()
-            plots_run.add_picture(memfile, width=Cm(9))
+            plots_run.add_picture(memfile, width=Cm(7), height=Cm(9.5))
             plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
         # Plot
         # MCE Plot
         if len(MCE_load_name_list) != 0:
-            fig16, ax16 = plt.subplots(1,1, figsize=(5,6))
+            fig16, ax16 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig16.tight_layout()
             
             # DCR plot                
             ax16.axes.scatter(BSF_plot['MCE'], BSF_plot['Height(mm)'], color='k', s=1)
@@ -1055,12 +1068,12 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
     
             # 기타
             ax16.axes.grid(linestyle='-.')
-            ax16.axes.set_xlabel('D/C Ratios')
+            ax16.axes.set_xlabel('DCR')
             ax16.axes.set_ylabel('Story')
-            ax16.axes.set_title('Shear Strength (MCE)')
+            # ax16.axes.set_title('Shear Strength (MCE)')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)
+            plt.savefig(memfile, bbox_inches="tight")
             plt.close()
             
             # 첫번째 표에 그래프 넣기            
@@ -1068,7 +1081,7 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_cell = plots_row.cells[1]
             plots_para = plots_cell.paragraphs[0]
             plots_run = plots_para.add_run()
-            plots_run.add_picture(memfile, width=Cm(9))
+            plots_run.add_picture(memfile, width=Cm(7), height=Cm(9.5))
             plots_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
     #%% Wall Axial Strain
@@ -1089,10 +1102,11 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
             # DE_Neg
-            fig17, ax17 = plt.subplots(1,1, figsize=(5,4))
+            fig17, ax17 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig17.tight_layout()
             
             # WAS plot
-            ax17.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            ax17.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             ax17.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -1106,17 +1120,18 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax17.grid(linestyle='-.')
             ax17.set_xlabel('Axial Strain (m/m)')
             ax17.set_ylabel('Story')
-            ax17.set_title('1.2$\star$DBE (Compressive)')
+            # ax17.set_title('1.2$\star$DBE (Compressive)')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
             
             # DE_Pos
-            fig18, ax18 = plt.subplots(1,1, figsize=(5,4))
+            fig18, ax18 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig18.tight_layout()
             
             # WAS plot
-            ax18.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            ax18.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             ax18.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -1130,10 +1145,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax18.grid(linestyle='-.')
             ax18.set_xlabel('Axial Strain (m/m)')
             ax18.set_ylabel('Story')
-            ax18.set_title('1.2$\star$DBE (Tensile)')
+            # ax18.set_title('1.2$\star$DBE (Tensile)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()          
             
             # 표에 그래프 넣기            
@@ -1144,18 +1159,19 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(10))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(10))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER   
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
             # MCE_Neg
-            fig19, ax19 = plt.subplots(1,1, figsize=(5,4))
+            fig19, ax19 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig19.tight_layout()
             
             # WAS plot
-            ax19.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            ax19.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             ax19.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -1169,17 +1185,18 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax19.grid(linestyle='-.')
             ax19.set_xlabel('Axial Strain (m/m)')
             ax19.set_ylabel('Story')
-            ax19.set_title('MCE (Compressive)')
+            # ax19.set_title('MCE (Compressive)')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
             
             # MCE_Pos
-            fig20, ax20 = plt.subplots(1,1, figsize=(5,4))
+            fig20, ax20 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig20.tight_layout()
             
             # WAS plot
-            ax20.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='r', s=5)
+            ax20.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
             ax20.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
 
             # 허용치 기준선
@@ -1193,10 +1210,10 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             ax20.grid(linestyle='-.')
             ax20.set_xlabel('Axial Strain (m/m)')
             ax20.set_ylabel('Story')
-            ax20.set_title('MCE (Tensile)')
+            # ax20.set_title('MCE (Tensile)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()      
             
             # 표에 그래프 넣기            
@@ -1207,8 +1224,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plots_para_y = plots_cell_y.paragraphs[0]
             plots_run_x = plots_para_x.add_run()
             plots_run_y = plots_para_y.add_run()
-            plots_run_x.add_picture(memfile, width=Cm(9))
-            plots_run_y.add_picture(memfile2, width=Cm(9))
+            plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(10))
+            plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(10))
             plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
             plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER       
             
@@ -1230,7 +1247,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
             
-            fig21, ax21 = plt.subplots(1,1, figsize=(5,6))
+            fig21, ax21 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig21.tight_layout()
             
             # WR plot
             ax21.scatter(WR_plot['DCR(DE_pos)'], WR_plot['Height(mm)'], color='k', s=1)
@@ -1245,18 +1263,19 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             
             # 기타
             ax21.grid(linestyle='-.')
-            ax21.set_xlabel('D/C Ratios')
+            ax21.set_xlabel('DCR')
             ax21.set_ylabel('Story')
-            ax21.set_title('Wall Rotation (1.2$\star$DBE)')
+            # ax21.set_title('Wall Rotation (1.2$\star$DBE)')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
 
         # MCE Plot
         if len(MCE_load_name_list) != 0:
             
-            fig22, ax22 = plt.subplots(1,1, figsize=(5,6))
+            fig22, ax22 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig22.tight_layout()
             
             # WR plot
             ax22.scatter(WR_plot['DCR(MCE_pos)'], WR_plot['Height(mm)'], color='k', s=1)
@@ -1271,12 +1290,12 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
 
             # 기타
             ax22.grid(linestyle='-.')
-            ax22.set_xlabel('D/C Ratios')
+            ax22.set_xlabel('DCR')
             ax22.set_ylabel('Story')
-            ax22.set_title('Wall Rotation (MCE)')
+            # ax22.set_title('Wall Rotation (MCE)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()      
         
         # 표에 그래프 넣기            
@@ -1287,8 +1306,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         plots_para_y = plots_cell_y.paragraphs[0]
         plots_run_x = plots_para_x.add_run()
         plots_run_y = plots_para_y.add_run()
-        plots_run_x.add_picture(memfile, width=Cm(9))
-        plots_run_y.add_picture(memfile2, width=Cm(9))
+        plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(9.5))
+        plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(9.5))
         plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
         plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER       
             
@@ -1310,7 +1329,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         # DE Plot
         if len(DE_load_name_list) != 0:
             
-            fig23, ax23 = plt.subplots(1,1, figsize=(5,6))
+            fig23, ax23 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig23.tight_layout()
             
             # WSF plot
             ax23.scatter(wall_result['DE'], wall_result['Height(mm)'], color = 'k', s=1)
@@ -1323,18 +1343,19 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
 
             # 기타
             ax23.grid(linestyle='-.')
-            ax23.set_xlabel('D/C Ratios')
+            ax23.set_xlabel('DCR')
             ax23.set_ylabel('Story')
-            ax23.set_title('Shear Strength (1.2$\star$DBE)')
+            # ax23.set_title('Shear Strength (1.2$\star$DBE)')
             
             memfile = BytesIO()
-            plt.savefig(memfile, dpi=150)           
+            plt.savefig(memfile, bbox_inches="tight")           
             plt.close()
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
             
-            fig24, ax24 = plt.subplots(1,1, figsize=(5,6))
+            fig24, ax24 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig24.tight_layout()
             
             # WSF plot
             ax24.scatter(wall_result['MCE'], wall_result['Height(mm)'], color = 'k', s=1)
@@ -1347,12 +1368,12 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
 
             # 기타
             ax24.grid(linestyle='-.')
-            ax24.set_xlabel('D/C Ratios')
+            ax24.set_xlabel('DCR')
             ax24.set_ylabel('Story')
-            ax24.set_title('Shear Strength (MCE)')
+            # ax24.set_title('Shear Strength (MCE)')
             
             memfile2 = BytesIO()
-            plt.savefig(memfile2, dpi=150)
+            plt.savefig(memfile2, bbox_inches="tight")
             plt.close()      
         
         # 표에 그래프 넣기            
@@ -1363,8 +1384,8 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
         plots_para_y = plots_cell_y.paragraphs[0]
         plots_run_x = plots_para_x.add_run()
         plots_run_y = plots_para_y.add_run()
-        plots_run_x.add_picture(memfile, width=Cm(9))
-        plots_run_y.add_picture(memfile2, width=Cm(9))
+        plots_run_x.add_picture(memfile, width=Cm(7), height=Cm(9.5))
+        plots_run_y.add_picture(memfile2, width=Cm(7), height=Cm(9.5))
         plots_para_x.alignment = WD_ALIGN_PARAGRAPH.CENTER
         plots_para_y.alignment = WD_ALIGN_PARAGRAPH.CENTER  
     
@@ -1383,3 +1404,939 @@ def print_docx(result_xlsx_path, get_base_SF=False, get_story_SF=False
             # 결과 저장
             document.save(docx_file_path)
             break
+
+
+#%% Function to Print the Result into HWP
+
+def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
+              , get_IDR=False, get_BR=False, get_BSF=False, get_E_BSF=False
+              , get_CR=False, get_CSF=False, get_E_CSF=False, get_WAS=False
+              , get_WR=False, get_WSF=False, project_name='성능기반 내진설계'
+              , bldg_name='1동', story_gap=2, max_shear=60000):
+    
+    # Other Parameters (향 후, UI에서 조작할 수 있게끔)
+    cri_DE=0.015 # IDR
+    cri_MCE=0.02 # IDR
+    max_criteria=0.04 # WAS
+    min_criteria=-0.002 # WAS
+    DCR_criteria=1
+    xlim = 2 # BR
+    WAS_gage_group='AS' # WAS
+    
+    fig_scale = 3/4 # 그래프 크기, 축, 글씨 등 scale up/down. (scale과 반비례함)    
+    
+    # Call CoInitialize Function before using COM object
+    hwp = win32com.client.gencache.EnsureDispatch('HWPFrame.HwpObject', pythoncom.CoInitialize())
+    hwp.XHwpWindows.Item(0).Visible = False
+    hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule") # 작동안함. FilePathCheck dll이 설치되어야 함
+    hwp.Open(os.path.join(os.getcwd(), 'template/report_template.hwp')) # 한글 api는 절대경로만 가능하도록 제한되어있음
+    
+    # global 필드에 변수 입력
+    hwp.PutFieldText('건물명', bldg_name) # int도 입력 가능
+    
+    #%% Base Shear
+    if get_base_SF == True:
+        with open('pkl/base_SF.pkl', 'rb') as f:
+            base_SF_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        base_shear_H1 = base_SF_result[0]
+        base_shear_H2 = base_SF_result[1]
+        DE_load_name_list = base_SF_result[2]
+        MCE_load_name_list = base_SF_result[3]
+        
+        # Plot
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            # H1_DE
+            fig1, ax1 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig1.tight_layout() # 이거 안하면 크기 맘대로 바뀜 ㅠ
+            ax1.set_ylim(0, max_shear)
+        
+            ax1.bar(range(len(DE_load_name_list)), base_shear_H1.iloc[0, 0:len(DE_load_name_list)]\
+                    , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
+            ax1.axhline(y= base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
+            ax1.set_xticks(range(14), range(1,15))
+            
+            ax1.set_xlabel('Ground Motion No.')
+            ax1.set_ylabel('Base Shear(kN)')
+            ax1.legend(loc = 2)
+            # ax1.set_title('X 1.2$\star$DBE')
+            
+            base_SF_avg_DE_x = Decimal(str(base_shear_H1.iloc[0, 0:len(DE_load_name_list)].mean()))\
+                .quantize(Decimal('1'), rounding=ROUND_UP)        
+            
+            plt.savefig('images/base_SF_DE_X_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # H2_DE
+            fig2, ax2 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig2.tight_layout()
+            ax2.set_ylim(0, max_shear)
+            
+            ax2.bar(range(len(DE_load_name_list)), base_shear_H2.iloc[0, 0:len(DE_load_name_list)], color='darkblue', edgecolor='k', label = 'Max. Base Shear')
+            ax2.axhline(y= base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean(), color='r', linestyle='-', label='Average')
+            ax2.set_xticks(range(14), range(1,15))
+            
+            ax2.set_xlabel('Ground Motion No.')
+            ax2.set_ylabel('Base Shear(kN)')
+            ax2.legend(loc = 2)
+            # ax2.set_title('Y 1.2$\star$DBE')
+            
+            base_SF_avg_DE_y = Decimal(str(base_shear_H2.iloc[0, 0:len(DE_load_name_list)].mean()))\
+                .quantize(Decimal('1'), rounding=ROUND_UP)
+            
+            plt.savefig('images/base_SF_DE_Y_fig.png', bbox_inches="tight")
+            plt.close()
+
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.PutFieldText('base_SF_DE_X_avg', f'{base_SF_avg_DE_x:,}') # 1000 자리마다 , 찍기
+            hwp.PutFieldText('base_SF_DE_Y_avg', f'{base_SF_avg_DE_y:,}') # 1000 자리마다 , 찍기
+            hwp.MoveToField('base_SF_DE_X_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_DE_X_fig.png'), sizeoption=1, Width=70, Height=65)
+            hwp.MoveToField('base_SF_DE_Y_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_DE_Y_fig.png'), sizeoption=1, Width=70, Height=65)
+            
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            # H1_MCE
+            fig3, ax3 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig3.tight_layout()
+            ax3.set_ylim(0, max_shear)
+            
+            ax3.bar(range(len(MCE_load_name_list)), base_shear_H1\
+                    .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
+                    , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
+            ax3.axhline(y= base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
+                        .mean(), color='r', linestyle='-', label='Average')
+            ax3.set_xticks(range(14), range(1,15))
+            
+            ax3.set_xlabel('Ground Motion No.')
+            ax3.set_ylabel('Base Shear(kN)')
+            ax3.legend(loc = 2)
+            # ax3.set_title('X MCE')
+            
+            base_SF_avg_MCE_x = Decimal(str(base_shear_H1.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
+                .quantize(Decimal('1'), rounding=ROUND_UP)
+            
+            plt.savefig('images/base_SF_MCE_X_fig.png', bbox_inches="tight")         
+            plt.close()            
+
+            # H2_MCE
+            fig4, ax4 = plt.subplots(1,1, figsize=(7*fig_scale, 6.5*fig_scale), dpi=200)
+            fig4.tight_layout()
+            ax4.set_ylim(0, max_shear)
+            
+            plt.bar(range(len(MCE_load_name_list)), base_shear_H2\
+                    .iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
+                    , color='darkblue', edgecolor='k', label = 'Max. Base Shear')
+            plt.axhline(y= base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)]\
+                        .mean(), color='r', linestyle='-', label='Average')
+            ax4.set_xticks(range(14), range(1,15))
+            
+            ax4.set_xlabel('Ground Motion No.')
+            ax4.set_ylabel('Base Shear(kN)')
+            ax4.legend(loc = 2)
+            # ax4.set_title('Y MCE')
+            
+            base_SF_avg_MCE_y = Decimal(str(base_shear_H2.iloc[0, len(DE_load_name_list):len(DE_load_name_list)+len(MCE_load_name_list)].mean()))\
+                .quantize(Decimal('1'), rounding=ROUND_UP)
+
+            plt.savefig('images/base_SF_MCE_Y_fig.png', bbox_inches="tight")
+            plt.close()            
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.PutFieldText('base_SF_MCE_X_avg', f'{base_SF_avg_MCE_x:,}') # 1000 자리마다 , 찍기
+            hwp.PutFieldText('base_SF_MCE_Y_avg', f'{base_SF_avg_MCE_y:,}') # 1000 자리마다 , 찍기
+            hwp.MoveToField('base_SF_MCE_X_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_MCE_X_fig.png'), sizeoption=1, Width=70, Height=65)
+            hwp.MoveToField('base_SF_MCE_Y_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_MCE_Y_fig.png'), sizeoption=1, Width=70, Height=65)
+
+    #%% Story Drift
+    if get_story_SF == True:
+        with open('pkl/story_SF.pkl', 'rb') as f:
+            story_SF_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        shear_force_H1_max = story_SF_result[0]
+        shear_force_H2_max = story_SF_result[1]
+        DE_load_name_list = story_SF_result[2]
+        MCE_load_name_list = story_SF_result[3]
+
+        # Plot
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            # H1_DE
+            fig5, ax5 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig5.tight_layout()
+            
+            # 지진파별 plot
+            for i in range(len(DE_load_name_list)):
+                ax5.plot(shear_force_H1_max.iloc[:,i], range(shear_force_H1_max.shape[0]), label=DE_load_name_list[i], linewidth=0.7)
+                
+            # 평균 plot
+            ax5.plot(shear_force_H1_max.iloc[:,0:len(DE_load_name_list)]\
+                    .mean(axis=1), range(shear_force_H1_max.shape[0]), color='k', label='Average', linewidth=2)
+            
+            ax5.set_xlim(0, max_shear)
+            ax5.set_yticks(range(shear_force_H1_max.shape[0])[::story_gap], shear_force_H1_max.index[::story_gap], fontsize=8.5)
+            
+            # 기타
+            ax5.grid(linestyle='-.')
+            ax5.set_xlabel('Story Shear(kN)')
+            ax5.set_ylabel('Story')
+            ax5.legend(loc=1, fontsize=8)
+            # ax5.set_title('X 1.2$\star$DBE')
+            
+            plt.savefig('images/story_SF_DE_X_fig.png', bbox_inches="tight")          
+            plt.close()
+            
+            # H2_DE
+            fig6, ax6 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig6.tight_layout()
+            
+            for i in range(len(DE_load_name_list)):
+                ax6.plot(shear_force_H2_max.iloc[:,i], range(shear_force_H2_max.shape[0]), label=DE_load_name_list[i], linewidth=0.7)
+            
+            ax6.plot(shear_force_H2_max.iloc[:,0:len(DE_load_name_list)]\
+                    .mean(axis=1), range(shear_force_H2_max.shape[0]), color='k', label='Average', linewidth=2)
+            
+            ax6.set_xlim(0, max_shear)
+            ax6.set_yticks(range(shear_force_H2_max.shape[0])[::story_gap], shear_force_H2_max.index[::story_gap], fontsize=8.5)
+        
+            ax6.grid(linestyle='-.')
+            ax6.set_xlabel('Story Shear(kN)')
+            ax6.set_ylabel('Story')
+            ax6.legend(loc=1, fontsize=8)
+            # ax6.set_title('Y 1.2$\star$DBE')
+            
+            plt.savefig('images/story_SF_DE_Y_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('story_SF_DE_X_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_DE_X_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.MoveToField('story_SF_DE_Y_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_DE_Y_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            # H1_MCE
+            fig7, ax7 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig7.tight_layout()
+            
+            for i in range(len(MCE_load_name_list)):
+                ax7.plot(shear_force_H1_max.iloc[:,i+len(DE_load_name_list)], range(shear_force_H1_max.shape[0]), label=MCE_load_name_list[i], linewidth=0.7)
+            ax7.plot(shear_force_H1_max.iloc[:,len(DE_load_name_list)\
+                                                    :len(DE_load_name_list)+len(MCE_load_name_list)]\
+                            .mean(axis=1), range(shear_force_H1_max.shape[0]), color='k', label='Average', linewidth=2)
+            
+            ax7.set_xlim(0, max_shear)
+            ax7.set_yticks(range(shear_force_H1_max.shape[0])[::story_gap], shear_force_H1_max.index[::story_gap], fontsize=8.5)
+        
+            ax7.grid(linestyle='-.')
+            ax7.set_xlabel('Story Shear(kN)')
+            ax7.set_ylabel('Story')
+            ax7.legend(loc=1, fontsize=8)
+            # ax7.set_title('X MCE')
+        
+            plt.savefig('images/story_SF_MCE_X_fig.png', bbox_inches="tight")           
+            plt.close()
+            
+            # H1_MCE
+            fig8, ax8 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig8.tight_layout()
+            
+            for i in range(len(MCE_load_name_list)):
+                ax8.plot(shear_force_H2_max.iloc[:,i+len(DE_load_name_list)], range(shear_force_H2_max.shape[0]), label=MCE_load_name_list[i], linewidth=0.7)
+            ax8.plot(shear_force_H2_max.iloc[:,len(DE_load_name_list)\
+                                                    :len(DE_load_name_list)+len(MCE_load_name_list)]\
+                            .mean(axis=1), range(shear_force_H2_max.shape[0]), color='k', label='Average', linewidth=2)
+            
+            ax8.set_xlim(0, max_shear)
+            ax8.set_yticks(range(shear_force_H2_max.shape[0])[::story_gap], shear_force_H2_max.index[::story_gap], fontsize=8.5)
+        
+            ax8.grid(linestyle='-.')
+            ax8.set_xlabel('Story Shear(kN)')
+            ax8.set_ylabel('Story')
+            ax8.legend(loc=1, fontsize=8)
+            # ax8.set_title('Y MCE')
+            
+            plt.savefig('images/story_SF_MCE_Y_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('story_SF_MCE_X_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_MCE_X_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.MoveToField('story_SF_MCE_Y_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_MCE_Y_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+    #%% Inter-Story Drift
+    if get_IDR == True:
+        with open('pkl/IDR.pkl', 'rb') as f:
+            IDR_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        IDR_result_each = IDR_result[0]
+        IDR_result_avg = IDR_result[1]
+        DE_load_name_list = IDR_result[2]
+        MCE_load_name_list = IDR_result[3]
+        story_name_window_reordered = IDR_result[4]
+        
+        # Plot
+        count_x = 0
+        count_y = 2
+        count_avg = 0
+        
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            # H1_DE   
+            fig9, ax9 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig9.tight_layout()
+            
+            # 지진파별 plot
+            for load_name in DE_load_name_list:
+                ax9.plot(IDR_result_each[count_x].iloc[:,-1], IDR_result_each[count_x].iloc[:,0]
+                         , label='{}'.format(load_name), linewidth=0.7)
+                ax9.plot(IDR_result_each[count_x+1].iloc[:,-1], IDR_result_each[count_x].iloc[:,0]
+                         , linewidth=0.7)
+                count_x += 4
+                
+            # 평균 plot
+            ax9.plot(IDR_result_avg[count_avg].iloc[:,0], story_name_window_reordered, color='k', label='Average', linewidth=2)
+            ax9.plot(IDR_result_avg[count_avg].iloc[:,1], story_name_window_reordered, color='k', linewidth=2)
+            
+            # reference line 그려서 허용치 나타내기
+            ax9.axvline(x=-cri_DE, color='r', linestyle='--', label='LS')
+            ax9.axvline(x=cri_DE, color='r', linestyle='--')
+            
+            ax9.set_xlim(-0.025, 0.025)
+            ax9.set_yticks(story_name_window_reordered[::story_gap], story_name_window_reordered[::story_gap])
+            
+            # 기타
+            ax9.grid(linestyle='-.')
+            ax9.set_xlabel('Interstory Drift Ratios(m/m)')
+            ax9.set_ylabel('Story')
+            ax9.legend(loc=4, fontsize=8)
+            # ax9.set_title('X 1.2$\star$DBE')
+            
+            plt.savefig('images/IDR_DE_X_fig.png', bbox_inches="tight")           
+            plt.close()
+            
+            # H2_DE
+            fig10, ax10 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig10.tight_layout()
+
+            # 지진파별 plot
+            for load_name in DE_load_name_list:
+                ax10.plot(IDR_result_each[count_y].iloc[:,-1], IDR_result_each[count_y].iloc[:,0]
+                         , label='{}'.format(load_name), linewidth=0.7)
+                ax10.plot(IDR_result_each[count_y+1].iloc[:,-1], IDR_result_each[count_y].iloc[:,0]
+                         , linewidth=0.7)
+                count_y += 4
+                
+            # 평균 plot
+            ax10.plot(IDR_result_avg[count_avg].iloc[:,0], story_name_window_reordered, color='k', label='Average', linewidth=2)
+            ax10.plot(IDR_result_avg[count_avg].iloc[:,1], story_name_window_reordered, color='k', linewidth=2)
+            count_avg += 1
+            
+            # reference line 그려서 허용치 나타내기
+            ax10.axvline(x=-cri_DE, color='r', linestyle='--', label='LS')
+            ax10.axvline(x=cri_DE, color='r', linestyle='--')
+            
+            ax10.set_xlim(-0.025, 0.025)
+            ax10.set_yticks(story_name_window_reordered[::story_gap], story_name_window_reordered[::story_gap])
+            
+            # 기타
+            ax10.grid(linestyle='-.')
+            ax10.set_xlabel('Interstory Drift Ratios(m/m)')
+            ax10.set_ylabel('Story')
+            ax10.legend(loc=4, fontsize=8)
+            # ax10.set_title('Y 1.2$\star$DBE')
+            
+            plt.savefig('images/IDR_DE_Y_fig.png', bbox_inches="tight")
+            plt.close()
+
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('IDR_DE_X_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_DE_X_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.MoveToField('IDR_DE_Y_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_DE_Y_fig.png'), sizeoption=1, Width=70, Height=100)
+            
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            # H1_MCE
+            fig11, ax11 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig11.tight_layout()
+            
+            # 지진파별 plot
+            for load_name in MCE_load_name_list:
+                ax11.plot(IDR_result_each[count_x].iloc[:,-1], IDR_result_each[count_x].iloc[:,0]
+                         , label='{}'.format(load_name), linewidth=0.7)
+                ax11.plot(IDR_result_each[count_x+1].iloc[:,-1], IDR_result_each[count_x].iloc[:,0]
+                         , linewidth=0.7)
+                count_x += 4
+                
+            # 평균 plot
+            ax11.plot(IDR_result_avg[count_avg].iloc[:,0], story_name_window_reordered, color='k', label='Average', linewidth=2)
+            ax11.plot(IDR_result_avg[count_avg].iloc[:,1], story_name_window_reordered, color='k', linewidth=2)
+            
+            # reference line 그려서 허용치 나타내기
+            ax11.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
+            ax11.axvline(x=cri_MCE, color='r', linestyle='--')
+            
+            ax11.set_xlim(-0.025, 0.025)
+            ax11.set_yticks(story_name_window_reordered[::story_gap], story_name_window_reordered[::story_gap])
+            
+            # 기타
+            ax11.grid(linestyle='-.')
+            ax11.set_xlabel('Interstory Drift Ratios(m/m)')
+            ax11.set_ylabel('Story')
+            ax11.legend(loc=4, fontsize=8)
+            # ax11.set_title('X MCE')
+            
+            plt.savefig('images/IDR_MCE_X_fig.png', bbox_inches="tight")
+            plt.close()
+
+            # H2_MCE
+            fig12, ax12 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig12.tight_layout()
+
+            # 지진파별 plot
+            for load_name in MCE_load_name_list:
+                ax12.plot(IDR_result_each[count_y].iloc[:,-1], IDR_result_each[count_y].iloc[:,0]
+                         , label='{}'.format(load_name), linewidth=0.7)
+                ax12.plot(IDR_result_each[count_y+1].iloc[:,-1], IDR_result_each[count_y].iloc[:,0]
+                         , linewidth=0.7)
+                count_y += 4
+                
+            # 평균 plot
+            ax12.plot(IDR_result_avg[count_avg].iloc[:,0], story_name_window_reordered, color='k', label='Average', linewidth=2)
+            ax12.plot(IDR_result_avg[count_avg].iloc[:,1], story_name_window_reordered, color='k', linewidth=2)
+            count_avg += 1
+            
+            # reference line 그려서 허용치 나타내기
+            ax12.axvline(x=-cri_MCE, color='r', linestyle='--', label='CP')
+            ax12.axvline(x=cri_MCE, color='r', linestyle='--')
+            
+            ax12.set_xlim(-0.025, 0.025)
+            ax12.set_yticks(story_name_window_reordered[::story_gap], story_name_window_reordered[::story_gap])
+            
+            # 기타
+            ax12.grid(linestyle='-.')
+            ax12.set_xlabel('Interstory Drift Ratios(m/m)')
+            ax12.set_ylabel('Story')
+            ax12.legend(loc=4, fontsize=8)
+            # ax12.set_title('Y MCE')
+
+            plt.savefig('images/IDR_MCE_Y_fig.png', bbox_inches="tight")
+            plt.close()            
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('IDR_MCE_X_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_MCE_X_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.MoveToField('IDR_MCE_Y_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_MCE_Y_fig.png'), sizeoption=1, Width=70, Height=100)       
+
+    #%% Beam Rotation
+    if get_BR == True:
+        # Load Pickle Files
+        with open('pkl/BR.pkl', 'rb') as f:
+            BR_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        BR_plot = BR_result[0]
+        story_info = BR_result[1]
+        DE_load_name_list = BR_result[2]
+        MCE_load_name_list = BR_result[3]
+        
+        # Plot
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+
+            fig13, ax13 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig13.tight_layout()
+            
+            # DCR plot                
+            ax13.scatter(BR_plot['DCR(DE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
+            ax13.scatter(BR_plot['DCR(DE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
+
+            # 허용치(DCR) 기준선
+            ax13.axvline(x = DCR_criteria, color='r', linestyle='--')
+            ax13.axvline(x = -DCR_criteria, color='r', linestyle='--')
+
+            ax13.set_xlim(-xlim, xlim)
+            ax13.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax13.grid(linestyle='-.')
+            ax13.set_xlabel('DCR')
+            ax13.set_ylabel('Story')
+            # ax13.set_title('Beam Rotation (1.2$\star$DBE)')
+            
+            plt.savefig('images/BR_DE_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('BR_DE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BR_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+        if len(MCE_load_name_list) != 0:
+            
+            fig14, ax14 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig14.tight_layout()
+
+            # DCR plot                
+            ax14.scatter(BR_plot['DCR(MCE_pos)'], BR_plot['Height(mm)'], color='k', s=1)
+            ax14.scatter(BR_plot['DCR(MCE_neg)'], BR_plot['Height(mm)'], color='k', s=1)
+
+            # 허용치(DCR) 기준선
+            ax14.axvline(x = DCR_criteria, color='r', linestyle='--')
+            ax14.axvline(x = -DCR_criteria, color='r', linestyle='--')
+
+            ax14.set_xlim(-xlim, xlim)
+            ax14.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax14.grid(linestyle='-.')
+            ax14.set_xlabel('DCR')
+            ax14.set_ylabel('Story')
+            # ax14.set_title('Beam Rotation (MCE)')
+            
+            plt.savefig('images/BR_MCE_fig.png', bbox_inches="tight")
+            plt.close()
+
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('BR_MCE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BR_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+    #%% Beam Shear Force
+    if get_BSF == True:
+        # Load Pickle Files
+        with open('pkl/BSF.pkl', 'rb') as f:
+            BSF_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        BSF_plot = BSF_result[0]
+        story_info = BSF_result[1]
+        DE_load_name_list = BSF_result[2]
+        MCE_load_name_list = BSF_result[3]
+        
+        # Plot
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            fig15, ax15 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig15.tight_layout()
+            
+            # DCR plot                
+            ax15.axes.scatter(BSF_plot['DE'], BSF_plot['Height(mm)'], color='k', s=1)
+    
+            # 허용치(DCR) 기준선
+            ax15.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+    
+            ax15.axes.set_xlim(0, xlim)
+            ax15.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+    
+            # 기타
+            ax15.axes.grid(linestyle='-.')
+            ax15.axes.set_xlabel('DCR')
+            ax15.axes.set_ylabel('Story')
+            # ax15.axes.set_title('Shear Strength (1.2$\star$DBE)')
+            
+            plt.savefig('images/BSF_DE_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('BSF_DE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BSF_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+        # Plot
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            fig16, ax16 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig16.tight_layout()
+            
+            # DCR plot                
+            ax16.axes.scatter(BSF_plot['MCE'], BSF_plot['Height(mm)'], color='k', s=1)
+    
+            # 허용치(DCR) 기준선
+            ax16.axes.axvline(x = DCR_criteria, color='r', linestyle='--')
+    
+            ax16.axes.set_xlim(0, xlim)
+            ax16.axes.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+    
+            # 기타
+            ax16.axes.grid(linestyle='-.')
+            ax16.axes.set_xlabel('DCR')
+            ax16.axes.set_ylabel('Story')
+            # ax16.axes.set_title('Shear Strength (MCE)')
+            
+            plt.savefig('images/BSF_MCE_fig.png', bbox_inches="tight")
+            plt.close()
+
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('BSF_MCE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BSF_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+    #%% Wall Axial Strain
+    if get_WAS == True:
+        with open('pkl/WAS.pkl', 'rb') as f:
+            WAS_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        WAS_plot = WAS_result[0]
+        story_info = WAS_result[1]
+        DE_load_name_list = WAS_result[2]
+        MCE_load_name_list = WAS_result[3]           
+        
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            # DE_Neg
+            fig17, ax17 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig17.tight_layout()
+            
+            # WAS plot
+            ax17.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
+            ax17.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
+
+            # 허용치 기준선
+            ax17.axvline(x=min_criteria, color='r', linestyle='--')
+            ax17.axvline(x=max_criteria, color='r', linestyle='--')
+
+            ax17.set_xlim(-0.003, 0)
+            ax17.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax17.grid(linestyle='-.')
+            ax17.set_xlabel('Axial Strain (m/m)')
+            ax17.set_ylabel('Story')
+            # ax17.set_title('1.2$\star$DBE (Compressive)')
+            
+            plt.savefig('images/WAS_DE_C_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # DE_Pos
+            fig18, ax18 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig18.tight_layout()
+            
+            # WAS plot
+            ax18.scatter(WAS_plot['DE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
+            ax18.scatter(WAS_plot['DE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
+
+            # 허용치 기준선
+            ax18.axvline(x=min_criteria, color='r', linestyle='--')
+            ax18.axvline(x=max_criteria, color='r', linestyle='--')
+
+            ax18.set_xlim(0, 0.013)
+            ax18.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax18.grid(linestyle='-.')
+            ax18.set_xlabel('Axial Strain (m/m)')
+            ax18.set_ylabel('Story')
+            # ax18.set_title('1.2$\star$DBE (Tensile)')
+            
+            plt.savefig('images/WAS_DE_T_fig.png', bbox_inches="tight")
+            plt.close()          
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('WAS_DE_C_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_DE_C_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.MoveToField('WAS_DE_T_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_DE_T_fig.png'), sizeoption=1, Width=70, Height=100)
+            
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            # MCE_Neg
+            fig19, ax19 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig19.tight_layout()
+            
+            # WAS plot
+            ax19.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
+            ax19.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
+
+            # 허용치 기준선
+            ax19.axvline(x=min_criteria, color='r', linestyle='--')
+            ax19.axvline(x=max_criteria, color='r', linestyle='--')
+
+            ax19.set_xlim(-0.003, 0)
+            ax19.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax19.grid(linestyle='-.')
+            ax19.set_xlabel('Axial Strain (m/m)')
+            ax19.set_ylabel('Story')
+            # ax19.set_title('MCE (Compressive)')
+            
+            plt.savefig('images/WAS_MCE_C_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # MCE_Pos
+            fig20, ax20 = plt.subplots(1,1, figsize=(7*fig_scale, 10*fig_scale), dpi=200)
+            fig20.tight_layout()
+            
+            # WAS plot
+            ax20.scatter(WAS_plot['MCE(Compressive)'], WAS_plot['Height(mm)'], color='k', s=5)
+            ax20.scatter(WAS_plot['MCE(Tensile)'], WAS_plot['Height(mm)'], color='k', s=5)
+
+            # 허용치 기준선
+            ax20.axvline(x=min_criteria, color='r', linestyle='--')
+            ax20.axvline(x=max_criteria, color='r', linestyle='--')
+
+            ax20.set_xlim(0, 0.013)
+            ax20.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax20.grid(linestyle='-.')
+            ax20.set_xlabel('Axial Strain (m/m)')
+            ax20.set_ylabel('Story')
+            # ax20.set_title('MCE (Tensile)')
+            
+            plt.savefig('images/WAS_MCE_T_fig.png', bbox_inches="tight")
+            plt.close()      
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('WAS_MCE_C_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_MCE_C_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.MoveToField('WAS_MCE_T_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_MCE_T_fig.png'), sizeoption=1, Width=70, Height=100)
+            
+    #%% Wall Rotation
+    if get_WR == True:
+        with open('pkl/WR.pkl', 'rb') as f:
+            WR_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        WR_plot = WR_result[0]
+        story_info = WR_result[1]
+        DE_load_name_list = WR_result[2]
+        MCE_load_name_list = WR_result[3]           
+        
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            
+            fig21, ax21 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig21.tight_layout()
+            
+            # WR plot
+            ax21.scatter(WR_plot['DCR(DE_pos)'], WR_plot['Height(mm)'], color='k', s=1)
+            ax21.scatter(WR_plot['DCR(DE_neg)'], WR_plot['Height(mm)'], color='k', s=1)
+
+            # 허용치 기준선
+            ax21.axvline(x = DCR_criteria, color='r', linestyle='--')
+            ax21.axvline(x = -DCR_criteria, color='r', linestyle='--')
+
+            ax21.set_xlim(-xlim, xlim)
+            ax21.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+            
+            # 기타
+            ax21.grid(linestyle='-.')
+            ax21.set_xlabel('DCR')
+            ax21.set_ylabel('Story')
+            # ax21.set_title('Wall Rotation (1.2$\star$DBE)')
+            
+            plt.savefig('images/WR_DE_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('WR_DE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WR_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            
+            fig22, ax22 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig22.tight_layout()
+            
+            # WR plot
+            ax22.scatter(WR_plot['DCR(MCE_pos)'], WR_plot['Height(mm)'], color='k', s=1)
+            ax22.scatter(WR_plot['DCR(MCE_neg)'], WR_plot['Height(mm)'], color='k', s=1)
+
+            # 허용치 기준선
+            ax22.axvline(x = DCR_criteria, color='r', linestyle='--')
+            ax22.axvline(x = -DCR_criteria, color='r', linestyle='--')
+
+            ax22.set_xlim(-xlim, xlim)
+            ax22.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax22.grid(linestyle='-.')
+            ax22.set_xlabel('DCR')
+            ax22.set_ylabel('Story')
+            # ax22.set_title('Wall Rotation (MCE)')
+            
+            plt.savefig('images/WR_MCE_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('WR_MCE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WR_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+
+    #%% Wall Shear Force
+    if get_WSF == True:
+        with open('pkl/WSF.pkl', 'rb') as f:
+            WSF_result = pickle.load(f)
+        
+        # 결과값 classify & assign
+        wall_result = WSF_result[0]
+        story_info = WSF_result[1]
+        DE_load_name_list = WSF_result[2]
+        MCE_load_name_list = WSF_result[3]
+                 
+        
+        # DE Plot
+        if len(DE_load_name_list) != 0:
+            
+            fig23, ax23 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig23.tight_layout()
+            
+            # WSF plot
+            ax23.scatter(wall_result['DE'], wall_result['Height(mm)'], color = 'k', s=1)
+
+            # 허용치 기준선
+            ax23.axvline(x = DCR_criteria, color='r', linestyle='--')
+
+            ax23.set_xlim(0, xlim)
+            ax23.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax23.grid(linestyle='-.')
+            ax23.set_xlabel('DCR')
+            ax23.set_ylabel('Story')
+            # ax23.set_title('Shear Strength (1.2$\star$DBE)')
+            
+            plt.savefig('images/WSF_DE_fig.png', bbox_inches="tight")
+            plt.close()
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('WSF_DE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WSF_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+        # MCE Plot
+        if len(MCE_load_name_list) != 0:
+            
+            fig24, ax24 = plt.subplots(1,1, figsize=(7*fig_scale, 9.5*fig_scale), dpi=200)
+            fig24.tight_layout()
+            
+            # WSF plot
+            ax24.scatter(wall_result['MCE'], wall_result['Height(mm)'], color = 'k', s=1)
+
+            # 허용치 기준선
+            ax24.axvline(x = DCR_criteria, color='r', linestyle='--')
+
+            ax24.set_xlim(0, xlim)
+            ax24.set_yticks(story_info['Height(mm)'][::-story_gap], story_info['Story Name'][::-story_gap])
+
+            # 기타
+            ax24.grid(linestyle='-.')
+            ax24.set_xlabel('DCR')
+            ax24.set_ylabel('Story')
+            # ax24.set_title('Shear Strength (MCE)')
+            
+            plt.savefig('images/WSF_MCE_fig.png', bbox_inches="tight")
+            plt.close()  
+            
+            # hwp 파일의 각각의 필드에 text or image 넣기
+            hwp.MoveToField('WSF_MCE_fig')
+            hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WSF_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            
+    # 결과 저장할 경로
+    # Path 지정
+    result_path = os.path.dirname(result_xlsx_path[0])
+    hwp_file_path = os.path.join(result_path,'Result Plots.hwp')
+    
+    count = 1
+    while True:
+        if os.path.exists(hwp_file_path):            
+            hwp_file_path = os.path.join(result_path,'Result Plots(%s).hwp' %count)
+            count += 1            
+        else:
+            # 결과 저장
+            hwp.SaveAs(hwp_file_path)
+            break
+
+    hwp.Quit()
+    
+#%% Test Functions
+# Result DataFrame Checking Function
+def main_df() -> pd.DataFrame:
+    # File Paths
+    input_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
+    result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
+    result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
+    
+    # PostProc class 생성
+    result = PostProc(input_xlsx_path, result_xlsx_path
+                      , get_base_SF=False, get_story_SF=False
+                      , get_IDR=True, get_BR=False, get_BSF=False
+                      , get_E_BSF=False, get_CR=False, get_CSF=False
+                      , get_E_CSF=False, get_WAS=False, get_WR=False
+                      , get_WSF=False, BR_scale_factor=1.0)
+    
+    # pkl 파일 읽기
+    result.IDR(cri_DE=0.015, cri_MCE=0.02, yticks=2)
+    with open('pkl/IDR.pkl', 'rb') as f:
+        result_df = pickle.load(f)
+    # pkl 폴더 삭제
+    os.path.exists('pkl')
+    shutil.rmtree('pkl')
+    
+    return result_df
+
+# HWP Print Checking Function
+def main_hwp() -> None:
+    # File Paths
+    input_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
+    result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
+    result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
+    beam_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
+    wall_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
+    
+    get_base_SF = True
+    get_story_SF = True
+    get_IDR = True
+    get_BR = True
+    get_BSF = True
+    get_WAS = True
+    get_WR = True
+    get_WSF = True
+    
+    ylim = 70000
+    
+    # PostProc class 생성
+    result = PostProc(input_xlsx_path, result_xlsx_path
+                      , get_base_SF=get_base_SF, get_story_SF=get_story_SF
+                      , get_IDR=get_IDR, get_BR=get_BR, get_BSF=get_BSF
+                      , get_E_BSF=False, get_CR=False, get_CSF=False
+                      , get_E_CSF=False, get_WAS=get_WAS, get_WR=get_WR
+                      , get_WSF=get_WSF, BR_scale_factor=1.0)
+    
+    # pkl 파일 읽기
+    result.base_SF(ylim=ylim)
+    result.story_SF(xlim=70000)
+    result.IDR()
+    result.BR_plot(beam_design_xlsx_path)
+    result.BSF_plot(beam_design_xlsx_path)
+    result.WAS_plot(wall_design_xlsx_path)
+    result.WR_plot(wall_design_xlsx_path)
+    result.WSF_plot(wall_design_xlsx_path)
+    
+    # hwp 출력
+    print_hwp(result_xlsx_path, get_base_SF=get_base_SF, get_story_SF=get_story_SF
+                  , get_IDR=get_IDR, get_BR=get_BR, get_BSF=get_BSF, get_E_BSF=False
+                  , get_CR=False, get_CSF=False, get_E_CSF=False, get_WAS=get_WAS
+                  , get_WR=get_WR, get_WSF=get_WSF, project_name='성능기반 내진설계'
+                  , bldg_name='101동', story_gap=2, max_shear=ylim)
+    
+    # pkl 폴더 삭제
+    os.path.exists('pkl')
+    shutil.rmtree('pkl')
+
+# Execute Testing
+if __name__ == '__main__':
+    # result_df = main_df()
+    main_hwp()
+    

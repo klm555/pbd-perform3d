@@ -6,7 +6,7 @@ import time
 
 ################################# USER INPUT ##################################
 ### Initial Data Path
-data_path = r'D:\이형우\성능기반 내진설계\22-RM-200 창원 신월2구역 재건축 아파트 신축공사 성능기반 내진설계\06. Data Conversion Sheets\103D_Data Conversion_Ver.1.5.xlsx'
+data_path = r'D:\1. PROJECT\2020\[20-SM-124] 창원 신월동 아파트\03_Internal Data\04_Calculations (해석&설계)\3. 성능설계\230719-신월2구역-106동-Data Conversion_Ver.1.5_SW2R.xlsx'
 
 ### Mouse Coordinates (Locate mouse on the specific location on the monitor and Run)
 # 반드시 H1 view 에서 좌표 획득하기
