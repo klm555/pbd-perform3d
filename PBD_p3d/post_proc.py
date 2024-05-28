@@ -1432,6 +1432,7 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
     hwp.Open(os.path.join(os.getcwd(), 'template/report_template.hwp')) # 한글 api는 절대경로만 가능하도록 제한되어있음
     
     # global 필드에 변수 입력
+    hwp.PutFieldText('프로젝트명', project_name) # int도 입력 가능
     hwp.PutFieldText('건물명', bldg_name) # int도 입력 가능
     
     #%% Base Shear
@@ -1489,13 +1490,29 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.savefig('images/base_SF_DE_Y_fig.png', bbox_inches="tight")
             plt.close()
 
+            
+            # 그림 개체속성 - 번호 종류:없음 - 으로 바꾸는 함수
+            def change_num_type():
+                act = hwp.CreateAction('ShapeObjDialog')
+                param = act.CreateSet()
+                act.GetDefault(param)
+                param.SetItem('NumberingType', None)
+                act.Execute(param)
+            
             # hwp 파일의 각각의 필드에 text or image 넣기
             hwp.PutFieldText('base_SF_DE_X_avg', f'{base_SF_avg_DE_x:,}') # 1000 자리마다 , 찍기
             hwp.PutFieldText('base_SF_DE_Y_avg', f'{base_SF_avg_DE_y:,}') # 1000 자리마다 , 찍기
-            hwp.MoveToField('base_SF_DE_X_fig')
+            hwp.MoveToField('base_SF_DE_fig') # 기준 필드로 이동
+            hwp.HAction.Run('TableLeftCell') # 왼쪽 셀로 이동
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_DE_X_fig.png'), sizeoption=1, Width=70, Height=65)
-            hwp.MoveToField('base_SF_DE_Y_fig')
+            # 번호 종류:없음 - 으로 변경
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_DE_Y_fig.png'), sizeoption=1, Width=70, Height=65)
+            hwp.FindCtrl()
+            change_num_type()
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -1548,10 +1565,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             # hwp 파일의 각각의 필드에 text or image 넣기
             hwp.PutFieldText('base_SF_MCE_X_avg', f'{base_SF_avg_MCE_x:,}') # 1000 자리마다 , 찍기
             hwp.PutFieldText('base_SF_MCE_Y_avg', f'{base_SF_avg_MCE_y:,}') # 1000 자리마다 , 찍기
-            hwp.MoveToField('base_SF_MCE_X_fig')
+            hwp.MoveToField('base_SF_MCE_fig') # 기준 필드로 이동
+            hwp.HAction.Run('TableLeftCell') # 왼쪽 셀로 이동
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_MCE_X_fig.png'), sizeoption=1, Width=70, Height=65)
-            hwp.MoveToField('base_SF_MCE_Y_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/base_SF_MCE_Y_fig.png'), sizeoption=1, Width=70, Height=65)
+            hwp.FindCtrl()
+            change_num_type()
 
     #%% Story Drift
     if get_story_SF == True:
@@ -1615,10 +1638,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('story_SF_DE_X_fig')
+            hwp.MoveToField('story_SF_DE_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_DE_X_fig.png'), sizeoption=1, Width=70, Height=95)
-            hwp.MoveToField('story_SF_DE_Y_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_DE_Y_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -1667,10 +1696,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('story_SF_MCE_X_fig')
+            hwp.MoveToField('story_SF_MCE_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_MCE_X_fig.png'), sizeoption=1, Width=70, Height=95)
-            hwp.MoveToField('story_SF_MCE_Y_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/story_SF_MCE_Y_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
     #%% Inter-Story Drift
     if get_IDR == True:
@@ -1759,10 +1794,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
 
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('IDR_DE_X_fig')
+            hwp.MoveToField('IDR_DE_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_DE_X_fig.png'), sizeoption=1, Width=70, Height=100)
-            hwp.MoveToField('IDR_DE_Y_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_DE_Y_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.FindCtrl()
+            change_num_type()
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -1834,10 +1875,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()            
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('IDR_MCE_X_fig')
+            hwp.MoveToField('IDR_MCE_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_MCE_X_fig.png'), sizeoption=1, Width=70, Height=100)
-            hwp.MoveToField('IDR_MCE_Y_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/IDR_MCE_Y_fig.png'), sizeoption=1, Width=70, Height=100)       
+            hwp.FindCtrl()
+            change_num_type()
 
     #%% Beam Rotation
     if get_BR == True:
@@ -1879,8 +1926,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('BR_DE_fig')
+            hwp.MoveToField('BR_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BR_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
         if len(MCE_load_name_list) != 0:
             
@@ -1908,8 +1958,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
 
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('BR_MCE_fig')
+            hwp.MoveToField('BR_fig')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BR_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
     #%% Beam Shear Force
     if get_BSF == True:
@@ -1948,8 +2001,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('BSF_DE_fig')
+            hwp.MoveToField('BSF_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BSF_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
         # Plot
         # MCE Plot
@@ -1976,8 +2032,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
 
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('BSF_MCE_fig')
+            hwp.MoveToField('BSF_fig')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/BSF_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
     #%% Wall Axial Strain
     if get_WAS == True:
@@ -2041,10 +2100,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()          
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('WAS_DE_C_fig')
+            hwp.MoveToField('WAS_DE_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_DE_C_fig.png'), sizeoption=1, Width=70, Height=100)
-            hwp.MoveToField('WAS_DE_T_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_DE_T_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.FindCtrl()
+            change_num_type()
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -2097,10 +2162,16 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()      
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('WAS_MCE_C_fig')
+            hwp.MoveToField('WAS_MCE_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_MCE_C_fig.png'), sizeoption=1, Width=70, Height=100)
-            hwp.MoveToField('WAS_MCE_T_fig')
+            hwp.FindCtrl()
+            change_num_type()
+            hwp.HAction.Run('TableRightCell')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WAS_MCE_T_fig.png'), sizeoption=1, Width=70, Height=100)
+            hwp.FindCtrl()
+            change_num_type()
             
     #%% Wall Rotation
     if get_WR == True:
@@ -2140,8 +2211,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('WR_DE_fig')
+            hwp.MoveToField('WR_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WR_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
 
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -2170,8 +2244,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('WR_MCE_fig')
+            hwp.MoveToField('WR_fig')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WR_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
 
     #%% Wall Shear Force
     if get_WSF == True:
@@ -2210,8 +2287,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('WSF_DE_fig')
+            hwp.MoveToField('WSF_fig')
+            hwp.HAction.Run('TableLeftCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WSF_DE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
         # MCE Plot
         if len(MCE_load_name_list) != 0:
@@ -2238,8 +2318,11 @@ def print_hwp(result_xlsx_path, get_base_SF=False, get_story_SF=False
             plt.close()  
             
             # hwp 파일의 각각의 필드에 text or image 넣기
-            hwp.MoveToField('WSF_MCE_fig')
+            hwp.MoveToField('WSF_fig')
+            hwp.HAction.Run('TableRightCell')
             hwp.InsertPicture(os.path.join(os.getcwd(), 'images/WSF_MCE_fig.png'), sizeoption=1, Width=70, Height=95)
+            hwp.FindCtrl()
+            change_num_type()
             
     # 결과 저장할 경로
     # Path 지정
@@ -2266,18 +2349,21 @@ def main_df() -> pd.DataFrame:
     result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
     result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
     result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
+    beam_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
+    wall_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
     
     # PostProc class 생성
     result = PostProc(input_xlsx_path, result_xlsx_path
                       , get_base_SF=False, get_story_SF=False
-                      , get_IDR=True, get_BR=False, get_BSF=False
+                      , get_IDR=False, get_BR=True, get_BSF=False
                       , get_E_BSF=False, get_CR=False, get_CSF=False
                       , get_E_CSF=False, get_WAS=False, get_WR=False
                       , get_WSF=False, BR_scale_factor=1.0)
     
     # pkl 파일 읽기
-    result.IDR(cri_DE=0.015, cri_MCE=0.02, yticks=2)
-    with open('pkl/IDR.pkl', 'rb') as f:
+    # result.IDR(cri_DE=0.015, cri_MCE=0.02, yticks=2)
+    result.BR(input_xlsx_path, beam_design_xlsx_path, graph=False)
+    with open('pkl/BR.pkl', 'rb') as f:
         result_df = pickle.load(f)
     # pkl 폴더 삭제
     os.path.exists('pkl')
@@ -2296,7 +2382,7 @@ def main_hwp() -> None:
     wall_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
     
     get_base_SF = True
-    get_story_SF = True
+    get_story_SF = False
     get_IDR = True
     get_BR = True
     get_BSF = True
@@ -2337,6 +2423,31 @@ def main_hwp() -> None:
 
 # Execute Testing
 if __name__ == '__main__':
-    # result_df = main_df()
-    main_hwp()
+    # main_hwp()
+    # File Paths
+    input_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
+    result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
+    result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
+    beam_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
+    wall_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
+    
+    get_base_SF = False
+    get_story_SF = False
+    get_IDR = False
+    get_BR = False
+    get_BSF = False
+    get_WAS = True
+    get_WR = True
+    get_WSF = True
+    
+    ylim = 70000
+    
+    # PostProc class 생성
+    result = PostProc(input_xlsx_path, result_xlsx_path
+                      , get_base_SF=get_base_SF, get_story_SF=get_story_SF
+                      , get_IDR=get_IDR, get_BR=get_BR, get_BSF=get_BSF
+                      , get_E_BSF=False, get_CR=False, get_CSF=False
+                      , get_E_CSF=False, get_WAS=get_WAS, get_WR=get_WR
+                      , get_WSF=get_WSF, BR_scale_factor=1.0)
     

@@ -443,7 +443,7 @@ def run_worker6(self):
               'max_shear': max_shear,
               'time_start': time_start}
 
-    # checkbox or editbox 비어있는 경우 break
+    # checkbox or editbox 비어있는 경우 / pickle 파일 없는 경우 break
     while True:
         if (get_base_SF == False) & (get_story_SF == False) & (get_IDR == False)\
             & (get_BR == False) & (get_BSF == False) & (get_E_BSF == False)\
@@ -457,6 +457,11 @@ def run_worker6(self):
             | (project_name == '') | (bldg_name == '')\
             | (story_gap == '') | (max_shear == ''):
             msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (os.path.isdir('pkl') == False) | (len(os.listdir('pkl')) == 0):
+            msg = 'Click "Preview" First!'
             msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
             self.status_browser.append(msg_colored)
             return
@@ -703,7 +708,7 @@ def run_worker9(self):
               'max_shear':max_shear,
               'time_start':time_start}
     
-    # checkbox or editbox 비어있는 경우 함수종료
+    # checkbox or editbox 비어있는 경우 / pickle 파일 없는 경우 함수종료
     while True:
         if (get_base_SF == False) & (get_story_SF == False) & (get_IDR == False)\
             & (get_BR == False) & (get_BSF == False) & (get_E_BSF == False)\
@@ -849,6 +854,11 @@ def run_worker11(self):
             | (project_name == '') | (bldg_name == '')\
             | (story_gap == '') | (max_shear == ''):
             msg = 'Nothing Entered!'
+            msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
+            self.status_browser.append(msg_colored)
+            return
+        elif (os.path.isdir('pkl') == False) | (len(os.listdir('pkl')) == 0):
+            msg = 'Click "Preview" First!'
             msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
             self.status_browser.append(msg_colored)
             return

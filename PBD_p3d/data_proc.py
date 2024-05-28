@@ -1784,7 +1784,6 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
         # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
         ecol_output = ecol_output.replace(np.nan, '', regex=True)
 
-
     #%% 4. C.Beam
     # 불러온 Beam 정보 정리
     if get_cbeam == True:
@@ -2785,3 +2784,23 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=False
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
+    
+# Checking Function
+def main() -> None:
+    # File Paths
+    input_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
+    result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
+    result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
+    
+    
+    get_wall = True
+    
+    convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
+                         , get_gbeam=False, get_ebeam=False, get_gcol=False, get_ecol=False)
+
+# Execute Testing
+if __name__ == '__main__':
+    # result_df = main_df()
+    main()
+    

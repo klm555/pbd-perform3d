@@ -213,11 +213,14 @@ class LoadWorker(QObject):
                 result.BSF(self.input_xlsx_path, self.beam_design_xlsx_path, graph=False)
             if get_WAS == True:
                 result.WAS(self.wall_design_xlsx_path, graph=False)                
-            if get_WR == True:
+            # if get_WR == True:
+                # result.WR(self.input_xlsx_path, self.wall_design_xlsx_path
+                          # , graph=False)
+            if (get_WSF == True) | (get_WR == True): 
+                # WR, WSF가 Load 과정(insert to seismic design sheets)에서는 같은 역할을 하기 때문에 시간 절약을 위해 한 번만 실행함
+                # 다만, WR, WSF가 같은 과정을 하는 것은 Load 과정에서만 해당되고, 
+                # Export나 Preview에서는 각각의 함수가 따로 사용되기 때문에 합치지는 못했음
                 result.WR(self.input_xlsx_path, self.wall_design_xlsx_path
-                          , graph=False)
-            if get_WSF == True:
-                result.WSF(self.input_xlsx_path, self.wall_design_xlsx_path
                            , graph=False)
             if get_E_CSF == True:
                 result.E_CSF(self.input_xlsx_path, self.col_design_xlsx_path)         

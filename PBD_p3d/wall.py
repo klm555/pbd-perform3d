@@ -465,120 +465,6 @@ def WAS(self, wall_design_xlsx_path, max_criteria=0.04, min_criteria=-0.002, yti
         with open('pkl/WAS.pkl', 'wb') as f:
             pickle.dump(WAS_result, f)
         
-    
-'''
-    count = 1    
-
-    # DE 그래프
-    if len(DE_load_name_list) != 0:
-            
-        # AS_DE_1
-        fig1 = plt.figure(count, dpi=150, figsize=(5,4))  # 그래프 사이즈
-        plt.xlim(-0.003, 0)
-        
-        plt.scatter(AS_output['DE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5) # s=1 : point size
-        plt.scatter(AS_output['DE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
-        
-        # height값에 대응되는 층 이름으로 y축 눈금 작성
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        
-        # reference line 그려서 허용치 나타내기
-        plt.axvline(x= min_criteria, color='r', linestyle='--')
-        plt.axvline(x= max_criteria, color='r', linestyle='--')
-        
-        plt.grid(linestyle='-.')
-        plt.xlabel('Axial Strain(m/m)')
-        plt.ylabel('Story')
-        plt.title('DE (Compressive)')
-        
-        plt.tight_layout()
-        plt.style.use('fast')
-        plt.close()
-        count += 1
-        
-        # AS_DE_2
-        fig2 = plt.figure(count, dpi=150, figsize=(5,4))  # 그래프 사이즈
-        plt.xlim(0, 0.013)
-        plt.scatter(AS_output['DE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5) # s=1 : point size
-        plt.scatter(AS_output['DE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
-        
-        # height값에 대응되는 층 이름으로 y축 눈금 작성
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        
-        plt.axvline(x= min_criteria, color='r', linestyle='--')
-        plt.axvline(x= max_criteria, color='r', linestyle='--')
-        
-        plt.grid(linestyle='-.')
-        plt.xlabel('Axial Strain(m/m)')
-        plt.ylabel('Story')
-        plt.title('DE (Tensile)')
-        
-        plt.tight_layout()
-        plt.style.use('fast')
-        plt.close()
-        count += 1
-        
-        error_coord_DE = AS_output[(AS_output['DE_max_avg'] >= max_criteria)\
-                                   | (AS_output['DE_min_avg'] <= min_criteria)]
-        
-        yield fig1
-        yield fig2
-        yield error_coord_DE        
-        yield 'DE' # Marker 출력
-    
-    # MCE 그래프
-    if len(MCE_load_name_list) != 0:
-            
-        # AS_MCE_1
-        fig3 = plt.figure(count, dpi=150, figsize=(5,4))
-        plt.xlim(-0.003, 0)
-        plt.scatter(AS_output['MCE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5)
-        plt.scatter(AS_output['MCE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
-        
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        
-        plt.axvline(x= min_criteria, color='r', linestyle='--')
-        plt.axvline(x= max_criteria, color='r', linestyle='--')
-        
-        plt.grid(linestyle='-.')
-        plt.xlabel('Axial Strain(m/m)')
-        plt.ylabel('Story')
-        plt.title('MCE (Compressive)')
-        
-        plt.tight_layout()
-        plt.style.use('fast')
-        plt.close()
-        count += 1
-        
-        # AS_MCE_2
-        fig4 = plt.figure(count, dpi=150, figsize=(5,4))
-        plt.xlim(0, 0.013)
-        plt.scatter(AS_output['MCE_min_avg'], AS_output['Z(mm)'], color = 'r', s=5)
-        plt.scatter(AS_output['MCE_max_avg'], AS_output['Z(mm)'], color = 'k', s=5)
-        
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        
-        plt.axvline(x= min_criteria, color='r', linestyle='--')
-        plt.axvline(x= max_criteria, color='r', linestyle='--')
-        
-        plt.grid(linestyle='-.')
-        plt.xlabel('Axial Strain(m/m)')
-        plt.ylabel('Story')
-        plt.title('MCE (Tensile)')
-        
-        plt.tight_layout()
-        plt.style.use('fast')
-        plt.close()
-        count += 1
-        
-        error_coord_MCE = AS_output[(AS_output['MCE_max_avg'] >= max_criteria)\
-                                    | (AS_output['MCE_min_avg'] <= min_criteria)]      
-        
-        yield fig3
-        yield fig4
-        yield error_coord_MCE
-        yield 'MCE' # Marker 출력
-'''
 #%% Shear Wall Rotation (DCR)
 
 def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1, yticks=2, xlim=3):
@@ -654,6 +540,27 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     seismic_load_name_list = self.seismic_load_name_list
     DE_load_name_list = self.DE_load_name_list
     MCE_load_name_list = self.MCE_load_name_list
+    
+    # story_info = result.story_info
+    # wall_info = result.wall_info
+    # rebar_info = result.rebar_info
+
+    # story_info.reset_index(inplace=True, drop=True)
+    # wall_info.reset_index(inplace=True, drop=True)
+
+    # # Analysis Result Sheets
+    # node_data = result.node_data
+    # element_data = result.wall_data
+    # wall_SF_data = result.shear_force_data
+    # gage_data = result.wall_rot_gage_data
+    # wall_rot_data = result.wall_rot_result_data
+
+    # # Seismic Loads List
+    # load_name_list = result.load_name_list
+    # gravity_load_name = result.gravity_load_name
+    # seismic_load_name_list = result.seismic_load_name_list
+    # DE_load_name_list = result.DE_load_name_list
+    # MCE_load_name_list = result.MCE_load_name_list
 
     # 필요없는 전단력 제거(층전단력)
     wall_SF_data = wall_SF_data[wall_SF_data['Name'].str.count('_') == 2] # underbar가 두개 들어간 행만 선택        
@@ -778,6 +685,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     ws2 = wb.Sheets('Design_S.Wall')
     ws3 = wb.Sheets('Table_S.Wall_DE')
     ws4 = wb.Sheets('ETC')
+    ws5 = wb.Sheets('Results_S.Wall_Rotation')
     
     startrow, startcol = 5, 1
     
@@ -797,7 +705,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     ws4.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
         = list(rebar_output.itertuples(index=False, name=None))
         
-    wb.Save()
+    # wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
     ###########################################################################
@@ -910,7 +818,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     SWR_min = pd.DataFrame(SWR_min)
     SWR_min_gagename = pd.DataFrame(SWR_min_gagename)
     
-    SWR_total = pd.concat([gage_data['I_V'], SWR_max_gagename.iloc[:,0]], axis=1)
+    SWR_total = pd.concat([gage_data[['I_V', 'I_H1', 'I_H2', 'J_H1', 'J_H2']], SWR_max_gagename.iloc[:,0]], axis=1)
     for i in range(SWR_max.shape[1]): # DE11_max, DE11_min, DE12_max, DE12_min...순으로 concat
         SWR_total = pd.concat([SWR_total, SWR_max.iloc[:,i], SWR_min.iloc[:,i]], axis=1)
     
@@ -920,7 +828,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
         SWR_total_column_name.extend([load_name + '_max'])
         SWR_total_column_name.extend([load_name + '_min'])
     
-    SWR_total.columns = ['Height', 'Name'] + SWR_total_column_name
+    SWR_total.columns = ['Height', 'i_X', 'i_Y', 'j_X', 'j_Y', 'Name'] + SWR_total_column_name
     
     # 해석 결과가 없는 지진파에 대해 blank column 만들기
     full_DE_load_name_list = 'DE' + pd.Series([11,12,21,22,31,32,41,42,51,52,61,62,71,72]).astype(str)
@@ -929,6 +837,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     
     SWR_total['Blank'] = ''
     
+    # SWR_output = 해석 결과값 only
     SWR_output = SWR_total.loc[:,'Name']
     for load_name in full_load_name_list:
         if load_name in seismic_load_name_list:
@@ -992,9 +901,13 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
     name_output = pd.DataFrame(name_output_arr)
     
+    # 정제된 SWR_output 값에 맞는 좌표값을 SWR_output에 merge
+    SWR_output = pd.merge(SWR_output, SWR_total[['Name', 'i_X', 'i_Y', 'j_X', 'j_Y']], how='left')
+    
     # nan인 칸을 ''로 바꿔주기
     SWR_output = SWR_output.replace(np.nan, '', regex=True)
     SWR_G_output = SWR_output.iloc[:, [57,58]]
+    coord_output = SWR_output.iloc[:,59:]
     SWR_output = SWR_output.iloc[:, 0:57]
     name_output = name_output.replace(np.nan, '', regex=True)
     
@@ -1004,14 +917,13 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     # SWR_avg_total = SWR_avg_total.drop(SWR_avg_total[(SWR_avg_total.iloc[:,4] < -0.0035) | (SWR_avg_total.iloc[:,3] > 0.0035)].index) # MCE
     
     #%% 엑셀로 출력(Using win32com)
-        
+    
     # Using win32com...
     # Call CoInitialize function before using any COM object
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application', pythoncom.CoInitialize()) # 엑셀 실행
     excel.Visible = True # 엑셀창 안보이게
     
     wb = excel.Workbooks.Open(wall_design_xlsx_path)
-    ws5 = wb.Sheets('Results_S.Wall_Rotation')
     
     startrow, startcol = 5, 1
     
@@ -1031,6 +943,11 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
     ws5.Range('DV%s:DW%s' %(startrow, 5000)).ClearContents()
     ws5.Range('DV%s:DW%s' %(startrow, startrow + SWR_G_output.shape[0] - 1)).Value\
         = list(SWR_G_output.itertuples(index=False, name=None))
+        
+    # Results_S.Wall_Shear 시트 입력 (좌표)
+    ws1.Range('GI%s:GL%s' %(startrow, 5000)).ClearContents()
+    ws1.Range('GI%s:GL%s' %(startrow, startrow + SWR_output.shape[0] - 1)).Value\
+        = list(coord_output.itertuples(index=False, name=None))
     
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
@@ -1084,66 +1001,7 @@ def WR(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1,
             pickle.dump(WR_result, f)
             
         count = 1
-'''
-    ### DE 그래프
-    if len(DE_load_name_list) != 0:
-        
-        fig1 = plt.figure(count, dpi=150, figsize=(5,6))
-        plt.xlim(0, xlim)
-        
-        plt.scatter(SWR_avg_total['DCR_DE_min'], SWR_avg_total['Height'], color='k', s=1)
-        plt.scatter(SWR_avg_total['DCR_DE_max'], SWR_avg_total['Height'], color='k', s=1)
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        plt.axvline(x = DCR_criteria, color='r', linestyle='--')
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('D/C Ratios')
-        plt.ylabel('Story')
-        plt.title('Wall Rotation (DE)')
-        
-        plt.close()
-        count += 1
-    
-        # 기준 넘는 벽체 확인
-        error_wall_DE = SWR_avg_total[['gage_name', 'DCR_DE_min', 'DCR_DE_max']]\
-                        [(SWR_avg_total['DCR_DE_min']>= DCR_criteria) | \
-                         (SWR_avg_total['DCR_DE_max']>= DCR_criteria)]
-                            
-        yield fig1
-        yield error_wall_DE
-        yield 'DE' # Marker 출력
-        
-    ### MCE 그래프
-    if len(MCE_load_name_list) != 0:
-        
-        fig2 = plt.figure(count, dpi=150, figsize=(5,6))
-        plt.xlim(0, xlim)
-        
-        plt.scatter(SWR_avg_total['DCR_MCE_min'], SWR_avg_total['Height'], color='k', s=1)
-        plt.scatter(SWR_avg_total['DCR_MCE_max'], SWR_avg_total['Height'], color='k', s=1)
-        plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-        plt.axvline(x = DCR_criteria, color='r', linestyle='--')
-        
-        # 기타
-        plt.grid(linestyle='-.')
-        plt.xlabel('D/C Ratios')
-        plt.ylabel('Story')
-        plt.title('Wall Rotation (MCE)')
-        
-        plt.close()
-        count += 1
-        
-        # 기준 넘는 벽체 확인
-        error_wall_MCE = SWR_avg_total[['gage_name', 'DCR_MCE_min', 'DCR_MCE_max']]\
-                        [(SWR_avg_total['DCR_MCE_min']>= DCR_criteria) | \
-                         (SWR_avg_total['DCR_MCE_max']>= DCR_criteria)]
-        
-        
-        yield fig2
-        yield error_wall_MCE
-        yield 'MCE' # Marker 출력
-'''        
+
 #%% Wall_SF
 # 오류없는 또는 정확한 결과를 위해서는 MCE11, MCE12와 같이 짝이되는 지진파가 함께 있어야 함.
 
@@ -1474,97 +1332,7 @@ def WSF(self, input_xlsx_path, wall_design_xlsx_path, graph=True, DCR_criteria=1
         WSF_result.append(MCE_load_name_list)
         with open('pkl/WSF.pkl', 'wb') as f:
             pickle.dump(WSF_result, f)
-        '''    
-        ### H1 DE 그래프 ###
-        if len(DE_load_name_list) != 0:
-        
-            fig1 = plt.figure(count, dpi=150, figsize=(5,6))
-            plt.xlim(0, xlim)
-            plt.scatter(wall_result_output['DE_H1'], wall_result_output['Height(mm)'], color = 'k', s=1) # s=1 : point size
-            
-            # height값에 대응되는 층 이름으로 y축 눈금 작성
-            plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-            
-            plt.axvline(x= DCR_criteria, color='r', linestyle='--')
-            plt.grid(linestyle='-.')
-            plt.xlabel('D/C Ratios')
-            plt.ylabel('Story')
-            plt.title('Shear Strength (X DE)')
-            
-            plt.tight_layout()
-            plt.close()
-            count += 1
-            
-            yield fig1
-            
-            ### H2 DE 그래프 ###
-            fig2 = plt.figure(count, dpi=150, figsize=(5,6))
-            plt.xlim(0, xlim)
-            plt.scatter(wall_result_output['DE_H2'], wall_result_output['Height(mm)'], color = 'k', s=1) # s=1 : point size
-            
-            # height값에 대응되는 층 이름으로 y축 눈금 작성
-            plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-            
-            plt.axvline(x= DCR_criteria, color='r', linestyle='--')
-            plt.grid(linestyle='-.')
-            plt.xlabel('D/C Ratios')
-            plt.ylabel('Story')
-            plt.title('Shear Strength (Y DE)')
-            
-            plt.tight_layout()
-            plt.close()  
-            count += 1
-            
-            yield fig2
-            
-            # Marker 출력
-            yield 'DE'
-        
-        ### H1 MCE 그래프 ###
-        if len(MCE_load_name_list) != 0:
-        
-            fig3 = plt.figure(count, dpi=150, figsize=(5,6))
-            plt.xlim(0, xlim)
-            plt.scatter(wall_result_output['MCE_H1'], wall_result_output['Height(mm)'], color = 'k', s=1) # s=1 : point size
-            
-            # height값에 대응되는 층 이름으로 y축 눈금 작성
-            plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-            
-            plt.axvline(x= DCR_criteria, color='r', linestyle='--')
-            plt.grid(linestyle='-.')
-            plt.xlabel('D/C Ratios')
-            plt.ylabel('Story')
-            plt.title('Shear Strength (X MCE)')    
-            
-            plt.tight_layout()
-            plt.close()
-            count += 1
-            
-            yield fig3
-            
-            ### H2 MCE 그래프 ###
-            fig4 = plt.figure(count, dpi=150, figsize=(5,6))
-            plt.xlim(0, xlim)
-            plt.scatter(wall_result_output['MCE_H2'], wall_result_output['Height(mm)'], color = 'k', s=1) # s=1 : point size
-            
-            # height값에 대응되는 층 이름으로 y축 눈금 작성
-            plt.yticks(story_info['Height(mm)'][::-yticks], story_info['Story Name'][::-yticks])
-            
-            plt.axvline(x= DCR_criteria, color='r', linestyle='--')
-            plt.grid(linestyle='-.')
-            plt.xlabel('D/C Ratios')
-            plt.ylabel('Story')
-            plt.title('Shear Strength (Y MCE)')
-            
-            plt.tight_layout()
-            plt.close()
-            count += 1
-        
-            yield fig4
-            
-            # Marker 출력
-            yield 'MCE'
-        '''
+
 # #%% 부재의 위치별  V, M 값 확인을 위한 도면 작성
     
 #     # 도면을 그리기 위한 Node List 만들기

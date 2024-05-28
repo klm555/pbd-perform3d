@@ -129,7 +129,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, graph=True, scale_factor=1.
     # 출력용 Dataframe 만들기
     # Design_C.Beam 시트
     steel_design_df = beam_info.iloc[:,21:32]
-    beam_output = pd.concat([beam_info, steel_design_df], axis=1)
+    beam_output = pd.concat([beam_info.iloc[:,:31], steel_design_df], axis=1)
     
     # Table_C.Beam_DE 시트
     # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
@@ -401,7 +401,7 @@ def BSF(self, input_xlsx_path, beam_design_xlsx_path, graph=True):
     # 출력용 Dataframe 만들기
     # Design_C.Beam 시트
     steel_design_df = beam_info.iloc[:,21:32]
-    beam_output = pd.concat([beam_info, steel_design_df], axis=1)
+    beam_output = pd.concat([beam_info.iloc[:,:31], steel_design_df], axis=1)
     
     # Table_C.Beam_DE 시트
     # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
