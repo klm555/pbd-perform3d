@@ -168,8 +168,10 @@ class LoadWorker(QObject):
         self.result_xlsx_path = kwargs['result_xlsx_path']
         self.wall_design_xlsx_path = kwargs['wall_design_xlsx_path']
         self.beam_design_xlsx_path = kwargs['beam_design_xlsx_path']
+        self.dbeam_design_xlsx_path = kwargs['dbeam_design_xlsx_path']
         self.col_design_xlsx_path = kwargs['col_design_xlsx_path']
         self.get_cbeam = kwargs['get_cbeam']
+        self.get_dbeam = kwargs['get_dbeam']
         self.get_wall = kwargs['get_wall']
         self.get_ecol = kwargs['get_ecol']
         self.BR_scale_factor = kwargs['BR_scale_factor']
@@ -179,7 +181,7 @@ class LoadWorker(QObject):
     def load_result_fn(self):   
         try:
             # pbd,PostProc 함수 안 바꾸기 위해 추가된 과정
-            if self.get_cbeam == True:
+            if (self.get_cbeam == True) | (self.get_dbeam == True):
                 get_BR = True
                 get_BSF = True
             else:
@@ -208,9 +210,11 @@ class LoadWorker(QObject):
             # 결과 데이터를 Seismic Design Sheets에 저장
             if get_BR == True:
                 result.BR(self.input_xlsx_path, self.beam_design_xlsx_path
-                          , graph=False, scale_factor=self.BR_scale_factor)
+                          , self.dbeam_design_xlsx_path, graph=False
+                          , scale_factor=self.BR_scale_factor)
             if get_BSF == True:
-                result.BSF(self.input_xlsx_path, self.beam_design_xlsx_path, graph=False)
+                result.BSF(self.input_xlsx_path, self.beam_design_xlsx_path
+                           , self.dbeam_design_xlsx_path, graph=False)
             if get_WAS == True:
                 result.WAS(self.wall_design_xlsx_path, graph=False)                
             # if get_WR == True:
@@ -274,9 +278,11 @@ class PdfWorker(QObject):
         
         # 변수 정리
         self.beam_design_xlsx_path = kwargs['beam_design_xlsx_path']
+        self.dbeam_design_xlsx_path = kwargs['dbeam_design_xlsx_path']
         self.col_design_xlsx_path = kwargs['col_design_xlsx_path']
         self.wall_design_xlsx_path = kwargs['wall_design_xlsx_path']
         self.get_cbeam = kwargs['get_cbeam']
+        self.get_dbeam = kwargs['get_dbeam']
         self.get_ecol = kwargs['get_ecol']
         self.get_wall = kwargs['get_wall']
         self.project_name = kwargs['project_name']
@@ -287,8 +293,9 @@ class PdfWorker(QObject):
     def print_pdf_fn(self):   
         try:
             # 함수 실행
-            pbd.print_pdf(self.beam_design_xlsx_path, self.col_design_xlsx_path
-                          , self.wall_design_xlsx_path, self.get_cbeam, self.get_ecol
+            pbd.print_pdf(self.beam_design_xlsx_path, self.dbeam_design_xlsx_path
+                          , self.col_design_xlsx_path, self.wall_design_xlsx_path
+                          , self.get_cbeam, self.get_dbeam, self.get_ecol
                           , self.get_wall, self.project_name, self.bldg_name)
             # 실행 시간 계산
             time_end = time.time()

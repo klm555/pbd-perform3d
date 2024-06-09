@@ -42,6 +42,7 @@ class MainWindow(QMainWindow, ui_class):
         self.display_selected_result_path.setText('%i files selected' %len(result_xlsx_path))
         self.wall_design_path_editbox.setText(self.setting.value('wall_design_file_path', 'C:\\'))
         self.beam_design_path_editbox.setText(self.setting.value('beam_design_file_path', 'C:\\'))
+        self.dbeam_design_path_editbox.setText(self.setting.value('dbeam_design_file_path', 'C:\\'))
         self.col_design_path_editbox.setText(self.setting.value('column_design_file_path', 'C:\\'))
         self.setting.endGroup()
         
@@ -92,6 +93,7 @@ class MainWindow(QMainWindow, ui_class):
         # Tab 3
         self.setting.beginGroup('setting_tab3')
         self.load_cbeam_checkbox.setChecked(self.setting.value('load_cbeam', True, type=bool))
+        self.load_dbeam_checkbox.setChecked(self.setting.value('load_dbeam', True, type=bool))
         self.load_wall_checkbox.setChecked(self.setting.value('load_wall', True, type=bool))
         self.load_ecol_checkbox.setChecked(self.setting.value('load_ecolumn', False, type=bool))
         self.base_SF_checkbox.setChecked(self.setting.value('base_SF', True, type=bool))
@@ -107,6 +109,7 @@ class MainWindow(QMainWindow, ui_class):
         self.WR_checkbox.setChecked(self.setting.value('WR', True, type=bool))
         self.WSF_checkbox.setChecked(self.setting.value('WSF', True, type=bool))
         self.cbeam_pdf_checkbox.setChecked(self.setting.value('cbeam_to_pdf', True, type=bool))
+        self.dbeam_pdf_checkbox.setChecked(self.setting.value('dbeam_to_pdf', True, type=bool))
         self.ecol_pdf_checkbox.setChecked(self.setting.value('ecolumn_to_pdf', False, type=bool))
         self.wall_pdf_checkbox.setChecked(self.setting.value('wall_to_pdf', True, type=bool))
         self.setting.endGroup()
@@ -118,6 +121,7 @@ class MainWindow(QMainWindow, ui_class):
         self.find_file_btn_3.clicked.connect(self.find_wall_design_xlsx)
         self.find_file_btn_4.clicked.connect(self.find_beam_design_xlsx)
         self.find_file_btn_5.clicked.connect(self.find_col_design_xlsx)
+        self.find_file_btn_6.clicked.connect(self.find_dbeam_design_xlsx)
         
         # Tab 1
         self.import_midas_btn.clicked.connect(self.run_worker1)
@@ -219,6 +223,13 @@ class MainWindow(QMainWindow, ui_class):
                                     , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]        
         if col_design_xlsx_path != '':
             self.col_design_path_editbox.setText(col_design_xlsx_path)
+            
+    def find_dbeam_design_xlsx(self): # Beam Results Sheets
+        # global input_xlsx_path
+        dbeam_design_xlsx_path = QFileDialog.getOpenFileName(parent=self, caption='Choose Seismic Design Sheets (Divided Coupling Beam)'
+                                    , directory=os.getcwd(), filter='Excel File (*.xlsx *.xls)')[0]        
+        if dbeam_design_xlsx_path != '':
+            self.dbeam_design_path_editbox.setText(dbeam_design_xlsx_path)
     
     # Macro 사용을 위한 function
     def get_mouse_coords(self):
@@ -296,6 +307,7 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.setValue('result_file_path', self.result_path_editbox.text())
             self.setting.setValue('wall_design_file_path', self.wall_design_path_editbox.text())
             self.setting.setValue('beam_design_file_path', self.beam_design_path_editbox.text())
+            self.setting.setValue('dbeam_design_file_path', self.dbeam_design_path_editbox.text())
             self.setting.setValue('column_design_file_path', self.col_design_path_editbox.text())
             self.setting.endGroup()
             
@@ -344,6 +356,7 @@ class MainWindow(QMainWindow, ui_class):
 
             self.setting.beginGroup('setting_tab3')
             self.setting.setValue('load_cbeam', self.load_cbeam_checkbox.isChecked())
+            self.setting.setValue('load_dbeam', self.load_dbeam_checkbox.isChecked())
             self.setting.setValue('load_wall', self.load_wall_checkbox.isChecked())
             self.setting.setValue('load_ecolumn', self.load_ecol_checkbox.isChecked())
             self.setting.setValue('base_SF', self.base_SF_checkbox.isChecked())
@@ -359,6 +372,7 @@ class MainWindow(QMainWindow, ui_class):
             self.setting.setValue('WR', self.WR_checkbox.isChecked())
             self.setting.setValue('WSF', self.WSF_checkbox.isChecked())
             self.setting.setValue('cbeam_to_pdf', self.cbeam_pdf_checkbox.isChecked())
+            self.setting.setValue('dbeam_to_pdf', self.dbeam_pdf_checkbox.isChecked())
             self.setting.setValue('ecolumn_to_pdf', self.ecol_pdf_checkbox.isChecked())
             self.setting.setValue('wall_to_pdf', self.wall_pdf_checkbox.isChecked())
             self.setting.endGroup()

@@ -77,6 +77,19 @@ class PostProc():
                                       , 'X-Bracing(DXX)_after', 'Top(1)_after', 'Top(2)_after', 'Top(3)_after'
                                       , 'Stirrup EA_after', 'Stirrup Space(mm)_after', 'X-Bracing EA_after', 'X-Bracing deg_after'
                                       , 'Boundary']
+            # Divided C.Beam
+            self.dbeam_info = read_excel(input_xlsx_path, sheet_name='Input_D.Beam', skip_rows=[0,1,2])
+            self.dbeam_info = self.dbeam_info.iloc[:,0:33]
+            self.dbeam_info.dropna(how='all', inplace=True)
+            self.dbeam_info.columns = ['Name', 'Length(mm)', 'Element Length(mm)', 'b(mm)', 'h(mm)', 'd(mm)'
+                                      , 'Concrete Grade', 'Arrangement', 'Seismic Detail', 'Main Rebar Type', 'Main Rebar(DXX)'
+                                      , 'Stirrup Type', 'Stirrup(DXX)', 'X-Bracing Type', 'X-Bracing(DXX)'
+                                      , 'Top(1)', 'Top(2)', 'Top(3)', 'Stirrup EA', 'Stirrup Space(mm)'
+                                      , 'X-Bracing EA', 'X-Bracing deg', 'Main Rebar(DXX)_after', 'Stirrup(DXX)_after'
+                                      , 'X-Bracing(DXX)_after', 'Top(1)_after', 'Top(2)_after', 'Top(3)_after'
+                                      , 'Stirrup EA_after', 'Stirrup Space(mm)_after', 'X-Bracing EA_after', 'X-Bracing deg_after'
+                                      , 'Boundary']
+            
         # E.Column Info
         if get_E_CSF == True:
             self.ecol_info = read_excel(input_xlsx_path, sheet_name='Input_E.Column', skip_rows=[0,1,2])
@@ -145,9 +158,9 @@ class PostProc():
         if get_BR == True:
             self.beam_rot_data = pool.starmap(read_excel, [[file_path, 'Frame Results - Bending Deform'] for file_path in to_load_list])
             self.beam_rot_data = pd.concat(self.beam_rot_data, ignore_index=True)
-            column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'Point ID', 'R2', 'R3']
+            column_name_to_slice = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'Point ID', 'Relative Location', 'R2', 'R3']
             self.beam_rot_data = self.beam_rot_data.loc[:, column_name_to_slice]
-            self.beam_rot_data.columns = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'Point ID', 'H2 Rotation(rad)', 'H3 Rotation(rad)']
+            self.beam_rot_data.columns = ['Group Name', 'Element Name', 'Load Case', 'Step Type', 'Point ID', 'Relative Location', 'H2 Rotation(rad)', 'H3 Rotation(rad)']
         # Beam Shear Force
         if (get_BSF == True) | (get_E_CSF == True):
             self.beam_shear_force_data = pool.starmap(read_excel, [[file_path, 'Frame Results - End Forces'] for file_path in to_load_list])
@@ -187,8 +200,8 @@ class PostProc():
 
 #%% Function to Print the Result into PDF
 
-def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
-              , wall_design_xlsx_path, get_cbeam=False, get_ecol=False
+def print_pdf(beam_design_xlsx_path, dbeam_design_xlsx_path, col_design_xlsx_path
+              , wall_design_xlsx_path, get_cbeam=False, get_dbeam=False, get_ecol=False
               , get_wall=False, project_name='성능기반 내진설계', bldg_name='1동'):
 
     # Call CoInitialize function before using any COM object
@@ -198,6 +211,7 @@ def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
     xlTypePDF = 0
     xlQualityStandard = 0
 
+    element_num = 0
     if get_cbeam == True:
         wb_cbeam = excel.Workbooks.Open(beam_design_xlsx_path)
         ws_DE = wb_cbeam.Sheets('Plot_C.Beam_DE')
@@ -263,6 +277,76 @@ def print_pdf(beam_design_xlsx_path, col_design_xlsx_path
             os.remove(MCE_pdf_file_path)
             
         wb_cbeam.Close(SaveChanges=False)
+        
+    if get_dbeam == True:
+        wb_dbeam = excel.Workbooks.Open(dbeam_design_xlsx_path)
+        ws_DE = wb_dbeam.Sheets('Plot_C.Beam_DE')
+        ws_MCE = wb_dbeam.Sheets('Plot_C.Beam_MCE')
+        ws_row_num = wb_dbeam.Sheets('Table_C.Beam_DE')
+        startrow, startcol = 5, 1
+
+        ### 프로젝트 & 건물명 입력
+        ws_DE.Range('BS5:BS5').Value = project_name
+        ws_DE.Range('BS6:BS6').Value = bldg_name
+
+        ### 부재별 excel 시트 생성 & pdf 생성
+        # C.beam의 index에 연결해서 d.beam의 indexing을 할 때 사용하기 위해
+        # previous element nuimber를 따로 저장함
+        prev_element_num = element_num
+        
+        # 부재 개수(for iterration) 구하기
+        element_num = ws_row_num.Range('A4:A4').Value
+        element_num = int(element_num)
+        
+        # Path 지정
+        result_path = os.path.splitext(dbeam_design_xlsx_path)[0] # 확장자명(extension) 제거
+        
+        # pdf Merge를 위한 PdfMerger 클래스 생성
+        merger = PdfMerger()
+        
+        for i in range(element_num):
+            
+            ws_DE.Range('A8:A8').Value = i + 1 + prev_element_num
+            
+            # 왜인지 모르겠지만 result_path에 suffix 붙이면 \가 /로 바뀜... 그래서 다시 바꿔주기
+            pdf_file_path = result_path + '_DE({}).pdf'.format(i + 1)
+            pdf_file_path = pdf_file_path.replace('/', '\\')
+            
+            ws_DE.Select()
+            
+            wb_dbeam.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path\
+                                                , xlQualityStandard, True, False)    
+
+            merger.append(pdf_file_path)
+            
+        for i in range(element_num):
+            
+            ws_MCE.Range('A8:A8').Value = i + 1 + prev_element_num
+            
+            # 왜인지 모르겠지만 result_path에 suffix 붙이면 \가 /로 바뀜... 그래서 다시 바꿔주기
+            pdf_file_path = result_path + '_MCE({}).pdf'.format(i + 1)
+            pdf_file_path = pdf_file_path.replace('/', '\\')
+            
+            ws_MCE.Select()
+            
+            wb_dbeam.ActiveSheet.ExportAsFixedFormat(xlTypePDF, pdf_file_path\
+                                                , xlQualityStandard, True, False)    
+
+            merger.append(pdf_file_path)
+            
+        merger.write(result_path + '.pdf')
+        merger.close()
+        
+        # Merge한 후 개별 파일들 지우기    
+        for i in range(element_num):
+            DE_pdf_file_path = result_path + '_DE({}).pdf'.format(i + 1)
+            MCE_pdf_file_path = result_path + '_MCE({}).pdf'.format(i + 1)
+            DE_pdf_file_path = DE_pdf_file_path.replace('/', '\\')
+            MCE_pdf_file_path = MCE_pdf_file_path.replace('/', '\\')
+            os.remove(DE_pdf_file_path)
+            os.remove(MCE_pdf_file_path)
+            
+        wb_dbeam.Close(SaveChanges=False)
             
     if get_ecol == True:
         wb_ecol = excel.Workbooks.Open(col_design_xlsx_path)
@@ -2425,21 +2509,22 @@ def main_hwp() -> None:
 if __name__ == '__main__':
     # main_hwp()
     # File Paths
-    input_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
-    result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
-    result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    input_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
+    result_xlsx_path1 = r"D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
+    result_xlsx_path2 = r"D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
     result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
-    beam_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
-    wall_design_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
+    beam_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
+    dbeam_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/Seismic Design_Divided Beam_Ver.3.0_240308.xlsx'
+    wall_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
     
     get_base_SF = False
     get_story_SF = False
     get_IDR = False
-    get_BR = False
-    get_BSF = False
-    get_WAS = True
-    get_WR = True
-    get_WSF = True
+    get_BR = True
+    get_BSF = True
+    get_WAS = False
+    get_WR = False
+    get_WSF = False
     
     ylim = 70000
     
@@ -2451,3 +2536,21 @@ if __name__ == '__main__':
                       , get_E_CSF=False, get_WAS=get_WAS, get_WR=get_WR
                       , get_WSF=get_WSF, BR_scale_factor=1.0)
     
+    story_info = result.story_info
+    cbeam_info = result.beam_info.copy()
+    dbeam_info = result.dbeam_info.copy()
+    rebar_info = result.rebar_info
+
+    # Analysis Result Sheets
+    node_data = result.node_data
+    element_data = result.frame_data
+    beam_rot_data = result.beam_rot_data
+
+    # Seismic Loads List
+    load_name_list = result.load_name_list
+    gravity_load_name = result.gravity_load_name
+    seismic_load_name_list = result.seismic_load_name_list
+    DE_load_name_list = result.DE_load_name_list
+    MCE_load_name_list = result.MCE_load_name_list
+    
+    scale_factor = 1.0

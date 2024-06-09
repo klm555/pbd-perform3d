@@ -309,8 +309,10 @@ def run_worker5(self):
     input_xlsx_path = self.data_conv_path_editbox.text().strip()
     wall_design_xlsx_path = self.wall_design_path_editbox.text().strip()
     beam_design_xlsx_path = self.beam_design_path_editbox.text().strip()
+    dbeam_design_xlsx_path = self.dbeam_design_path_editbox.text().strip()
     col_design_xlsx_path = self.col_design_path_editbox.text().strip()
     get_cbeam = self.load_cbeam_checkbox.isChecked()
+    get_dbeam = self.load_dbeam_checkbox.isChecked()
     get_wall = self.load_wall_checkbox.isChecked()
     get_ecol = self.load_ecol_checkbox.isChecked()
     
@@ -322,8 +324,10 @@ def run_worker5(self):
               'input_xlsx_path': input_xlsx_path,
               'wall_design_xlsx_path': wall_design_xlsx_path,
               'beam_design_xlsx_path': beam_design_xlsx_path,
+              'dbeam_design_xlsx_path': dbeam_design_xlsx_path,
               'col_design_xlsx_path': col_design_xlsx_path,
               'get_cbeam': get_cbeam,
+              'get_dbeam': get_dbeam,
               'get_wall': get_wall,
               'get_ecol': get_ecol,
               'BR_scale_factor': BR_scale_factor,
@@ -332,7 +336,7 @@ def run_worker5(self):
     
     # checkbox or editbox 비어있는 경우 break
     while True:
-        if (get_cbeam == False) & (get_wall == False) & (get_ecol == False):
+        if (get_cbeam == False) & (get_wall == False) & (get_ecol == False) & (get_dbeam == False):
             msg = 'Nothing Checked!'
             msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
             self.status_browser.append(msg_colored)
@@ -344,7 +348,7 @@ def run_worker5(self):
             self.status_browser.append(msg_colored)
             return
         elif (wall_design_xlsx_path == '') & (beam_design_xlsx_path == '')\
-            & (col_design_xlsx_path == ''):
+            & (col_design_xlsx_path == '') & (dbeam_design_xlsx_path == ''):
             msg = 'Nothing Entered!'
             msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
             self.status_browser.append(msg_colored)
@@ -574,8 +578,10 @@ def run_worker8(self):
     # 변수 정리
     wall_design_xlsx_path = self.wall_design_path_editbox.text().strip()
     beam_design_xlsx_path = self.beam_design_path_editbox.text().strip()
+    dbeam_design_xlsx_path = self.dbeam_design_path_editbox.text().strip()
     col_design_xlsx_path = self.col_design_path_editbox.text().strip()
     get_cbeam = self.cbeam_pdf_checkbox.isChecked()
+    get_dbeam = self.dbeam_pdf_checkbox.isChecked()
     get_ecol = self.ecol_pdf_checkbox.isChecked()
     get_wall = self.wall_pdf_checkbox.isChecked()
     
@@ -585,8 +591,10 @@ def run_worker8(self):
     # Worker 클래스에 입력할 Keyword Arguments Dict 생성
     kwargs = {'wall_design_xlsx_path':wall_design_xlsx_path, 
               'beam_design_xlsx_path':beam_design_xlsx_path,
+              'dbeam_design_xlsx_path':dbeam_design_xlsx_path,
               'col_design_xlsx_path':col_design_xlsx_path,
               'get_cbeam':get_cbeam,
+              'get_dbeam':get_dbeam,
               'get_ecol':get_ecol,
               'get_wall':get_wall,
               'project_name':project_name,
@@ -595,7 +603,7 @@ def run_worker8(self):
     
     # checkbox or editbox 비어있는 경우 break
     while True:
-        if (get_cbeam == False) & (get_ecol == False) & (get_wall == False):
+        if (get_cbeam == False) & (get_ecol == False) & (get_wall == False) & (get_dbeam == False):
             msg = 'Nothing Checked!'
             msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
             self.status_browser.append(msg_colored)
@@ -606,7 +614,7 @@ def run_worker8(self):
             self.status_browser.append(msg_colored)
             return
         elif (wall_design_xlsx_path == '') & (beam_design_xlsx_path == '')\
-            & (col_design_xlsx_path == ''):
+            & (col_design_xlsx_path == '') & (dbeam_design_xlsx_path == ''):
             msg = 'Nothing Entered!'
             msg_colored = '<span style=\" color: #ff0000;\">%s</span>' % msg
             self.status_browser.append(msg_colored)
