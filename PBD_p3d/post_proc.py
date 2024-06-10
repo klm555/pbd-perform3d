@@ -2509,13 +2509,13 @@ def main_hwp() -> None:
 if __name__ == '__main__':
     # main_hwp()
     # File Paths
-    input_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
-    result_xlsx_path1 = r"D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
-    result_xlsx_path2 = r"D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    input_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/706D/test/YH-706_Data Conversion_Ver.3.5_구조심의_240207.xlsx'
+    result_xlsx_path1 = r"D:/이형우/3_PBSD/용현학익7단지/706D/test/YH_706_DE_Result.xlsx"
+    result_xlsx_path2 = r"D:/이형우/3_PBSD/용현학익7단지/706D/test/YH_706_MCE_Result.xlsx"
     result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
-    beam_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Coupling Beam_Ver.2.2_After_re.xlsx'
-    dbeam_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/Seismic Design_Divided Beam_Ver.3.0_240308.xlsx'
-    wall_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/708D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
+    beam_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/706D/test/Seismic Design_Coupling Beam_Ver.2.0_240123.xlsx'
+    dbeam_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/706D/test/Seismic Design_Divided Beam_Ver.3.0_240308.xlsx'
+    wall_design_xlsx_path = r'D:/이형우/3_PBSD/용현학익7단지/706D/test/YH-708_Seismic Design_Shear Wall_Ver.2.2_After.xlsx'
     
     get_base_SF = False
     get_story_SF = False

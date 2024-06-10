@@ -67,6 +67,12 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, dbeam_design_xlsx_path, gra
                                         | ((dbeam_rot_data['Relative Location'] == 1) & (dbeam_rot_data['Point ID'] == 3))]
         dbeam_rot_data = dbeam_rot_data[dbeam_rot_data['Property Name'].str.contains('C_') == False]
         dbeam_rot_data = dbeam_rot_data[dbeam_rot_data['Property Name'].notna()]
+        
+        # i, j 부재를 표시하는 열 만들기 / Property Name에서 i, j 제거
+        dbeam_rot_data['I or J'] = ['I' if '-I' in name else 'J' for name in dbeam_rot_data['Property Name']]
+        dbeam_rot_data['Property Name(no i,j)'] = dbeam_rot_data['Property Name'].copy()
+        dbeam_rot_data['Property Name(no i,j)'] = dbeam_rot_data['Property Name(no i,j)'].str.replace('-I', '')
+        dbeam_rot_data['Property Name(no i,j)'] = dbeam_rot_data['Property Name(no i,j)'].str.replace('-J', '')
         dbeam_rot_data.reset_index(inplace=True, drop=True)
             
 #%% cbeam_rot_data의 값 수정(H1, H2 방향 중 major한 방향의 rotation값만 추출, 그리고 2배)
@@ -143,44 +149,51 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, dbeam_design_xlsx_path, gra
                 major_rot.append(i)
             else: major_rot.append(j)
         dbeam_rot_data['Major Rotation(rad)'] = major_rot
-        dbeam_rot_data = dbeam_rot_data.iloc[:,[0,1,8,11,2,3,5,12]]
+        dbeam_rot_data = dbeam_rot_data.iloc[:,[0,1,13,11,2,3,5,12,14]]
         
-        DBR_grouped_list = list(dbeam_rot_data.groupby(['Load Case', 'Relative Location', 'Step Type']))
+        DBR_grouped_list = list(dbeam_rot_data.groupby(['Load Case', 'Relative Location', 'I or J', 'Step Type']))
+        
+        # Create new dbeam_prop_name without specifying i or j
+        dbeam_output_name = dbeam_prop_name[dbeam_prop_name.str.contains('-C') == False]
+        dbeam_output_name = dbeam_output_name.str.replace('-I', '')
+        dbeam_output_name = dbeam_output_name.str.replace('-J', '')
+        dbeam_output_name.reset_index(inplace=True, drop=True)
+        dbeam_output_name.name = 'Property Name(no i,j)'
         
         # 이름만 들어간 Dataframe 만들기
-        DBR_output = pd.DataFrame(dbeam_prop_name)
+        DBR_output = pd.DataFrame(dbeam_output_name)
         for load_name in full_load_name_list:
-            for relative_loc in [0.0, 1.0]:
+            for i_j in ['I', 'J']:
                 for max_min in ['Max', 'Min']:
                     # 만들어진 Group List loop 돌리기
                     for DBR_grouped in DBR_grouped_list:
-                        if (load_name in DBR_grouped[0][0]) & (DBR_grouped[0][1] == relative_loc) & (DBR_grouped[0][2] == max_min):
+                        if (load_name in DBR_grouped[0][0]) & (DBR_grouped[0][2] == i_j) & (DBR_grouped[0][3] == max_min):
                             DBR_grouped_df = DBR_grouped[1].drop_duplicates()
                             # Element Name이 같은 경우(부재가 잘려서 모델링 된 경우 등), 큰 값만 선택
                             DBR_grouped_df['Absolute Rotation(rad)'] = DBR_grouped_df['Major Rotation(rad)'].abs()
                             DBR_grouped_df = DBR_grouped_df.sort_values(by='Absolute Rotation(rad)')
                             DBR_grouped_df = DBR_grouped_df.drop_duplicates(subset=['Element Name'], keep='last')
                             # Input 시트의 부재 순서대로 재정렬
-                            DBR_grouped_df = pd.merge(dbeam_prop_name, DBR_grouped_df, how='left')
+                            DBR_grouped_df = pd.merge(dbeam_output_name, DBR_grouped_df, how='left')
                             DBR_grouped_df.reset_index(inplace=True, drop=True)
                             DBR_output = pd.concat([DBR_output, DBR_grouped_df['Major Rotation(rad)']], axis=1)
                         
                     # 해당 지진하중의 해석결과가 없는 경우 Blank Column 생성
                     if load_name not in seismic_load_name_list: 
-                        blank_col = pd.Series([''] * len(dbeam_prop_name))
+                        blank_col = pd.Series([''] * len(dbeam_output_name))
                         DBR_output = pd.concat([DBR_output, blank_col], axis=1) 
                         
         # 중력하중, i,j 노드, Max,Min loop 돌리기
-        DBR_G_output = pd.DataFrame(dbeam_prop_name)
-        for relative_loc in [0.0, 1.0]:
+        DBR_G_output = pd.DataFrame(dbeam_output_name)
+        for i_j in ['I', 'J']:
             for max_min in ['Max', 'Min']:
                 # 중력하중의 해석결과가 없는 경우 Blank Column 생성
                 if len(gravity_load_name) == 0: 
-                    blank_col = pd.Series([''] * len(dbeam_prop_name))
+                    blank_col = pd.Series([''] * len(dbeam_output_name))
                     DBR_G_output = pd.concat([DBR_G_output, blank_col], axis=1)   
                 else:    
                     for DBR_grouped in DBR_grouped_list:
-                        if (gravity_load_name[0] in DBR_grouped[0][0]) & (DBR_grouped[0][1] == relative_loc) & (DBR_grouped[0][2] == max_min):
+                        if (gravity_load_name[0] in DBR_grouped[0][0]) & (DBR_grouped[0][2] == i_j) & (DBR_grouped[0][3] == max_min):
                             # 같은 결과가 2개씩 있어서 drop_duplicates
                             DBR_grouped_df = DBR_grouped[1].drop_duplicates()
                             # Element Name이 같은 경우(부재가 잘려서 모델링 된 경우 등), 큰 값만 선택
@@ -188,7 +201,7 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, dbeam_design_xlsx_path, gra
                             DBR_grouped_df = DBR_grouped_df.sort_values(by='Absolute Rotation(rad)')
                             DBR_grouped_df = DBR_grouped_df.drop_duplicates(subset=['Element Name'], keep='last')
                             # Input 시트의 부재 순서대로 재정렬
-                            DBR_grouped_df = pd.merge(dbeam_prop_name, DBR_grouped_df, how='left')
+                            DBR_grouped_df = pd.merge(dbeam_output_name, DBR_grouped_df, how='left')
                             DBR_grouped_df.reset_index(inplace=True, drop=True)
                             DBR_G_output = pd.concat([DBR_G_output, DBR_grouped_df['Major Rotation(rad)']], axis=1)
                             DBR_G_output = DBR_G_output.iloc[:, 1:]
@@ -257,15 +270,62 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, dbeam_design_xlsx_path, gra
     name_output = name_output.replace(np.nan, '', regex=True)
     rebar_output = rebar_output.replace(np.nan, '', regex=True)
     
-#%% 조작용 코드
-    # 없애고 싶은 부재의 이름 입력(error_beam 확인 후!, DE, MCE에서 다 없어짐)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('PB1-10_1'))].index)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('PB1-8_1'))].index)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('LB1A_2'))].index)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('LB1A_4'))].index)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('LB2_1'))].index)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('WB4B_'))].index)
-    # cbeam_rot_data = cbeam_rot_data.drop(cbeam_rot_data[(cbeam_rot_data['Property Name'].str.contains('WB3D_'))].index)
+    # D.Beam
+    if dbeam_info.shape[0] != 0:
+        steel_design_df = dbeam_info.iloc[:,22:33]
+        dbeam_output = pd.concat([dbeam_info.iloc[:,:32], steel_design_df], axis=1)
+        
+        # Table_C.Beam_DE 시트
+        # Ground Level(0mm, 1F)에 가장 가까운 층의 row index get
+        ground_level_idx = story_info['Height(mm)'].abs().idxmin()
+        # story_info의 Index열을 1부터 시작하도록 재지정
+        story_info['Index'] = range(story_info.shape[0], 0, -1)
+        # Ground Level(0mm, 1F)에 가장 가까운 층을 index 4에 배정
+        add_num_new_story = 4 - story_info.iloc[ground_level_idx, 0]
+        story_info['Index'] = story_info['Index'] + add_num_new_story
+        
+        # Beam 이름 split
+        cbeam_info[['Beam Name', 'Beam Number', 'Story Name']] = cbeam_info['Name'].str.split('_', expand=True)
+        cbeam_info = pd.merge(cbeam_info, story_info, how='left')
+        # 결과값 없는 부재 제거
+        BR_output = BR_output.replace(np.nan, '', regex=True)
+        idx_to_slice = BR_output.iloc[:,1:].dropna().index # dropna로 결과값 있는 부재만 남긴 후 idx 추출
+        idx_to_slice2 = cbeam_info['Name'].iloc[idx_to_slice].index # 결과값 있는 부재만 slice 후 idx 추출
+        cbeam_info = cbeam_info.iloc[idx_to_slice2,:]
+        cbeam_info.reset_index(inplace=True, drop=True)
+        # 벽체 이름, 번호에 따라 grouping
+        beam_name_list = list(cbeam_info.groupby(['Beam Name', 'Beam Number'], sort=False))
+        # 55 row짜리 empty dataframe 만들기
+        name_empty = pd.DataFrame(np.nan, index=range(55), columns=range(len(beam_name_list)))
+        
+        # dataframe에 이름 채워넣기
+        count = 0
+        while True:
+            name_iter = beam_name_list[count][0][0]
+            num_iter = beam_name_list[count][0][1]
+            total_iter = cbeam_info['Name'][(cbeam_info['Beam Name'] == name_iter) 
+                                           & (cbeam_info['Beam Number'] == num_iter)]
+            idx_range = cbeam_info['Index'][(cbeam_info['Beam Name'] == name_iter) 
+                                           & (cbeam_info['Beam Number'] == num_iter)]
+            name_empty.iloc[idx_range, count] = total_iter    
+            
+            count += 1
+            if count == len(beam_name_list):
+                break
+        # dataframe을 1열로 만들기
+        name_output_arr = np.array(name_empty)
+        name_output_arr = np.reshape(name_output_arr, (-1, 1), order='F')
+        name_output = pd.DataFrame(name_output_arr)
+        
+        # ETC 시트
+        rebar_output = rebar_info.iloc[:,1:]    
+
+        # nan인 칸을 ''로 바꿔주기 (win32com으로 nan입력시 임의의 숫자가 입력되기때문 ㅠ)
+        BR_output = BR_output.replace(np.nan, '', regex=True)
+        BR_G_output = BR_G_output.replace(np.nan, '', regex=True)
+        beam_output = beam_output.replace(np.nan, '', regex=True)
+        name_output = name_output.replace(np.nan, '', regex=True)
+        rebar_output = rebar_output.replace(np.nan, '', regex=True)
 
 #%% 엑셀로 출력(Using win32com)
         
@@ -313,6 +373,45 @@ def BR(self, input_xlsx_path, beam_design_xlsx_path, dbeam_design_xlsx_path, gra
     wb.Save()
     # wb.Close(SaveChanges=1) # Closing the workbook
     # excel.Quit() # Closing the application 
+    
+    if dbeam_info.shape[0] != 0:
+        wb = excel.Workbooks.Open(dbeam_design_xlsx_path)
+        ws5 = wb.Sheets('Results_C.Beam_Rotation')
+        ws6 = wb.Sheets('Design_C.Beam')
+        ws7 = wb.Sheets('Table_C.Beam_DE')
+        ws8 = wb.Sheets('ETC')
+        
+        startrow, startcol = 5, 1
+        
+        # Results_C.Beam_Rotation 시트 입력
+        ws5.Range('A%s:DI%s' %(startrow, 5000)).ClearContents()
+        ws5.Range('A%s:DI%s' %(startrow, startrow + DBR_output.shape[0] - 1)).Value\
+            = list(DBR_output.itertuples(index=False, name=None))
+            
+        # Results_C.Beam_Rotation 시트 입력 (중력하중)
+        ws5.Range('FZ%s:GC%s' %(startrow, 5000)).ClearContents()
+        ws5.Range('FZ%s:GC%s' %(startrow, startrow + DBR_G_output.shape[0] - 1)).Value\
+            = list(DBR_G_output.itertuples(index=False, name=None))
+            
+        # Design_C.Beam 시트 입력
+        ws6.Range('A%s:AP%s' %(startrow, 5000)).ClearContents()
+        ws6.Range('A%s:AP%s' %(startrow, startrow + dbeam_output.shape[0] - 1)).Value\
+            = list(dbeam_output.itertuples(index=False, name=None))
+        
+        # Table_C.Beam_DE 시트 입력
+        # 값을 입력하기 전에, 우선 해당 셀에 있는 값 지우기
+        ws7.Range('B%s:B%s' %(startrow, 5000)).ClearContents()
+        ws7.Range('B%s:B%s' %(startrow, startrow + name_output.shape[0] - 1)).Value\
+            = [[i] for i in name_output[0]] # series -> list 형식만 입력가능
+        ws7.Range('A4:A4').Value\
+            = len(beam_name_list) # series -> list 형식만 입력가능
+            
+        # Design_S.Wall 시트 입력
+        ws8.Range('D%s:L%s' %(startrow, 5000)).ClearContents()
+        ws8.Range('D%s:L%s' %(startrow, startrow + rebar_output.shape[0] - 1)).Value\
+            = list(rebar_output.itertuples(index=False, name=None))
+        
+        wb.Save()
         
 #%% 그래프
     if graph == True:
