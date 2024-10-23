@@ -1557,12 +1557,12 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
     
         gcol_ongoing = gcol_ongoing.sort_values(by=['Count'])
         gcol_ongoing.reset_index(inplace=True, drop=True)
-    
+        
         # 최종 sheet에 미리 넣을 수 있는 것들도 넣어놓기
-        gcol_output = gcol_ongoing.iloc[:,[0,4,5,19,7,8,9,10,11,12,13,14,15,16,17,18]]
+        gcol_output = gcol_ongoing.iloc[:,[0,4,5,18,6,7,8,9,10,11,12,13,14,15,16,17]]
         
         # gcol_output에 붙이기 위한 보강 후(after) dataframe
-        rebar_after = gcol_ongoing.iloc[:,[6,8,12,13,14,15,16,17,18]]
+        rebar_after = gcol_ongoing.iloc[:,[8,10,11,12,13,14,15,16,17]]
         rebar_after = rebar_after.add_suffix('_after') # 보강 후 dataframe에 suffix 붙이기
         
         # (gcol_output) + (보강 후 df) concat
@@ -2499,8 +2499,8 @@ def convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
             # Read Hoop Space
             h_space = ws_cbeam.Range('AC%s:AC%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
-            # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_cbeam.Range('AM%s:AM%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
+            # Read and Get the Hinge Type(허용안됨, 전단강도 검토 필요, FEMA Beam)
+            vy_vn = ws_cbeam.Range('AN%s:AN%s' %(startrow, startrow + cbeam_output.shape[0]-1)).Value # list of tuples
             vy_vn_array = np.array([1 if ('허용안됨' in i[0]) & (j > 10)
                                     else 0 for i, j in zip(vy_vn, h_space_array)]) # (허용안됨 = 1, OK = 0)
             
@@ -2757,24 +2757,24 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=False
         = [[i] for i in gcol_output['P J-End']]
 
         # Reduce Hoop space of NG elements(Autocompletion)
-        while True:
-            # Read Hoop Space
-            h_space = ws_gcol.Range('Y%s:Y%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
-            h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
-            # Read and Get the boolean value of Vy <= Vn
-            vy_vn = ws_gcol.Range('AE%s:AH%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
-            vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
+        # while True:
+        #     # Read Hoop Space
+        #     h_space = ws_gcol.Range('Y%s:Y%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
+        #     h_space_array = np.array(h_space)[:,0]                                                    # list of tuples -> np.array    
+        #     # Read and Get the boolean value of Vy <= Vn
+        #     vy_vn = ws_gcol.Range('AE%s:AH%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value # list of tuples
+        #     vy_vn_array = np.array([1 if 'N.G' in row else 0 for row in vy_vn])
             
-            # If there is no NG element or Hoop space is less than 0, break
-            if (np.all(vy_vn_array == 0)) | (np.any(h_space_array <= 0)):
-                break
+        #     # If there is no NG element or Hoop space is less than 0, break
+        #     if (np.all(vy_vn_array == 0)) | (np.any(h_space_array <= 0)):
+        #         break
     
-            # Reduce Hoop space of NG elements(-10mm every iteration)
-            h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
+        #     # Reduce Hoop space of NG elements(-10mm every iteration)
+        #     h_space_array = np.where(vy_vn_array == 1, h_space_array-10, h_space_array)
             
-            # Input updated Hoop Space to Excel
-            ws_gcol.Range('Y%s:Y%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
-            = [[i] for i in h_space_array]
+        #     # Input updated Hoop Space to Excel
+        #     ws_gcol.Range('Y%s:Y%s' %(startrow, startrow + gcol_output.shape[0]-1)).Value\
+        #     = [[i] for i in h_space_array]
 
     if get_ecol == True:        
         # Insert Result Forces (Nu)
@@ -2788,16 +2788,15 @@ def insert_force(input_xlsx_path, result_xlsx_path, get_gbeam=False
 # Checking Function
 def main() -> None:
     # File Paths
-    input_xlsx_path = r'D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Data Conversion_Ver.3.5_구조심의_240216.xlsx'
-    result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
-    result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
-    result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
+    input_xlsx_path = r'D:\Python\pbd-perform3d\sheets/TEST_Data Conversion_Ver.4.0_240524.xlsx'
+    # result_xlsx_path1 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_DE.xlsx"
+    # result_xlsx_path2 = r"D:/이형우/5_PBSD/용현학익7단지/708D/test/YH-708_Analysis Result_MCE.xlsx"
+    # result_xlsx_path = [result_xlsx_path1, result_xlsx_path2]
     
-    
-    get_wall = True
+    get_cbeam = True
     
     convert_property(input_xlsx_path, get_wall=False, get_cbeam=False
-                         , get_gbeam=False, get_ebeam=False, get_gcol=False, get_ecol=False)
+                         , get_gbeam=False, get_ebeam=False, get_gcol=True, get_ecol=False)
 
 # Execute Testing
 if __name__ == '__main__':
