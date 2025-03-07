@@ -8,7 +8,7 @@ PBD_p3d
 
 
 # Build `.exe` File
-1. 디렉토리가 제대로 설정되어 있는지 확인.
+1. 디렉토리가 제대로 설정되어 있는지 확인. (예시)
 ```cmd
  cd .../user/pbd-perform3d
 ```
