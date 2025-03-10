@@ -38,6 +38,7 @@ pip install -r requirements.txt
 cd .venv/Scripts
 activate
 cd ../..
+```
 
 # Build `.exe` File
 1. 디렉토리가 제대로 설정되어 있는지 확인. (예시)
